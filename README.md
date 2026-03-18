@@ -57,3 +57,66 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# E-Services Management Platform
+
+A web-based platform that digitizes and streamlines public services provided by government offices, municipalities, and administrative entities.
+
+## Tech Stack
+- Laravel 12
+- MySQL
+- Bootstrap
+
+## Local Setup (run these after cloning)
+
+1. Install dependencies
+   composer install
+   npm install
+
+2. Copy the environment file
+   cp .env.example .env
+
+3. Generate app key
+   php artisan key:generate
+
+4. Configure your database in .env
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=eservices_db
+   DB_USERNAME=root
+   DB_PASSWORD=
+
+5. Create the database
+   mysql -u root -p -e "CREATE DATABASE eservices_db;"
+
+6. Run migrations
+   php artisan migrate
+
+7. Link storage
+   php artisan storage:link
+
+8. Start the server
+   php artisan serve
+
+## Branching Strategy
+- main → production ready only, never push directly
+- develop → integration branch, all PRs merge here
+- feature/your-task → create a new branch for every task
+
