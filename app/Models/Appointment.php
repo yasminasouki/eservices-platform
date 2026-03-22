@@ -3,20 +3,21 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Appointment extends Model
 {
     protected $fillable = [
+        'user_id',
+        'government_office_id',
+        'officer_time_slot_id',
+        'service_request_id',
         'status',
         'notes',
         'cancellation_reason',
         'reminder_sent_at',
         'confirmed_at',
         'cancelled_at',
-        'user_id',
-        'government_office_id',
-        'officer_time_slot_id',
-        'service_request_id',
     ];
 
     protected function casts(): array
@@ -28,22 +29,29 @@ class Appointment extends Model
         ];
     }
 
-    public function user()
+    // ──────────────────────────────────────────────
+    // Relationships
+    // ──────────────────────────────────────────────
+
+    /** Citizen who booked this appointment */
+    public function citizen(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function governmentOffice()
+    public function governmentOffice(): BelongsTo
     {
         return $this->belongsTo(GovernmentOffice::class);
     }
 
-    public function timeSlot()
+    /** The specific time slot reserved */
+    public function timeSlot(): BelongsTo
     {
         return $this->belongsTo(OfficerTimeSlot::class, 'officer_time_slot_id');
     }
 
-    public function serviceRequest()
+    /** Linked service request (optional) */
+    public function serviceRequest(): BelongsTo
     {
         return $this->belongsTo(ServiceRequest::class);
     }

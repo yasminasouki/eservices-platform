@@ -3,16 +3,18 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class OfficerTimeSlot extends Model
 {
     protected $fillable = [
+        'government_office_id',
+        'user_id',
         'date',
         'start_time',
         'end_time',
         'is_available',
-        'government_office_id',
-        'user_id',
     ];
 
     protected function casts(): array
@@ -23,17 +25,23 @@ class OfficerTimeSlot extends Model
         ];
     }
 
-    public function governmentOffice()
+    // ──────────────────────────────────────────────
+    // Relationships
+    // ──────────────────────────────────────────────
+
+    public function governmentOffice(): BelongsTo
     {
         return $this->belongsTo(GovernmentOffice::class);
     }
 
-    public function officer()
+    /** The officer assigned to this slot */
+    public function officer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function appointment()
+    /** Appointment that occupies this slot (one-to-one) */
+    public function appointment(): HasOne
     {
         return $this->hasOne(Appointment::class);
     }

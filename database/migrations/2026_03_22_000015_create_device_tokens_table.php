@@ -10,9 +10,11 @@ return new class extends Migration
     {
         Schema::create('device_tokens', function (Blueprint $table) {
             $table->id();
-            $table->string('token')->unique();
-            $table->enum('platform', ['web', 'ios', 'android'])->default('web');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')
+                ->constrained('users')
+                ->cascadeOnDelete();
+            $table->string('token')->unique(); // FCM / APNs / Web-Push token
+            $table->enum('platform', ['web', 'ios', 'android']);
             $table->timestamps();
         });
     }

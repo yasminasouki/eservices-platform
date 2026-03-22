@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Document extends Model
 {
     protected $fillable = [
+        'service_request_id',
+        'user_id',
         'file_path',
         'file_name',
         'mime_type',
@@ -14,16 +17,19 @@ class Document extends Model
         'description',
         'type',
         'uploaded_by',
-        'service_request_id',
-        'user_id',
     ];
 
-    public function serviceRequest()
+    // ──────────────────────────────────────────────
+    // Relationships
+    // ──────────────────────────────────────────────
+
+    public function serviceRequest(): BelongsTo
     {
         return $this->belongsTo(ServiceRequest::class);
     }
 
-    public function uploader()
+    /** User who uploaded this document */
+    public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }

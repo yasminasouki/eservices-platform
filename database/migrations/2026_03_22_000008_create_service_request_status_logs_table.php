@@ -10,12 +10,17 @@ return new class extends Migration
     {
         Schema::create('service_request_status_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('service_request_id')->constrained()->onDelete('cascade');
-            $table->foreignId('changed_by')->constrained('users')->onDelete('cascade');
-            $table->string('from_status')->nullable();
+            $table->foreignId('service_request_id')
+                ->constrained('service_requests')
+                ->cascadeOnDelete();
+            $table->foreignId('changed_by')          // user who changed the status
+                ->constrained('users')
+                ->cascadeOnDelete();
+            $table->string('from_status')->nullable(); // null on first status entry
             $table->string('to_status');
             $table->text('notes')->nullable();
             $table->timestamp('created_at')->useCurrent();
+            // no updated_at — logs are immutable
         });
     }
 

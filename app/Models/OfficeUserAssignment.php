@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OfficeUserAssignment extends Model
 {
@@ -12,12 +13,16 @@ class OfficeUserAssignment extends Model
         'role_in_office',
     ];
 
-    public function governmentOffice()
+    // ──────────────────────────────────────────────
+    // Relationships
+    // ──────────────────────────────────────────────
+
+    public function governmentOffice(): BelongsTo
     {
         return $this->belongsTo(GovernmentOffice::class);
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }

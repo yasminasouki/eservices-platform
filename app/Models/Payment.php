@@ -3,39 +3,45 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Payment extends Model
 {
     protected $fillable = [
+        'service_request_id',
+        'user_id',
         'amount',
-        'method',
-        'status',
         'currency',
         'exchange_rate',
+        'method',
+        'status',
         'transaction_id',
         'crypto_wallet_address',
         'gateway_response',
         'paid_at',
-        'service_request_id',
-        'user_id',
     ];
 
     protected function casts(): array
     {
         return [
             'amount'           => 'decimal:2',
-            'exchange_rate'    => 'decimal:8',
-            'paid_at'          => 'datetime',
+            'exchange_rate'    => 'decimal:6',
             'gateway_response' => 'array',
+            'paid_at'          => 'datetime',
         ];
     }
 
-    public function serviceRequest()
+    // ──────────────────────────────────────────────
+    // Relationships
+    // ──────────────────────────────────────────────
+
+    public function serviceRequest(): BelongsTo
     {
         return $this->belongsTo(ServiceRequest::class);
     }
 
-    public function user()
+    /** Citizen who made the payment */
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }

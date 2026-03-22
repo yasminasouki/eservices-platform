@@ -10,12 +10,17 @@ return new class extends Migration
     {
         Schema::create('officer_time_slots', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('government_office_id')
+                ->constrained('government_offices')
+                ->cascadeOnDelete();
+            $table->foreignId('user_id')         // the assigned officer (office_user)
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
             $table->date('date');
             $table->time('start_time');
             $table->time('end_time');
             $table->boolean('is_available')->default(true);
-            $table->foreignId('government_office_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }

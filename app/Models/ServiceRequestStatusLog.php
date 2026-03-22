@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ServiceRequestStatusLog extends Model
 {
+    // Logs are immutable; only created_at is tracked
     public $timestamps = false;
 
     protected $fillable = [
@@ -14,7 +16,6 @@ class ServiceRequestStatusLog extends Model
         'from_status',
         'to_status',
         'notes',
-        'created_at',
     ];
 
     protected function casts(): array
@@ -24,12 +25,17 @@ class ServiceRequestStatusLog extends Model
         ];
     }
 
-    public function serviceRequest()
+    // ──────────────────────────────────────────────
+    // Relationships
+    // ──────────────────────────────────────────────
+
+    public function serviceRequest(): BelongsTo
     {
         return $this->belongsTo(ServiceRequest::class);
     }
 
-    public function changedBy()
+    /** User who triggered the status change */
+    public function changedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'changed_by');
     }
