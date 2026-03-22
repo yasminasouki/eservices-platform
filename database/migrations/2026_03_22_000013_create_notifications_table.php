@@ -10,15 +10,20 @@ return new class extends Migration
     {
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
-            $table->string('title')->nullable();
-            $table->string('message');
+            $table->foreignId('user_id')
+                ->constrained('users')
+                ->cascadeOnDelete();
+            $table->foreignId('service_request_id')
+                ->nullable()
+                ->constrained('service_requests')
+                ->nullOnDelete();
+            $table->string('title');
+            $table->text('message');
             $table->enum('type', ['info', 'success', 'warning', 'error'])->default('info');
             $table->enum('channel', ['in_app', 'email', 'sms', 'push'])->default('in_app');
-            $table->string('action_url')->nullable();
+            $table->string('action_url')->nullable(); // deep-link or web URL on click
             $table->boolean('is_read')->default(false);
             $table->timestamp('read_at')->nullable();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('service_request_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }

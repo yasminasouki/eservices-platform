@@ -3,41 +3,47 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Service extends Model
 {
     protected $fillable = [
         'name',
-        'service_category_id',
+        'description',
         'price',
         'duration',
         'duration_unit',
         'required_documents',
-        'description',
         'is_active',
+        'service_category_id',
         'government_office_id',
     ];
 
     protected function casts(): array
     {
         return [
-            'required_documents' => 'array',
             'price'              => 'decimal:2',
+            'required_documents' => 'array',
             'is_active'          => 'boolean',
         ];
     }
 
-    public function category()
+    // ──────────────────────────────────────────────
+    // Relationships
+    // ──────────────────────────────────────────────
+
+    public function category(): BelongsTo
     {
         return $this->belongsTo(ServiceCategory::class, 'service_category_id');
     }
 
-    public function governmentOffice()
+    public function governmentOffice(): BelongsTo
     {
         return $this->belongsTo(GovernmentOffice::class);
     }
 
-    public function serviceRequests()
+    public function serviceRequests(): HasMany
     {
         return $this->hasMany(ServiceRequest::class);
     }

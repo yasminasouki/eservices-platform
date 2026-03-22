@@ -1,0 +1,35 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('services', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->decimal('price', 10, 2)->default(0.00);
+            $table->unsignedInteger('duration')->nullable();
+            $table->enum('duration_unit', ['minutes', 'hours', 'days'])->default('days');
+            // JSON array of required document names: ["National ID", "Proof of Residence"]
+            $table->json('required_documents')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->foreignId('service_category_id')
+                ->constrained('service_categories')
+                ->cascadeOnDelete();
+            $table->foreignId('government_office_id')
+                ->constrained('government_offices')
+                ->cascadeOnDelete();
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('services');
+    }
+};

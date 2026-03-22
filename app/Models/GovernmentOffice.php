@@ -3,6 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class GovernmentOffice extends Model
 {
@@ -10,15 +14,15 @@ class GovernmentOffice extends Model
         'name',
         'address',
         'email',
+        'phone',
         'website',
-        'maps_location',
+        'google_maps_url',
         'latitude',
         'longitude',
         'working_hours',
         'contact_info',
         'is_active',
         'municipality_id',
-        'user_id',
     ];
 
     protected function casts(): array
@@ -26,56 +30,97 @@ class GovernmentOffice extends Model
         return [
             'working_hours' => 'array',
             'contact_info'  => 'array',
-            'latitude'      => 'decimal:7',
-            'longitude'     => 'decimal:7',
+            'latitude'      => 'float',
+            'longitude'     => 'float',
             'is_active'     => 'boolean',
         ];
     }
 
-    public function municipality()
+    // ──────────────────────────────────────────────
+    // Relationships
+    // ──────────────────────────────────────────────
+
+    /** Municipality this office belongs to */
+    public function municipality(): BelongsTo
     {
         return $this->belongsTo(Municipality::class);
     }
 
-    public function owner()
+    /** Staff members assigned to this office (via pivot) */
+    public function staff(): BelongsToMany
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsToMany(
+            User::class,
+            'office_user_assignments'
+        )->withPivot('role_in_office')->withTimestamps();
     }
 
-    public function assignedUsers()
+    /** Assignment records for this office */
+    public function officeUserAssignments(): HasMany
     {
-        return $this->belongsToMany(User::class, 'office_user_assignments')
-                    ->withPivot('role_in_office')
-                    ->withTimestamps();
+        return $this->hasMany(OfficeUserAssignment::class);
     }
 
-    public function serviceCategories()
+    /** Service categories offered by this office */
+    public function serviceCategories(): HasMany
     {
         return $this->hasMany(ServiceCategory::class);
     }
 
-    public function services()
+    /** Services offered by this office */
+    public function services(): HasMany
     {
         return $this->hasMany(Service::class);
     }
 
-    public function serviceRequests()
+    /** All service requests directed to this office */
+    public function serviceRequests(): HasMany
     {
         return $this->hasMany(ServiceRequest::class);
     }
 
-    public function appointments()
-    {
-        return $this->hasMany(Appointment::class);
-    }
-
-    public function officerTimeSlots()
+    /** Officer time slots defined for this office */
+    public function timeSlots(): HasMany
     {
         return $this->hasMany(OfficerTimeSlot::class);
     }
 
-    public function feedback()
+    /** Appointments booked at this office */
+    public function appointments(): HasMany
+    {
+        return $this->hasMany(Appointment::class);
+    }
+
+    /** Feedback submitted about this office */
+    public function feedback(): HasMany
     {
         return $this->hasMany(Feedback::class);
+    }
+
+    /**
+     * All payments received by this office (through service requests).
+     * Used for: revenue reports per office (Admin requirement).
+     */
+    public function payments(): HasManyThrough
+    {
+        return $this->hasManyThrough(Payment::class, ServiceRequest::class);
+    }
+
+    /**
+     * All documents attached to this office's requests (through service requests).
+     * Used for: office document management view.
+     */
+    public function documents(): HasManyThrough
+    {
+        return $this->hasManyThrough(Document::class, ServiceRequest::class);
+    }
+
+    /**
+     * All chat messages in the context of this office's requests (through service requests).
+     * Used for: Chat & Support — office message inbox view.
+     */
+    public function messages(): HasManyThrough
+    {
+        return $this->hasManyThrough(Message::class, ServiceRequest::class);
     }
 }

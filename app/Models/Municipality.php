@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Municipality extends Model
 {
@@ -12,12 +14,18 @@ class Municipality extends Model
         'admin_user_id',
     ];
 
-    public function admin()
+    // ──────────────────────────────────────────────
+    // Relationships
+    // ──────────────────────────────────────────────
+
+    /** Admin user who manages this municipality */
+    public function admin(): BelongsTo
     {
         return $this->belongsTo(User::class, 'admin_user_id');
     }
 
-    public function governmentOffices()
+    /** Government offices that belong to this municipality */
+    public function governmentOffices(): HasMany
     {
         return $this->hasMany(GovernmentOffice::class);
     }
