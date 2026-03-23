@@ -89,6 +89,14 @@ A web-based platform that digitizes and streamlines public services provided by 
    composer install
    npm install
 
+   # The following packages are already included in composer.json and will be
+   # installed automatically by `composer install`. No need to run them manually.
+   # They are listed here for reference only:
+   #
+   #   composer require laravel/socialite       → Google & Facebook social login
+   #   composer require pragmarx/google2fa      → Two-factor authentication (TOTP)
+   #   composer require bacon/bacon-qr-code     → QR code generation for 2FA setup
+
 2. Copy the environment file
    cp .env.example .env
 
