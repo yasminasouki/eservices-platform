@@ -75,6 +75,10 @@
             Don't have an account?
             <a href="{{ route('register') }}" class="text-decoration-none fw-semibold text-primary">Create one</a>
         </p>
+        <p class="text-center mt-2 mb-0 small text-muted">
+            Admin access?
+            <a href="{{ route('admin.login') }}" class="text-decoration-none fw-semibold text-primary">Admin Login</a>
+        </p>
     </form>
 
     @push('scripts')

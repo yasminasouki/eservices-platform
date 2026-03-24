@@ -123,6 +123,16 @@ A web-based platform that digitizes and streamlines public services provided by 
 8. Start the server
    php artisan serve
 
+9. Seed default data (includes first admin account)
+   php artisan db:seed
+
+## Seeded Admin Login
+- Admin portal: `/admin/login`
+- Email: `admin@eservices.gov`
+- Password: `Admin@12345`
+- **First sign-in:** you are redirected to **2FA setup** (scan the QR code in an authenticator app and confirm with a 6-digit code). The seeded account has no TOTP configured until you finish this step.
+- **Later sign-ins:** after email/password, you must enter a **6-digit TOTP** (or a recovery code) once per browser session before the admin area loads.
+
 ## Branching Strategy
 - main → production ready only, never push directly
 - develop → integration branch, all PRs merge here

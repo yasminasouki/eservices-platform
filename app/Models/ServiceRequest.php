@@ -9,6 +9,16 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class ServiceRequest extends Model
 {
+    /** Values must match `service_requests.status` enum in migrations. */
+    public const STATUSES = [
+        'pending',
+        'in_review',
+        'missing_documents',
+        'approved',
+        'rejected',
+        'completed',
+    ];
+
     protected $fillable = [
         'user_id',
         'service_id',
