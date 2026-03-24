@@ -4,6 +4,11 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\SocialAuthController;
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\GovernmentOfficeController;
+use App\Http\Controllers\Admin\AdminReportsController;
+use App\Http\Controllers\Admin\AdminServiceOperationsController;
+use App\Http\Controllers\Admin\AdminUserManagementController;
 use Illuminate\Support\Facades\Route;
 
 // ── Root ──────────────────────────────────────────────────────────────────────
@@ -17,6 +22,8 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
+    Route::get('/admin/login', [AuthController::class, 'showAdminLoginForm'])->name('admin.login');
+    Route::post('/admin/login', [AuthController::class, 'adminLogin'])->name('admin.login.attempt');
 
     // Social Login
     Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirect'])->name('social.redirect');
@@ -50,7 +57,29 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::middleware(['verified', '2fa'])->group(function () {
 
         Route::middleware('role:admin')->group(function () {
-            Route::get('/admin/dashboard', fn() => view('dashboards.admin'))->name('admin.dashboard');
+            Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+            Route::resource('/admin/offices', GovernmentOfficeController::class)
+                ->except(['show'])
+                ->parameters(['offices' => 'office'])
+                ->names('admin.offices');
+
+            Route::get('/admin/office-users', [AdminUserManagementController::class, 'officeUsersIndex'])
+                ->name('admin.office-users.index');
+            Route::post('/admin/office-users', [AdminUserManagementController::class, 'officeUsersStore'])
+                ->name('admin.office-users.store');
+            Route::patch('/admin/office-users/{user}/toggle-active', [AdminUserManagementController::class, 'officeUsersToggleActive'])
+                ->name('admin.office-users.toggle-active');
+
+            Route::get('/admin/citizens', [AdminUserManagementController::class, 'citizensIndex'])
+                ->name('admin.citizens.index');
+            Route::patch('/admin/citizens/{user}/toggle-active', [AdminUserManagementController::class, 'citizensToggleActive'])
+                ->name('admin.citizens.toggle-active');
+
+            Route::get('/admin/service-requests', [AdminServiceOperationsController::class, 'index'])
+                ->name('admin.service-requests.index');
+
+            Route::get('/admin/reports', [AdminReportsController::class, 'index'])
+                ->name('admin.reports.index');
         });
 
         Route::middleware('role:office_user')->group(function () {

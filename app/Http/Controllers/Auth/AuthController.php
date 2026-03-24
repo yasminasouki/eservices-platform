@@ -72,7 +72,22 @@ class AuthController extends Controller
         return view('auth.login');
     }
 
+    public function showAdminLoginForm()
+    {
+        return view('auth.admin-login');
+    }
+
     public function login(Request $request)
+    {
+        return $this->authenticateAndLogin($request);
+    }
+
+    public function adminLogin(Request $request)
+    {
+        return $this->authenticateAndLogin($request, 'admin');
+    }
+
+    private function authenticateAndLogin(Request $request, ?string $requiredRole = null)
     {
         $request->validate([
             'email'    => ['required', 'email'],
@@ -84,6 +99,21 @@ class AuthController extends Controller
         if (!$user || !Hash::check($request->password, $user->password)) {
             return back()
                 ->withErrors(['email' => 'These credentials do not match our records.'])
+                ->withInput($request->only('email'));
+        }
+
+        // Citizen/office portal: administrators must use /admin/login only
+        if ($requiredRole === null && $user->role === 'admin') {
+            return back()
+                ->withErrors([
+                    'email' => 'Administrator accounts must sign in at the admin portal.',
+                ])
+                ->withInput($request->only('email'));
+        }
+
+        if ($requiredRole !== null && $user->role !== $requiredRole) {
+            return back()
+                ->withErrors(['email' => 'This portal is restricted to administrators only.'])
                 ->withInput($request->only('email'));
         }
 
@@ -102,8 +132,12 @@ class AuthController extends Controller
             return redirect()->route('2fa.verify');
         }
 
-        // Office users without 2FA must set it up before accessing the system
-        if ($user->isOfficeUser() && !$user->two_factor_secret) {
+        // Municipality users and admins: provision TOTP on first login (citizens get this at registration).
+        if (
+            !$user->social_provider
+            && ($user->isOfficeUser() || $user->role === 'admin')
+            && !$user->two_factor_secret
+        ) {
             $secret = $this->google2fa->generateSecretKey();
             $user->forceFill([
                 'two_factor_secret'         => encrypt($secret),
@@ -121,11 +155,14 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        $wasAdmin = $request->user()?->role === 'admin';
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login')
+        return redirect()
+            ->route($wasAdmin ? 'admin.login' : 'login')
             ->with('success', 'You have been logged out successfully.');
     }
 
