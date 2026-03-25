@@ -71,24 +71,6 @@
             </div>
         </div>
 
-        <div class="mb-4">
-            <label for="id_document" class="form-label">
-                National ID / Passport
-                <span class="badge bg-warning text-dark ms-1 fw-normal">Required</span>
-            </label>
-            <input type="file" id="id_document" name="id_document"
-                   class="form-control @error('id_document') is-invalid @enderror"
-                   accept=".jpg,.jpeg,.png,.pdf" required>
-            <div class="form-text">
-                <i class="bi bi-info-circle me-1"></i>
-                Upload a clear photo or scan of your national ID. Accepted: JPG, PNG, PDF (max 5 MB).
-                Your document will be reviewed for identity verification.
-            </div>
-            @error('id_document')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-        </div>
-
         <button type="submit" class="btn btn-primary w-100 mb-3">
             <i class="bi bi-person-plus me-2"></i>Create Account
         </button>

@@ -36,4 +36,10 @@ return [
         'redirect'      => env('FACEBOOK_REDIRECT_URI', '/auth/facebook/callback'),
     ],
 
+
+    'ocr_space' => [
+        'key' => env('OCR_SPACE_API_KEY'),
+        'url' => 'https://api.ocr.space/parse/image',
+    ],
+
 ];

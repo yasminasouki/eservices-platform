@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Services\IdVerificationService;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
@@ -27,19 +26,14 @@ class AuthController extends Controller
         return view('auth.register');
     }
 
-    public function register(Request $request, IdVerificationService $idService)
+    public function register(Request $request)
     {
         $request->validate([
-            'name'        => ['required', 'string', 'max:255'],
-            'email'       => ['required', 'email', 'unique:users,email'],
-            'phone'       => ['required', 'string', 'max:20'],
-            'password'    => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()],
-            'id_document' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            'name'     => ['required', 'string', 'max:255'],
+            'email'    => ['required', 'email', 'unique:users,email'],
+            'phone'    => ['required', 'string', 'max:20'],
+            'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()],
         ]);
-
-        $idPath = $request->file('id_document')->store('id_documents', 'local');
-
-        $idService->submitForVerification($idPath);
 
         $user = User::create([
             'name'               => $request->name,
@@ -47,7 +41,6 @@ class AuthController extends Controller
             'phone'              => $request->phone,
             'password'           => $request->password,
             'role'               => 'citizen',
-            'id_document'        => $idPath,
             'id_document_status' => 'pending',
             'is_active'          => true,
         ]);
@@ -237,7 +230,7 @@ class AuthController extends Controller
         $code   = preg_replace('/\s+/', '', $request->code);
 
         $valid = strlen($code) === 6
-            ? $this->google2fa->verifyKey($secret, $code)
+            ? $this->google2fa->verifyKey($secret, $code, 1)
             : $this->verifyRecoveryCode($user, $code);
 
         if (!$valid) {
@@ -253,6 +246,10 @@ class AuthController extends Controller
 
     private function redirectToDashboard(User $user)
     {
+        if ($user->role === 'citizen' && is_null($user->id_document)) {
+            return redirect()->route('citizen.id.verify');
+        }
+
         return redirect()->route($this->getDashboardRoute($user));
     }
 

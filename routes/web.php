@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\GovernmentOfficeController;
 use App\Http\Controllers\Admin\AdminReportsController;
+use App\Http\Controllers\Citizen\IdVerificationController;
 use App\Http\Controllers\Admin\AdminServiceOperationsController;
 use App\Http\Controllers\Admin\AdminUserManagementController;
 use Illuminate\Support\Facades\Route;
@@ -88,6 +89,9 @@ Route::middleware(['auth', 'active'])->group(function () {
 
         Route::middleware('role:citizen')->group(function () {
             Route::get('/citizen/dashboard', fn() => view('dashboards.citizen'))->name('citizen.dashboard');
+            Route::get('/citizen/id-verify', [IdVerificationController::class, 'show'])->name('citizen.id.verify');
+            Route::post('/citizen/id-verify', [IdVerificationController::class, 'upload'])->name('citizen.id.upload');
+            Route::post('/citizen/id-save', [IdVerificationController::class, 'save'])->name('citizen.id.save');
         });
     });
 });
