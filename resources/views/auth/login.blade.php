@@ -3,7 +3,7 @@
 @section('subtitle', 'Sign in to your account')
 
 @section('content')
-    <form method="POST" action="{{ route('login') }}">
+    <form method="POST" action="{{ route('login') }}" autocomplete="off">
         @csrf
 
         <div class="mb-3">
@@ -12,7 +12,8 @@
                 <span class="input-group-text"><i class="bi bi-envelope"></i></span>
                 <input type="email" id="email" name="email"
                        class="form-control @error('email') is-invalid @enderror"
-                       value="{{ old('email') }}" placeholder="you@example.com" required autofocus>
+                       value="{{ old('email') }}" placeholder="you@example.com" required autofocus
+                       autocomplete="off" readonly onfocus="this.removeAttribute('readonly')">
                 @error('email')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -25,7 +26,8 @@
                 <span class="input-group-text"><i class="bi bi-lock"></i></span>
                 <input type="password" id="password" name="password"
                        class="form-control @error('password') is-invalid @enderror"
-                       placeholder="••••••••" required>
+                       placeholder="••••••••" required
+                       autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly')">
                 <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                     <i class="bi bi-eye" id="eyeIcon"></i>
                 </button>

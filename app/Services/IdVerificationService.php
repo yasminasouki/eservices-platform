@@ -10,32 +10,71 @@ use Illuminate\Support\Facades\Storage;
 class IdVerificationService
 {
     /**
-     * Submit an uploaded ID document for OCR verification via OCR.space.
+     * Submit front and back ID documents for OCR verification.
      *
-     * Sends the document to the OCR.space API, parses the returned text to
-     * extract name / date-of-birth / ID number, persists an
-     * IdVerificationRequest record, and returns the extracted data.
-     *
-     * @return array{extracted_name: string|null, extracted_dob: string|null, extracted_id_number: string|null, status: string}
+     * Sends both sides to OCR.space, merges all extracted fields,
+     * persists an IdVerificationRequest record, and returns the data.
      */
-    public function submitForVerification(string $documentPath): array
+    public function submitForVerification(string $frontPath, string $backPath): array
+    {
+        [$frontText, $frontResponse] = $this->ocr($frontPath);
+        [$backText,  $backResponse]  = $this->ocr($backPath);
+
+        $extracted = $this->parseIdText($frontText, $backText);
+
+        IdVerificationRequest::create([
+            'user_id'                   => auth()->id(),
+            'id_document_path'          => $frontPath,
+            'id_document_back_path'     => $backPath,
+            'api_provider'              => 'ocr_space',
+            'api_response'              => $frontResponse,
+            'api_response_back'         => $backResponse,
+            'extracted_name'            => $extracted['extracted_name'],
+            'extracted_father_name'     => $extracted['extracted_father_name'],
+            'extracted_mother_name'     => $extracted['extracted_mother_name'],
+            'extracted_place_of_birth'  => $extracted['extracted_place_of_birth'],
+            'extracted_gender'          => $extracted['extracted_gender'],
+            'extracted_dob'             => $extracted['extracted_dob'],
+            'extracted_id_number'       => $extracted['extracted_id_number'],
+            'extracted_registry_number' => $extracted['extracted_registry_number'],
+            'extracted_issue_date'      => $extracted['extracted_issue_date'],
+            'extracted_expiry_date'     => $extracted['extracted_expiry_date'],
+            'extracted_blood_type'      => $extracted['extracted_blood_type'],
+            'extracted_marital_status'  => $extracted['extracted_marital_status'],
+            'extracted_locality'        => $extracted['extracted_locality'],
+            'extracted_governorate'     => $extracted['extracted_governorate'],
+            'extracted_district'        => $extracted['extracted_district'],
+            'status'                    => 'pending',
+        ]);
+
+        Log::info('ID verification submitted via OCR.space (front + back).', [
+            'front_path' => $frontPath,
+            'back_path'  => $backPath,
+            'extracted'  => $extracted,
+        ]);
+
+        return array_merge($extracted, ['status' => 'pending']);
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // Private helpers
+    // ──────────────────────────────────────────────────────────────
+
+    /**
+     * Call OCR.space for a single document and return [parsedText, rawResponse].
+     */
+    private function ocr(string $documentPath): array
     {
         $absolutePath = Storage::path($documentPath);
 
-        $response = Http::asMultipart()
+        $response = Http::timeout(60)->asMultipart()
             ->post(config('services.ocr_space.url'), [
-                [
-                    'name'     => 'apikey',
-                    'contents' => config('services.ocr_space.key'),
-                ],
-                [
-                    'name'     => 'language',
-                    'contents' => 'ara',
-                ],
-                [
-                    'name'     => 'isOverlayRequired',
-                    'contents' => 'false',
-                ],
+                ['name' => 'apikey',             'contents' => config('services.ocr_space.key')],
+                ['name' => 'language',           'contents' => 'ara'],
+                ['name' => 'isOverlayRequired',  'contents' => 'false'],
+                ['name' => 'OCREngine',          'contents' => '1'],
+                ['name' => 'scale',              'contents' => 'true'],
+                ['name' => 'detectOrientation',  'contents' => 'true'],
                 [
                     'name'     => 'file',
                     'contents' => fopen($absolutePath, 'r'),
@@ -56,86 +95,233 @@ class IdVerificationService
             ]);
         }
 
-        $extracted = $this->parseIdText($parsedText);
-
-        IdVerificationRequest::create([
-            'user_id'              => auth()->id(),
-            'id_document_path'     => $documentPath,
-            'api_provider'         => 'ocr_space',
-            'api_response'         => $responseData,
-            'extracted_name'       => $extracted['extracted_name'],
-            'extracted_dob'        => $extracted['extracted_dob'],
-            'extracted_id_number'  => $extracted['extracted_id_number'],
-            'status'               => 'pending',
-        ]);
-
-        Log::info('ID verification submitted via OCR.space, awaiting admin review.', [
-            'document_path' => $documentPath,
-            'extracted'     => $extracted,
-        ]);
-
-        return array_merge($extracted, ['status' => 'pending']);
+        return [$parsedText, $responseData];
     }
 
     /**
-     * Parse raw OCR text from a Lebanese Arabic national ID.
+     * Parse OCR text from both sides of a Lebanese Arabic national ID.
      *
-     * Looks for RTL-labelled fields produced by the Arabic OCR pass:
-     *   الاسم :      → first name
-     *   الشهرة :     → last name
-     *   تاريخ الولادة : → date of birth (Arabic-Indic numerals)
-     *   A standalone numeric sequence (≥ 6 digits) → ID number
+     * Front fields extracted:
+     *   الاسم          → first name
+     *   الشهرة         → last name
+     *   اسم الأب       → father's name
+     *   اسم الأم       → mother's name
+     *   تاريخ الولادة  → date of birth
+     *   مكان الولادة   → place of birth (locality)
+     *   الجنس          → gender
+     *   فصيلة الدم     → blood type
+     *   الحالة الاجتماعية → marital status
      *
-     * Arabic-Indic digits (٠١٢٣٤٥٦٧٨٩) are normalised to Western digits.
-     *
-     * @return array{extracted_name: string|null, extracted_dob: string|null, extracted_id_number: string|null}
+     * Back fields extracted:
+     *   الرقم          → ID number (numeric block ≥ 6 digits)
+     *   رقم السجل      → registry number
+     *   القضاء         → district
+     *   المحافظة       → governorate
+     *   البلدة / البلد → locality / town
+     *   تاريخ الإصدار  → issue date
+     *   تاريخ الانتهاء → expiry date
      */
-    private function parseIdText(string $text): array
+    /**
+     * Parse OCR text from both sides of a Lebanese Arabic national ID.
+     *
+     * Patterns are written to tolerate common OCR noise on Lebanese IDs:
+     *  - Colons `:` OCR'd as periods `.`
+     *  - Hamza dropped:  الأب → الاب,  الأم → الام
+     *  - Label garbling: تاريخ → ربح,  المحافظة → اتحافطة, etc.
+     *  - Arabic-Indic digits mixed with Latin digits
+     */
+    private function parseIdText(string $frontText, string $backText): array
     {
-        $firstName = null;
-        $lastName  = null;
-        $dob       = null;
-        $idNumber  = null;
-
-        // Arabic-Indic → Western digit map
-        $arabicIndic = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
-        $western     = ['0','1','2','3','4','5','6','7','8','9'];
-
+        $arabicIndic     = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+        $western         = ['0','1','2','3','4','5','6','7','8','9'];
         $normaliseDigits = static fn(string $s): string => str_replace($arabicIndic, $western, $s);
+        // Collapse inner whitespace to single space
+        $collapse = static fn(string $s): string => trim(preg_replace('/\s+/', ' ', $s));
 
-        // Arabic digit class for regex (covers both Unicode blocks)
-        $ad = '٠-٩0-9';
+        // ── FRONT SIDE ────────────────────────────────────────────────────────
 
-        // ── First name: الاسم ──────────────────────────────────────────────
-        if (preg_match('/الاسم\s+([\p{Arabic}]+)/u', $text, $m)) {
-            $firstName = trim($m[1]);
+        // First name: الاسم (OCR sometimes gives الاسه)
+        $firstName = $this->match('/الاس[مه]\s*[.:]\s*([\p{Arabic}]+)/u', $frontText);
+
+        // Last name: الشهرة
+        $lastName = $this->match('/الشهرة\s*[.:]\s*([\p{Arabic}]+)/u', $frontText);
+
+        // Father name: اسم الاب (no hamza in OCR output)
+        $fatherName = $this->match('/اسم\s+الا[بأ]\s*[.:]\s*([\p{Arabic}]+)/u', $frontText);
+
+        // Mother name + surname: اسم الام وشهرتها (OCR: الاد وشهرق...<value> with no clean separator)
+        $motherName = null;
+        if (preg_match('/(?:اسم\s+الا[مد]|الا[مدظ])\s*(?:وشهر\S+)\s*[.:،]?\s*([\p{Arabic}][^\n]+)/u', $frontText, $m)) {
+            $motherName = $collapse($m[1]);
+        } elseif (preg_match('/(?:اسم\s+الا[مد])\s*[.:،]\s*([\p{Arabic}][^\n]+)/u', $frontText, $m)) {
+            $motherName = $collapse($m[1]);
         }
 
-        // ── Last name: الشهرة ──────────────────────────────────────────────
-        if (preg_match('/الشهرة\s+([\p{Arabic}]+)/u', $text, $m)) {
-            $lastName = trim($m[1]);
+        // Place of birth: محل الولادة
+        $placeOfBirth = null;
+        if (preg_match('/محل\s+الولادة\s*[.:]\s*([\p{Arabic}\s]+)/u', $frontText, $m)) {
+            // First word/phrase only (stop at newline)
+            $placeOfBirth = $collapse(explode("\n", $m[1])[0]);
         }
 
-        // ── Date of birth: تاريخ الولادة ────────────────────────────────────
-        // Accepts Arabic-Indic or Western digits, separated by / or .
-        if (preg_match('/تاريخ\s+الولادة\s+([\p{Arabic}٠-٩0-9\.\/]+)/u', $text, $m)) {
-            $dob = $normaliseDigits(trim($m[1]));
+        // Date of birth: تاريخ الولادة (OCR: ربح الولا دة) — stop at newline
+        $dob = null;
+        if (preg_match('/(?:تاريخ|ربح|تار[يب]خ)\s+الولا\s*دة\s*[.:،]?\s*([٠-٩0-9 .\/\-]+)/u', $frontText, $m)) {
+            $raw = preg_replace('/\s+/', '', $m[1]); // strip inner spaces within digits
+            $dob = $normaliseDigits($raw) ?: null;
         }
 
-        // ── ID number: standalone numeric block (≥ 6 digits, near page bottom) ─
-        // Lebanese IDs carry a pure-digit sequence; try Western then Arabic-Indic
-        if (preg_match('/\b(\d{6,12})\b/', $text, $m)) {
-            $idNumber = $m[1];
-        } elseif (preg_match('/([٠-٩]{6,12})/u', $text, $m)) {
+        // ID number: large Arabic-Indic digit block on front (≥ 8 digits)
+        $idNumber = null;
+        if (preg_match('/([٠-٩]{6,15})/u', $frontText, $m)) {
             $idNumber = $normaliseDigits($m[1]);
+        } elseif (preg_match('/\b(\d{6,15})\b/', $frontText, $m)) {
+            $idNumber = $m[1];
         }
 
-        $name = implode(' ', array_filter([$firstName, $lastName])) ?: null;
+        // ── BACK SIDE ─────────────────────────────────────────────────────────
+
+        // Gender: الجنس (OCR: الجنس. النى)
+        $gender = $this->match('/الجنس\s*[.:]\s*([\p{Arabic}]+)/u', $backText);
+
+        // Marital status: الوضع العائلي (may span two lines: "متأهلة من\nعزام السوقي")
+        $marital = null;
+        if (preg_match('/الوضع\s+العائل[يى]\s+([\p{Arabic}\s]+)/u', $backText, $m)) {
+            $lines = array_map('trim', explode("\n", trim($m[1])));
+            // Take up to 2 lines (name of spouse is on the second line)
+            $marital = $collapse(implode(' ', array_filter(array_slice($lines, 0, 2))));
+        }
+
+        // Blood type: فئة الدم (OCR: فئة الدم: بA — extracts Latin letters + +/-)
+        $bloodType = null;
+        if (preg_match('/فئة\s+الدم\s*[.:]\s*([^\n]+)/u', $backText, $m)) {
+            $raw = $m[1];
+            // Find ABO type
+            preg_match('/\b(AB|A|B|O)\b/i', $raw, $t);
+            $type = isset($t[1]) ? strtoupper($t[1]) : (preg_match('/[A-Z]/i', $raw, $t2) ? strtoupper($t2[0]) : '');
+            $rh   = preg_match('/[+\-]/', $raw, $r) ? $r[0] : '';
+            $bloodType = ($type . $rh) ?: null;
+        }
+
+        // Issue date: تاريخ الإصدار (OCR: تاربخ الاصدار: — value often garbled)
+        // Also try the first digit-slash sequence at the very top of back text
+        $issueDate = null;
+        if (preg_match('/(?:تاريخ|تاربخ)\s+(?:الإصدار|الاصدار)\s*[.:،]?\s*([\p{Arabic}٠-٩0-9\s.\/\-]+)/u', $backText, $m)) {
+            $raw = $normaliseDigits(preg_replace('/\s+/', '', $m[1]));
+            if (strlen(preg_replace('/\D/', '', $raw)) >= 6) {
+                $issueDate = $raw;
+            }
+        }
+        if (! $issueDate) {
+            // Fallback: first Arabic-Indic date at top of back (e.g. "٢/٠٥/١ ٢ ٠ ٢")
+            $firstLine = explode("\n", trim($backText))[0] ?? '';
+            if (preg_match('/([٠-٩][٠-٩\/\s]{4,}[٠-٩])/u', $firstLine, $m)) {
+                $raw = $normaliseDigits(preg_replace('/\s+/', '', $m[1]));
+                if (strlen(preg_replace('/\D/', '', $raw)) >= 6) {
+                    $issueDate = $raw;
+                }
+            }
+        }
+
+        // Registry number: رقم السجل (OCR: رق الجل. ٣٣٦)
+        $registryNumber = null;
+        if (preg_match('/(?:رقم?|ر[قف])\s*(?:الس?جل?|الج[لن])\s*[.:،]?\s*([\p{Arabic}٠-٩0-9]+)/u', $backText, $m)) {
+            $registryNumber = $normaliseDigits(trim($m[1]));
+        }
+
+        // Locality: المحلة أو القرية (OCR: اتخلة أو القة)
+        $locality = null;
+        if (preg_match('/(?:المحل[ةه]|اتخلة)\s+(?:أو|او)\s+(?:القرية|الق[ةه])\s*[.:،]?\s*([\p{Arabic}\s]+)/u', $backText, $m)) {
+            $locality = $collapse(explode("\n", $m[1])[0]);
+        }
+
+        // Governorate: المحافظة (OCR: اتحافطة)
+        $governorate = null;
+        if (preg_match('/(?:المحافظة|اتحافطة|المحاف[ظط]ة)\s*[.:،]?\s*([\p{Arabic}\s]+)/u', $backText, $m)) {
+            $governorate = $collapse(explode("\n", $m[1])[0]);
+        }
+
+        // District: القضاء
+        $district = null;
+        if (preg_match('/القضاء\s*[.:،]?\s*([\p{Arabic}]+)/u', $backText, $m)) {
+            $district = trim($m[1]);
+        }
+
+        $fullName = implode(' ', array_filter([$firstName, $lastName])) ?: null;
 
         return [
-            'extracted_name'      => $name,
-            'extracted_dob'       => $dob,
-            'extracted_id_number' => $idNumber,
+            'extracted_name'            => $fullName,
+            'extracted_father_name'     => $fatherName,
+            'extracted_mother_name'     => $motherName,
+            'extracted_place_of_birth'  => $placeOfBirth,
+            'extracted_gender'          => $gender,
+            'extracted_dob'             => $this->reconstructDate($dob),
+            'extracted_id_number'       => $idNumber,
+            'extracted_registry_number' => $registryNumber,
+            'extracted_issue_date'      => $this->reconstructDate($issueDate),
+            'extracted_expiry_date'     => null, // not present on Lebanese IDs
+            'extracted_blood_type'      => $bloodType,
+            'extracted_marital_status'  => $marital,
+            'extracted_locality'        => $locality,
+            'extracted_governorate'     => $governorate,
+            'extracted_district'        => $district,
         ];
+    }
+
+    /**
+     * Try to reconstruct a valid Y-m-d date from a garbled OCR digit string.
+     * Handles RTL OCR noise where year/month/day may be out of order.
+     * Returns null if a valid date cannot be determined.
+     */
+    private function reconstructDate(?string $raw): ?string
+    {
+        if (! $raw) return null;
+
+        // Keep only digits and separators
+        $cleaned = preg_replace('/[^\d\/.\-]/', '', $raw);
+        $parts   = array_filter(preg_split('/[\/.\-]/', $cleaned));
+
+        $year = null;
+        $rest = [];
+
+        foreach ($parts as $part) {
+            // Extract 4-digit year from within potentially garbled part (e.g. "19811")
+            if (preg_match('/((?:19|20)\d{2})/', $part, $y)) {
+                $year = $y[1];
+                $rem  = str_replace($year, '', $part);
+                if (strlen($rem) > 1) $rest[] = $rem; // skip 1-char artifacts
+            } else {
+                $rest[] = $part;
+            }
+        }
+
+        if (! $year) return null;
+
+        // Identify month (1–12) and day (1–31) from remaining parts
+        $month = null;
+        $day   = null;
+        foreach ($rest as $part) {
+            $n = (int) $part;
+            if ($n >= 1 && $n <= 12 && $month === null) {
+                $month = str_pad((string) $n, 2, '0', STR_PAD_LEFT);
+            } elseif ($n >= 1 && $n <= 31 && $day === null) {
+                $day = str_pad((string) $n, 2, '0', STR_PAD_LEFT);
+            }
+        }
+
+        if ($year && $month && $day) {
+            return "$year-$month-$day";
+        }
+        if ($year && $month) {
+            return "$year-$month-01";
+        }
+
+        return null;
+    }
+
+    /** Run a single regex match and return the first capture group or null. */
+    private function match(string $pattern, string $subject): ?string
+    {
+        return preg_match($pattern, $subject, $m) ? trim($m[1]) : null;
     }
 }

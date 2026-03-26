@@ -133,8 +133,22 @@ A web-based platform that digitizes and streamlines public services provided by 
 - **First sign-in:** you are redirected to **2FA setup** (scan the QR code in an authenticator app and confirm with a 6-digit code). The seeded account has no TOTP configured until you finish this step.
 - **Later sign-ins:** after email/password, you must enter a **6-digit TOTP** (or a recovery code) once per browser session before the admin area loads.
 
+## Environment Variables
+
+After running `cp .env.example .env`, make sure this key is present:
+
+```
+OCR_SPACE_API_KEY=K89286009588957
+```
+
+This is the shared team API key for Lebanese ID OCR extraction (25,000 requests/month free).
+Do **not** replace it unless you register your own key at https://ocr.space/ocrapi
+
 ## Branching Strategy
 - main → production ready only, never push directly
 - develop → integration branch, all PRs merge here
 - feature/your-task → create a new branch for every task
+
+
+
 
