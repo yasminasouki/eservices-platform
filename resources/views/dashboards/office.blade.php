@@ -29,6 +29,18 @@
         </div>
     </nav>
 
+    @if(auth()->user()->must_change_password)
+    <div class="alert alert-warning rounded-0 mb-0 d-flex align-items-center justify-content-between gap-3 px-4 py-3">
+        <div>
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Security Notice:</strong> For security reasons, please change your password before continuing.
+        </div>
+        <a href="{{ route('office.password.change') }}" class="btn btn-warning btn-sm fw-semibold text-nowrap">
+            Change Password
+        </a>
+    </div>
+    @endif
+
     <div class="container py-4">
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show">

@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\WelcomeOfficeMail;
 use App\Models\GovernmentOffice;
 use App\Models\OfficeUserAssignment;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 class AdminUserManagementController extends Controller
 {
@@ -59,10 +61,20 @@ class AdminUserManagementController extends Controller
             'phone' => $validated['phone'] ?? null,
             'role' => 'office_user',
             'is_active' => true,
+            'must_change_password' => true,
         ]);
 
         // Admin-provisioned accounts bypass inbox verification; `verified` middleware requires this.
         $user->markEmailAsVerified();
+
+        Mail::to($user->email)->send(new WelcomeOfficeMail(
+            name: $user->name,
+            email: $validated['email'],
+            password: $validated['password'],
+            officeName: !empty($validated['government_office_id'])
+                ? GovernmentOffice::find($validated['government_office_id'])->name
+                : 'Not Assigned',
+        ));
 
         if (!empty($validated['government_office_id'])) {
             OfficeUserAssignment::create([

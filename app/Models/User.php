@@ -31,6 +31,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'social_provider',
         'social_provider_id',
         'last_login_at',
+        'must_change_password',
     ];
 
     protected $hidden = [
