@@ -104,6 +104,15 @@ class AuthController extends Controller
                 ->withInput($request->only('email'));
         }
 
+        // Citizen portal: municipality users must use /municipality/login only
+        if ($requiredRole === null && $user->role === 'office_user') {
+            return back()
+                ->withErrors([
+                    'email' => 'Municipality staff accounts must sign in at the municipality portal.',
+                ])
+                ->withInput($request->only('email'));
+        }
+
         if ($requiredRole !== null && $user->role !== $requiredRole) {
             return back()
                 ->withErrors(['email' => 'This portal is restricted to administrators only.'])
@@ -148,14 +157,20 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        $wasAdmin = $request->user()?->role === 'admin';
+        $role = $request->user()?->role;
 
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
+        $targetRoute = match ($role) {
+            'admin' => 'admin.login',
+            'office_user' => 'municipality.login',
+            default => 'login',
+        };
+
         return redirect()
-            ->route($wasAdmin ? 'admin.login' : 'login')
+            ->route($targetRoute)
             ->with('success', 'You have been logged out successfully.');
     }
 
