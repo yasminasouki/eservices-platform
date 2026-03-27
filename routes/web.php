@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\GovernmentOfficeController;
 use App\Http\Controllers\Admin\AdminReportsController;
 use App\Http\Controllers\Citizen\IdVerificationController;
+use App\Http\Controllers\Office\OfficePasswordController;
 use App\Http\Controllers\Admin\AdminServiceOperationsController;
 use App\Http\Controllers\Admin\AdminUserManagementController;
 use Illuminate\Support\Facades\Route;
@@ -85,6 +86,8 @@ Route::middleware(['auth', 'active'])->group(function () {
 
         Route::middleware('role:office_user')->group(function () {
             Route::get('/office/dashboard', fn() => view('dashboards.office'))->name('office.dashboard');
+            Route::get('/office/change-password', [OfficePasswordController::class, 'showChangeForm'])->name('office.password.change');
+            Route::post('/office/change-password', [OfficePasswordController::class, 'update'])->name('office.password.update');
         });
 
         Route::middleware('role:citizen')->group(function () {
