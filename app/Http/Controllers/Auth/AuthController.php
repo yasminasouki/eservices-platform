@@ -254,6 +254,12 @@ class AuthController extends Controller
 
         session(['2fa_verified' => true]);
 
+        // If the user was redirected to login mid-flow (e.g. clicking the email
+        // verification link while logged out), honor that intended URL now.
+        if (session()->has('url.intended')) {
+            return redirect()->intended();
+        }
+
         return $this->redirectToDashboard($user);
     }
 
