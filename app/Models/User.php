@@ -114,6 +114,30 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === 'citizen';
     }
 
+    /**
+     * Government office IDs this staff member may act for (municipality portal).
+     *
+     * @return list<int>
+     */
+    public function assignedGovernmentOfficeIds(): array
+    {
+        if (! $this->isOfficeUser()) {
+            return [];
+        }
+
+        return $this->governmentOffices()->pluck('id')->all();
+    }
+
+    /** First assigned office; used when the UI assumes a single office per user. */
+    public function primaryGovernmentOffice(): ?GovernmentOffice
+    {
+        if (! $this->isOfficeUser()) {
+            return null;
+        }
+
+        return $this->governmentOffices()->orderBy('name')->first();
+    }
+
     // ──────────────────────────────────────────────
     // Relationships
     // ──────────────────────────────────────────────
