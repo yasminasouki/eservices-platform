@@ -219,6 +219,12 @@ class AuthController extends Controller
         $user->forceFill(['two_factor_confirmed_at' => now()])->save();
         session(['2fa_verified' => true]);
 
+        // New citizen accounts must verify their email before reaching the dashboard.
+        if ($user->role === 'citizen' && !$user->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice')
+                ->with('info', 'Please verify your email address to complete your account setup.');
+        }
+
         return redirect()->route($this->getDashboardRoute($user))
             ->with('success', 'Two-factor authentication has been enabled successfully.');
     }
@@ -253,6 +259,12 @@ class AuthController extends Controller
         }
 
         session(['2fa_verified' => true]);
+
+        // If the user was redirected to login mid-flow (e.g. clicking the email
+        // verification link while logged out), honor that intended URL now.
+        if (session()->has('url.intended')) {
+            return redirect()->intended();
+        }
 
         return $this->redirectToDashboard($user);
     }

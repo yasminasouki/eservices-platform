@@ -55,8 +55,8 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/2fa/verify', [AuthController::class, 'show2faVerify'])->name('2fa.verify');
     Route::post('/2fa/verify', [AuthController::class, 'verify2fa'])->name('2fa.verify.confirm');
 
-    // ── Routes requiring verified email + 2FA ────────────────────────────────
-    Route::middleware(['verified', '2fa'])->group(function () {
+    // ── Routes requiring 2FA ─────────────────────────────────────────────────
+    Route::middleware(['2fa'])->group(function () {
 
         Route::middleware('role:admin')->group(function () {
             Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
