@@ -19,7 +19,20 @@
         <a class="navbar-brand text-decoration-none text-white" href="{{ route('office.dashboard') }}">
             <i class="bi bi-building-fill-gear me-2"></i>E-Services — Office
         </a>
-        <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3 flex-wrap justify-content-end">
+            @if(isset($officeNavOffices) && $officeNavOffices->count() > 1)
+                <form method="POST" action="{{ route('office.context') }}" class="d-flex align-items-center gap-2">
+                    @csrf
+                    <label class="text-white-50 small mb-0 d-none d-md-inline">Office</label>
+                    <select name="office_id" class="form-select form-select-sm" style="width:auto;min-width:10rem;" onchange="this.form.submit()">
+                        @foreach($officeNavOffices as $o)
+                            <option value="{{ $o->id }}" @selected($officeContext && (int) $officeContext->id === (int) $o->id)>
+                                {{ $o->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </form>
+            @endif
             <span class="text-white small d-none d-sm-inline">{{ auth()->user()->name }}</span>
             <span class="badge bg-light text-dark">Office Staff</span>
             <form method="POST" action="{{ route('logout') }}">

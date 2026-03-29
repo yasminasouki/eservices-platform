@@ -8,8 +8,12 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\GovernmentOfficeController;
 use App\Http\Controllers\Admin\AdminReportsController;
 use App\Http\Controllers\Citizen\IdVerificationController;
+use App\Http\Controllers\Office\OfficeContextController;
 use App\Http\Controllers\Office\OfficeDashboardController;
 use App\Http\Controllers\Office\OfficePasswordController;
+use App\Http\Controllers\Office\OfficeProfileController;
+use App\Http\Controllers\Office\OfficeServiceCategoryController;
+use App\Http\Controllers\Office\OfficeServiceController;
 use App\Http\Controllers\Admin\AdminServiceOperationsController;
 use App\Http\Controllers\Admin\AdminUserManagementController;
 use Illuminate\Support\Facades\Route;
@@ -87,6 +91,27 @@ Route::middleware(['auth', 'active'])->group(function () {
 
         Route::middleware('role:office_user')->group(function () {
             Route::get('/office/dashboard', [OfficeDashboardController::class, 'index'])->name('office.dashboard');
+            Route::post('/office/context', [OfficeContextController::class, 'update'])->name('office.context');
+
+            Route::get('/office/profile', [OfficeProfileController::class, 'index'])->name('office.profile.index');
+            Route::get('/office/profile/{office}/edit', [OfficeProfileController::class, 'edit'])
+                ->middleware('office.access')
+                ->name('office.profile.edit');
+            Route::put('/office/profile/{office}', [OfficeProfileController::class, 'update'])
+                ->middleware('office.access')
+                ->name('office.profile.update');
+
+            Route::middleware('office.access')->group(function () {
+                Route::resource('/office/{office}/categories', OfficeServiceCategoryController::class)
+                    ->except(['show'])
+                    ->parameters(['categories' => 'category'])
+                    ->names('office.categories');
+                Route::resource('/office/{office}/services', OfficeServiceController::class)
+                    ->except(['show'])
+                    ->parameters(['services' => 'service'])
+                    ->names('office.services');
+            });
+
             Route::get('/office/change-password', [OfficePasswordController::class, 'showChangeForm'])->name('office.password.change');
             Route::post('/office/change-password', [OfficePasswordController::class, 'update'])->name('office.password.update');
         });

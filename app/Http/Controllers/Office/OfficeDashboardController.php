@@ -20,6 +20,8 @@ class OfficeDashboardController extends Controller
             return view('dashboards.office-unassigned');
         }
 
+        $this->syncOfficeContextSession($offices);
+
         $pending = ServiceRequest::query()
             ->whereIn('government_office_id', $officeIds)
             ->where('status', 'pending')
@@ -59,5 +61,16 @@ class OfficeDashboardController extends Controller
             'averageRating'       => $avgRating !== null ? round((float) $avgRating, 1) : null,
             'latestRequests'      => $latestRequests,
         ]);
+    }
+
+    /** @param  \Illuminate\Support\Collection<int, \App\Models\GovernmentOffice>  $offices */
+    private function syncOfficeContextSession($offices): void
+    {
+        $ids = $offices->pluck('id')->all();
+        $sid = session('office_context_id');
+
+        if (! $sid || ! in_array((int) $sid, $ids, true)) {
+            session(['office_context_id' => $offices->first()->id]);
+        }
     }
 }

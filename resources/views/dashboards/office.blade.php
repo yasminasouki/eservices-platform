@@ -27,9 +27,16 @@
                 @endif
             </p>
         </div>
-        <a href="{{ route('office.password.change') }}" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-key me-1"></i>Change password
-        </a>
+        <div class="d-flex flex-wrap gap-2">
+            @isset($officeContext)
+                <a href="{{ route('office.profile.edit', $officeContext) }}" class="btn btn-outline-success btn-sm">Office profile</a>
+                <a href="{{ route('office.categories.index', $officeContext) }}" class="btn btn-outline-success btn-sm">Categories</a>
+                <a href="{{ route('office.services.index', $officeContext) }}" class="btn btn-outline-success btn-sm">Services</a>
+            @endisset
+            <a href="{{ route('office.password.change') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-key me-1"></i>Password
+            </a>
+        </div>
     </div>
 
     <div class="row g-4 mb-4">
