@@ -219,6 +219,14 @@ class AuthController extends Controller
         $user->forceFill(['two_factor_confirmed_at' => now()])->save();
         session(['2fa_verified' => true]);
 
+        // New accounts must verify their email before reaching the dashboard.
+        // Returning users who re-setup 2FA (edge case) skip this since their
+        // email is already verified.
+        if (!$user->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice')
+                ->with('info', 'Please verify your email address to complete your account setup.');
+        }
+
         return redirect()->route($this->getDashboardRoute($user))
             ->with('success', 'Two-factor authentication has been enabled successfully.');
     }
