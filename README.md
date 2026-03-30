@@ -150,10 +150,10 @@ A web-based platform that digitizes and streamlines public services provided by 
 After running `cp .env.example .env`, add your OCR.space key for Lebanese ID extraction:
 
 ```
-OCR_SPACE_API_KEY=your_key_from_https://ocr.space/ocrapi
+OCR_SPACE_API_KEY=K89286009588957
 ```
 
-Do **not** commit real API keys to the repository; keep them only in your local `.env`.
+This is the shared team API key for Lebanese ID OCR extraction (25,000 requests/month free). Do **not** replace it unless you register your own key at https://ocr.space/ocrapi
 
 ## Branching Strategy
 - main → production ready only, never push directly
