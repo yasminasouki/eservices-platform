@@ -1,20 +1,29 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminReportsController;
+use App\Http\Controllers\Admin\AdminServiceOperationsController;
+use App\Http\Controllers\Admin\AdminUserManagementController;
+use App\Http\Controllers\Admin\GovernmentOfficeController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\SocialAuthController;
-use App\Http\Controllers\Admin\AdminDashboardController;
-use App\Http\Controllers\Admin\GovernmentOfficeController;
-use App\Http\Controllers\Admin\AdminReportsController;
+use App\Http\Controllers\Citizen\CitizenDashboardController;
+use App\Http\Controllers\Citizen\CitizenOfficeDirectoryController;
+use App\Http\Controllers\Citizen\CitizenServiceRequestController;
 use App\Http\Controllers\Citizen\IdVerificationController;
+use App\Http\Controllers\Office\OfficeContextController;
+use App\Http\Controllers\Office\OfficeDashboardController;
 use App\Http\Controllers\Office\OfficePasswordController;
-use App\Http\Controllers\Admin\AdminServiceOperationsController;
-use App\Http\Controllers\Admin\AdminUserManagementController;
+use App\Http\Controllers\Office\OfficeProfileController;
+use App\Http\Controllers\Office\OfficeServiceCategoryController;
+use App\Http\Controllers\Office\OfficeServiceController;
+use App\Http\Controllers\Office\OfficeServiceRequestController;
 use Illuminate\Support\Facades\Route;
 
 // ── Root ──────────────────────────────────────────────────────────────────────
-Route::get('/', fn() => redirect()->route('login'));
+Route::get('/', fn () => redirect()->route('login'));
 
 // ── Guest-only routes ─────────────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {
@@ -85,13 +94,52 @@ Route::middleware(['auth', 'active'])->group(function () {
         });
 
         Route::middleware('role:office_user')->group(function () {
-            Route::get('/office/dashboard', fn() => view('dashboards.office'))->name('office.dashboard');
+            Route::get('/office/dashboard', [OfficeDashboardController::class, 'index'])->name('office.dashboard');
+            Route::post('/office/context', [OfficeContextController::class, 'update'])->name('office.context');
+
+            Route::get('/office/profile', [OfficeProfileController::class, 'index'])->name('office.profile.index');
+            Route::get('/office/profile/{office}/edit', [OfficeProfileController::class, 'edit'])
+                ->middleware('office.access')
+                ->name('office.profile.edit');
+            Route::put('/office/profile/{office}', [OfficeProfileController::class, 'update'])
+                ->middleware('office.access')
+                ->name('office.profile.update');
+
+            Route::middleware('office.access')->group(function () {
+                Route::get('/office/{office}/requests', [OfficeServiceRequestController::class, 'index'])
+                    ->name('office.requests.index');
+                Route::get('/office/{office}/requests/{serviceRequest}', [OfficeServiceRequestController::class, 'show'])
+                    ->name('office.requests.show');
+                Route::patch('/office/{office}/requests/{serviceRequest}/status', [OfficeServiceRequestController::class, 'updateStatus'])
+                    ->name('office.requests.status');
+                Route::post('/office/{office}/requests/{serviceRequest}/documents', [OfficeServiceRequestController::class, 'storeDocument'])
+                    ->name('office.requests.documents.store');
+
+                Route::resource('/office/{office}/categories', OfficeServiceCategoryController::class)
+                    ->except(['show'])
+                    ->parameters(['categories' => 'category'])
+                    ->names('office.categories');
+                Route::resource('/office/{office}/services', OfficeServiceController::class)
+                    ->except(['show'])
+                    ->parameters(['services' => 'service'])
+                    ->names('office.services');
+            });
+
             Route::get('/office/change-password', [OfficePasswordController::class, 'showChangeForm'])->name('office.password.change');
             Route::post('/office/change-password', [OfficePasswordController::class, 'update'])->name('office.password.update');
         });
 
         Route::middleware('role:citizen')->group(function () {
-            Route::get('/citizen/dashboard', fn() => view('dashboards.citizen'))->name('citizen.dashboard');
+            Route::get('/citizen/dashboard', [CitizenDashboardController::class, 'index'])->name('citizen.dashboard');
+            Route::get('/citizen/offices', [CitizenOfficeDirectoryController::class, 'index'])->name('citizen.offices.index');
+            Route::get('/citizen/offices/{office}', [CitizenOfficeDirectoryController::class, 'show'])->name('citizen.offices.show');
+            Route::get('/citizen/offices/{office}/services/{service}/apply', [CitizenServiceRequestController::class, 'create'])
+                ->name('citizen.services.apply');
+            Route::post('/citizen/offices/{office}/services/{service}/apply', [CitizenServiceRequestController::class, 'store'])
+                ->name('citizen.services.apply.store');
+            Route::get('/citizen/requests', [CitizenServiceRequestController::class, 'index'])->name('citizen.requests.index');
+            Route::get('/citizen/requests/{serviceRequest}', [CitizenServiceRequestController::class, 'show'])->name('citizen.requests.show');
+
             Route::get('/citizen/id-verify', [IdVerificationController::class, 'show'])->name('citizen.id.verify');
             Route::post('/citizen/id-verify', [IdVerificationController::class, 'upload'])->name('citizen.id.upload');
             Route::post('/citizen/id-save', [IdVerificationController::class, 'save'])->name('citizen.id.save');

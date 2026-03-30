@@ -125,9 +125,28 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // ── Sample Citizens (once; avoids dozens of duplicates when re-seeding) ─
-        if (User::where('role', 'citizen')->doesntExist()) {
-            User::factory()->count(10)->create();
+        // ── Demo citizen (known login for /login → citizen portal) ─────────────
+        // `social_provider` is set so RequireTwoFactor treats this like a social
+        // account and skips TOTP (local/testing convenience only).
+        User::updateOrCreate(
+            ['email' => 'citizen@eservices.demo'],
+            [
+                'name' => 'Demo Citizen',
+                'password' => Hash::make('Citizen@12345'),
+                'role' => 'citizen',
+                'is_active' => true,
+                'phone' => '+961 70 000 000',
+                'email_verified_at' => now(),
+                'id_document' => 'seed/demo-id-on-file.placeholder',
+                'id_document_status' => 'verified',
+                'social_provider' => 'seed',
+                'social_provider_id' => 'local-demo-citizen',
+            ]
+        );
+
+        // ── Extra sample citizens (once; avoids dozens of duplicates when re-seeding)
+        if (User::where('role', 'citizen')->whereNot('email', 'citizen@eservices.demo')->doesntExist()) {
+            User::factory()->count(9)->create();
         }
     }
 }

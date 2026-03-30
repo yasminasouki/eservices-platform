@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureOfficeStaffBelongsToOffice;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\RequireTwoFactor;
 use App\Http\Middleware\RoleMiddleware;
@@ -15,9 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'role'   => RoleMiddleware::class,
-            'active' => EnsureUserIsActive::class,
-            '2fa'    => RequireTwoFactor::class,
+            'role'         => RoleMiddleware::class,
+            'active'       => EnsureUserIsActive::class,
+            '2fa'          => RequireTwoFactor::class,
+            'office.access'=> EnsureOfficeStaffBelongsToOffice::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

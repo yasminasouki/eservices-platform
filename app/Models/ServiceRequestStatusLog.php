@@ -16,6 +16,7 @@ class ServiceRequestStatusLog extends Model
         'from_status',
         'to_status',
         'notes',
+        'created_at',
     ];
 
     protected function casts(): array
