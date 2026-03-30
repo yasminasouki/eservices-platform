@@ -42,11 +42,20 @@
                     </span>
                 </li>
             @endif
-            <li class="nav-item">
-                <span class="nav-link py-2 px-3 text-muted" title="Next: request inbox">
-                    <i class="bi bi-inbox me-1"></i>Requests
-                </span>
-            </li>
+            @if($ctx)
+                <li class="nav-item">
+                    <a href="{{ route('office.requests.index', $ctx) }}"
+                       class="nav-link py-2 px-3 {{ request()->routeIs('office.requests.*') ? 'active' : 'text-dark' }}">
+                        <i class="bi bi-inbox me-1"></i>Requests
+                    </a>
+                </li>
+            @else
+                <li class="nav-item">
+                    <span class="nav-link py-2 px-3 text-muted" title="Assign an office to your account first">
+                        <i class="bi bi-inbox me-1"></i>Requests
+                    </span>
+                </li>
+            @endif
         </ul>
     </div>
 </nav>

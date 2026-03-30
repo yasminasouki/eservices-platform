@@ -44,11 +44,11 @@ class User extends Authenticatable implements MustVerifyEmail
     protected function casts(): array
     {
         return [
-            'email_verified_at'          => 'datetime',
-            'two_factor_confirmed_at'    => 'datetime',
-            'last_login_at'              => 'datetime',
-            'is_active'                  => 'boolean',
-            'password'                   => 'hashed',
+            'email_verified_at' => 'datetime',
+            'two_factor_confirmed_at' => 'datetime',
+            'last_login_at' => 'datetime',
+            'is_active' => 'boolean',
+            'password' => 'hashed',
         ];
     }
 
@@ -125,7 +125,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return [];
         }
 
-        return $this->governmentOffices()->pluck('id')->all();
+        return $this->governmentOffices()->pluck('government_offices.id')->all();
     }
 
     /** First assigned office; used when the UI assumes a single office per user. */
@@ -135,7 +135,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return null;
         }
 
-        return $this->governmentOffices()->orderBy('name')->first();
+        return $this->governmentOffices()->orderBy('government_offices.name')->first();
     }
 
     // ──────────────────────────────────────────────

@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Office;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\Feedback;
+use App\Models\GovernmentOffice;
 use App\Models\ServiceRequest;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class OfficeDashboardController extends Controller
@@ -13,7 +15,9 @@ class OfficeDashboardController extends Controller
     public function index(): View
     {
         $user = auth()->user();
-        $offices = $user->governmentOffices()->orderBy('name')->get(['id', 'name']);
+        $offices = $user->governmentOffices()
+            ->orderBy('government_offices.name')
+            ->get(['government_offices.id', 'government_offices.name']);
         $officeIds = $offices->pluck('id');
 
         if ($officeIds->isEmpty()) {
@@ -54,16 +58,16 @@ class OfficeDashboardController extends Controller
             ->get();
 
         return view('dashboards.office', [
-            'offices'             => $offices,
-            'pending'             => $pending,
-            'completedToday'      => $completedToday,
-            'appointmentsToday'   => $appointmentsToday,
-            'averageRating'       => $avgRating !== null ? round((float) $avgRating, 1) : null,
-            'latestRequests'      => $latestRequests,
+            'offices' => $offices,
+            'pending' => $pending,
+            'completedToday' => $completedToday,
+            'appointmentsToday' => $appointmentsToday,
+            'averageRating' => $avgRating !== null ? round((float) $avgRating, 1) : null,
+            'latestRequests' => $latestRequests,
         ]);
     }
 
-    /** @param  \Illuminate\Support\Collection<int, \App\Models\GovernmentOffice>  $offices */
+    /** @param  Collection<int, GovernmentOffice>  $offices */
     private function syncOfficeContextSession($offices): void
     {
         $ids = $offices->pluck('id')->all();

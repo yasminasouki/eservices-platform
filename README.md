@@ -133,16 +133,27 @@ A web-based platform that digitizes and streamlines public services provided by 
 - **First sign-in:** you are redirected to **2FA setup** (scan the QR code in an authenticator app and confirm with a 6-digit code). The seeded account has no TOTP configured until you finish this step.
 - **Later sign-ins:** after email/password, you must enter a **6-digit TOTP** (or a recovery code) once per browser session before the admin area loads.
 
+## Seeded Demo Citizen (`php artisan db:seed`)
+- Citizen portal: `/login` (not `/admin/login`)
+- Email: `citizen@eservices.demo`
+- Password: `Citizen@12345`
+- This account is **email-verified**, has a placeholder ID on file, and skips **TOTP** in the seed data only (marked like a social-login user) so you can test **Browse offices** and **service requests** immediately after seeding. Use normal registration for a realistic 2FA + ID-upload flow.
+
+## Seeded Municipality Staff
+- Portal: `/municipality/login`
+- Email: `manager@beirut.gov`
+- Password: `password`
+- Complete **2FA setup** on first sign-in like the admin account.
+
 ## Environment Variables
 
-After running `cp .env.example .env`, make sure this key is present:
+After running `cp .env.example .env`, add your OCR.space key for Lebanese ID extraction:
 
 ```
-OCR_SPACE_API_KEY=K89286009588957
+OCR_SPACE_API_KEY=your_key_from_https://ocr.space/ocrapi
 ```
 
-This is the shared team API key for Lebanese ID OCR extraction (25,000 requests/month free).
-Do **not** replace it unless you register your own key at https://ocr.space/ocrapi
+Do **not** commit real API keys to the repository; keep them only in your local `.env`.
 
 ## Branching Strategy
 - main → production ready only, never push directly

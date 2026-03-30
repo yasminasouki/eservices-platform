@@ -14,7 +14,7 @@ class OfficeProfileController extends Controller
 
     public function index(): View
     {
-        $offices = auth()->user()->governmentOffices()->orderBy('name')->get();
+        $offices = auth()->user()->governmentOffices()->orderBy('government_offices.name')->get();
 
         if ($offices->isNotEmpty()) {
             $ids = $offices->pluck('id')->all();
@@ -38,7 +38,7 @@ class OfficeProfileController extends Controller
         foreach ($office->working_hours ?? [] as $row) {
             if (! empty($row['day'])) {
                 $hoursByDay[$row['day']] = [
-                    'open'  => $row['open'] ?? '',
+                    'open' => $row['open'] ?? '',
                     'close' => $row['close'] ?? '',
                 ];
             }
@@ -47,10 +47,10 @@ class OfficeProfileController extends Controller
         $contact = $office->contact_info ?? [];
 
         return view('office.profile.edit', [
-            'office'    => $office,
-            'weekdays'  => self::WEEKDAYS,
-            'hoursByDay'=> $hoursByDay,
-            'contact'   => $contact,
+            'office' => $office,
+            'weekdays' => self::WEEKDAYS,
+            'hoursByDay' => $hoursByDay,
+            'contact' => $contact,
         ]);
     }
 
@@ -63,17 +63,17 @@ class OfficeProfileController extends Controller
         }
 
         $validated = $request->validate([
-            'name'             => ['required', 'string', 'max:255'],
-            'address'          => ['required', 'string', 'max:500'],
-            'email'            => ['nullable', 'email', 'max:255'],
-            'phone'            => ['nullable', 'string', 'max:50'],
-            'website'          => ['nullable', 'url', 'max:255'],
-            'google_maps_url'  => ['nullable', 'url', 'max:500'],
-            'latitude'         => ['nullable', 'numeric', 'between:-90,90'],
-            'longitude'        => ['nullable', 'numeric', 'between:-180,180'],
-            'contact_fax'      => ['nullable', 'string', 'max:50'],
-            'contact_hotline'  => ['nullable', 'string', 'max:50'],
-            'contact_notes'    => ['nullable', 'string', 'max:500'],
+            'name' => ['required', 'string', 'max:255'],
+            'address' => ['required', 'string', 'max:500'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'website' => ['nullable', 'url', 'max:255'],
+            'google_maps_url' => ['nullable', 'url', 'max:500'],
+            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'contact_fax' => ['nullable', 'string', 'max:50'],
+            'contact_hotline' => ['nullable', 'string', 'max:50'],
+            'contact_notes' => ['nullable', 'string', 'max:500'],
         ]);
 
         $workingHours = [];
@@ -82,34 +82,34 @@ class OfficeProfileController extends Controller
             if ($request->boolean($closedKey)) {
                 continue;
             }
-            $open  = $request->input('wh_'.$day.'_open');
+            $open = $request->input('wh_'.$day.'_open');
             $close = $request->input('wh_'.$day.'_close');
             if (is_string($open) && is_string($close) && $open !== '' && $close !== '') {
                 $workingHours[] = [
-                    'day'   => $day,
-                    'open'  => $open,
+                    'day' => $day,
+                    'open' => $open,
                     'close' => $close,
                 ];
             }
         }
 
         $contactInfo = array_filter([
-            'fax'     => $validated['contact_fax'] ?? null,
+            'fax' => $validated['contact_fax'] ?? null,
             'hotline' => $validated['contact_hotline'] ?? null,
-            'notes'   => $validated['contact_notes'] ?? null,
+            'notes' => $validated['contact_notes'] ?? null,
         ], fn ($v) => $v !== null && $v !== '');
 
         $office->update([
-            'name'            => $validated['name'],
-            'address'         => $validated['address'],
-            'email'           => $validated['email'] ?? null,
-            'phone'           => $validated['phone'] ?? null,
-            'website'         => $validated['website'] ?? null,
+            'name' => $validated['name'],
+            'address' => $validated['address'],
+            'email' => $validated['email'] ?? null,
+            'phone' => $validated['phone'] ?? null,
+            'website' => $validated['website'] ?? null,
             'google_maps_url' => $validated['google_maps_url'] ?? null,
-            'latitude'        => $validated['latitude'] ?? null,
-            'longitude'       => $validated['longitude'] ?? null,
-            'working_hours'   => $workingHours ?: null,
-            'contact_info'    => $contactInfo ?: null,
+            'latitude' => $validated['latitude'] ?? null,
+            'longitude' => $validated['longitude'] ?? null,
+            'working_hours' => $workingHours ?: null,
+            'contact_info' => $contactInfo ?: null,
         ]);
 
         return redirect()

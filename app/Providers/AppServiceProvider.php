@@ -28,7 +28,9 @@ class AppServiceProvider extends ServiceProvider
                 return;
             }
 
-            $offices = $user->governmentOffices()->orderBy('name')->get(['id', 'name']);
+            $offices = $user->governmentOffices()
+                ->orderBy('government_offices.name')
+                ->get(['government_offices.id', 'government_offices.name']);
             $id = session('office_context_id');
 
             if ($id && ! $offices->contains('id', (int) $id)) {
@@ -41,7 +43,7 @@ class AppServiceProvider extends ServiceProvider
                 : $offices->first();
 
             $view->with([
-                'officeContext'    => $officeContext,
+                'officeContext' => $officeContext,
                 'officeNavOffices' => $offices,
             ]);
         });

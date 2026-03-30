@@ -2,6 +2,19 @@
 
 @section('title', 'Office Dashboard')
 
+@php
+    $__statusBadge = fn (string $status) => match ($status) {
+        'pending' => 'bg-warning text-dark',
+        'in_review' => 'bg-info text-dark',
+        'missing_documents' => 'bg-warning',
+        'approved' => 'bg-primary',
+        'rejected' => 'bg-danger',
+        'completed' => 'bg-success',
+        default => 'bg-secondary',
+    };
+    $__statusLabel = fn (string $status) => str($status)->replace('_', ' ')->title()->toString();
+@endphp
+
 @section('content')
     @if(auth()->user()->must_change_password)
         <div class="alert alert-warning rounded-3 d-flex align-items-center justify-content-between gap-3 flex-wrap mb-4">
@@ -29,6 +42,7 @@
         </div>
         <div class="d-flex flex-wrap gap-2">
             @isset($officeContext)
+                <a href="{{ route('office.requests.index', $officeContext) }}" class="btn btn-outline-success btn-sm">Requests</a>
                 <a href="{{ route('office.profile.edit', $officeContext) }}" class="btn btn-outline-success btn-sm">Office profile</a>
                 <a href="{{ route('office.categories.index', $officeContext) }}" class="btn btn-outline-success btn-sm">Categories</a>
                 <a href="{{ route('office.services.index', $officeContext) }}" class="btn btn-outline-success btn-sm">Services</a>
@@ -73,9 +87,13 @@
     </div>
 
     <div class="card card-soft">
-        <div class="card-header bg-white fw-semibold border-0 pt-3 d-flex justify-content-between align-items-center">
+        <div class="card-header bg-white fw-semibold border-0 pt-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
             <span><i class="bi bi-inbox me-2 text-warning"></i>Recent requests</span>
-            <span class="text-muted small fw-normal">Full request tools coming next</span>
+            @isset($officeContext)
+                <a href="{{ route('office.requests.index', $officeContext) }}" class="text-success small fw-semibold text-decoration-none">
+                    View all requests →
+                </a>
+            @endisset
         </div>
         <div class="card-body p-0">
             @if($latestRequests->isEmpty())
@@ -94,13 +112,14 @@
                         </thead>
                         <tbody>
                             @foreach($latestRequests as $req)
-                                <tr>
+                                <tr style="cursor: pointer;"
+                                    onclick="window.location='{{ route('office.requests.show', [$req->government_office_id, $req->id]) }}'">
                                     <td class="ps-4 font-monospace">#{{ $req->id }}</td>
                                     <td>{{ $req->service?->name ?? '—' }}</td>
                                     <td>{{ $req->citizen?->name ?? '—' }}</td>
                                     <td>
-                                        <span class="badge bg-secondary bg-opacity-10 text-dark text-capitalize">
-                                            {{ str_replace('_', ' ', $req->status) }}
+                                        <span class="badge {{ $__statusBadge($req->status) }}">
+                                            {{ $__statusLabel($req->status) }}
                                         </span>
                                     </td>
                                     <td class="pe-4 text-muted">
