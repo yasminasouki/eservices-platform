@@ -68,6 +68,40 @@
         </div>
     </div>
 
+    @if($request->status === 'completed')
+        <div class="card card-soft mb-4">
+            <div class="card-header bg-white border-0 fw-semibold">Your feedback</div>
+            <div class="card-body small">
+                @if($request->feedback)
+                    <div class="text-warning mb-2" aria-label="Your rating">
+                        @for($i = 1; $i <= 5; $i++)
+                            <i class="bi {{ $i <= $request->feedback->rating ? 'bi-star-fill' : 'bi-star' }}"></i>
+                        @endfor
+                    </div>
+                    @if($request->feedback->comment)
+                        <p class="mb-2">{{ $request->feedback->comment }}</p>
+                    @endif
+                    @if($request->feedback->office_reply)
+                        <div class="border-start border-4 border-success ps-3 py-2 bg-light rounded-end">
+                            <div class="text-uppercase text-muted fw-semibold mb-1" style="font-size: 0.7rem;">Office reply</div>
+                            <div class="mb-0">{!! nl2br(e($request->feedback->office_reply)) !!}</div>
+                            @if($request->feedback->replied_at)
+                                <div class="text-muted mt-1">{{ $request->feedback->replied_at->format('Y-m-d H:i') }}</div>
+                            @endif
+                        </div>
+                    @else
+                        <p class="text-muted mb-0">The office has not replied yet.</p>
+                    @endif
+                @else
+                    <p class="mb-3">Tell us how this service went — it helps municipalities improve.</p>
+                    <a href="{{ route('citizen.feedback.request.create', $request) }}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-star me-1"></i>Rate this request
+                    </a>
+                @endif
+            </div>
+        </div>
+    @endif
+
     <div class="card card-soft">
         <div class="card-header bg-white border-0 fw-semibold">Documents</div>
         <div class="card-body p-0">

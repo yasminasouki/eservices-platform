@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Feedback extends Model
 {
+    protected $table = 'feedback';
+
     protected $fillable = [
         'user_id',
         'government_office_id',
@@ -21,9 +23,9 @@ class Feedback extends Model
     protected function casts(): array
     {
         return [
-            'rating'          => 'integer',
+            'rating' => 'integer',
             'reply_is_public' => 'boolean',
-            'replied_at'      => 'datetime',
+            'replied_at' => 'datetime',
         ];
     }
 

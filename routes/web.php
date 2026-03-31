@@ -10,11 +10,13 @@ use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\Citizen\CitizenDashboardController;
+use App\Http\Controllers\Citizen\CitizenFeedbackController;
 use App\Http\Controllers\Citizen\CitizenOfficeDirectoryController;
 use App\Http\Controllers\Citizen\CitizenServiceRequestController;
 use App\Http\Controllers\Citizen\IdVerificationController;
 use App\Http\Controllers\Office\OfficeContextController;
 use App\Http\Controllers\Office\OfficeDashboardController;
+use App\Http\Controllers\Office\OfficeFeedbackController;
 use App\Http\Controllers\Office\OfficePasswordController;
 use App\Http\Controllers\Office\OfficeProfileController;
 use App\Http\Controllers\Office\OfficeServiceCategoryController;
@@ -115,6 +117,13 @@ Route::middleware(['auth', 'active'])->group(function () {
                 Route::post('/office/{office}/requests/{serviceRequest}/documents', [OfficeServiceRequestController::class, 'storeDocument'])
                     ->name('office.requests.documents.store');
 
+                Route::get('/office/{office}/feedback', [OfficeFeedbackController::class, 'index'])
+                    ->name('office.feedback.index');
+                Route::get('/office/{office}/feedback/{feedback}/edit', [OfficeFeedbackController::class, 'edit'])
+                    ->name('office.feedback.edit');
+                Route::patch('/office/{office}/feedback/{feedback}', [OfficeFeedbackController::class, 'updateReply'])
+                    ->name('office.feedback.reply');
+
                 Route::resource('/office/{office}/categories', OfficeServiceCategoryController::class)
                     ->except(['show'])
                     ->parameters(['categories' => 'category'])
@@ -139,6 +148,15 @@ Route::middleware(['auth', 'active'])->group(function () {
                 ->name('citizen.services.apply.store');
             Route::get('/citizen/requests', [CitizenServiceRequestController::class, 'index'])->name('citizen.requests.index');
             Route::get('/citizen/requests/{serviceRequest}', [CitizenServiceRequestController::class, 'show'])->name('citizen.requests.show');
+            Route::get('/citizen/requests/{serviceRequest}/feedback', [CitizenFeedbackController::class, 'createForRequest'])
+                ->name('citizen.feedback.request.create');
+            Route::post('/citizen/requests/{serviceRequest}/feedback', [CitizenFeedbackController::class, 'storeForRequest'])
+                ->name('citizen.feedback.request.store');
+
+            Route::get('/citizen/offices/{office}/feedback', [CitizenFeedbackController::class, 'createForOffice'])
+                ->name('citizen.feedback.office.create');
+            Route::post('/citizen/offices/{office}/feedback', [CitizenFeedbackController::class, 'storeForOffice'])
+                ->name('citizen.feedback.office.store');
 
             Route::get('/citizen/id-verify', [IdVerificationController::class, 'show'])->name('citizen.id.verify');
             Route::post('/citizen/id-verify', [IdVerificationController::class, 'upload'])->name('citizen.id.upload');
