@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Citizen;
 
 use App\Http\Controllers\Controller;
+use App\Models\Feedback;
 use App\Models\GovernmentOffice;
 use Illuminate\View\View;
 
@@ -33,6 +34,23 @@ class CitizenOfficeDirectoryController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('citizen.offices.show', compact('office', 'categories'));
+        $avgRating = Feedback::query()
+            ->where('government_office_id', $office->id)
+            ->whereNotNull('rating')
+            ->avg('rating');
+
+        $publicReviews = Feedback::query()
+            ->where('government_office_id', $office->id)
+            ->whereNotNull('rating')
+            ->latest()
+            ->limit(12)
+            ->get(['id', 'rating', 'comment', 'office_reply', 'reply_is_public', 'replied_at', 'created_at']);
+
+        return view('citizen.offices.show', [
+            'office' => $office,
+            'categories' => $categories,
+            'avgRating' => $avgRating !== null ? round((float) $avgRating, 1) : null,
+            'publicReviews' => $publicReviews,
+        ]);
     }
 }

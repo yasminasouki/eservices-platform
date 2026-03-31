@@ -49,10 +49,21 @@
                         <i class="bi bi-inbox me-1"></i>Requests
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="{{ route('office.feedback.index', $ctx) }}"
+                       class="nav-link py-2 px-3 {{ request()->routeIs('office.feedback.*') ? 'active' : 'text-dark' }}">
+                        <i class="bi bi-star me-1"></i>Feedback
+                    </a>
+                </li>
             @else
                 <li class="nav-item">
                     <span class="nav-link py-2 px-3 text-muted" title="Assign an office to your account first">
                         <i class="bi bi-inbox me-1"></i>Requests
+                    </span>
+                </li>
+                <li class="nav-item">
+                    <span class="nav-link py-2 px-3 text-muted" title="Assign an office to your account first">
+                        <i class="bi bi-star me-1"></i>Feedback
                     </span>
                 </li>
             @endif

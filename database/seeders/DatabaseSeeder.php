@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Feedback;
 use App\Models\GovernmentOffice;
 use App\Models\Municipality;
 use App\Models\OfficeUserAssignment;
@@ -143,6 +144,31 @@ class DatabaseSeeder extends Seeder
                 'social_provider_id' => 'local-demo-citizen',
             ]
         );
+
+        // ── Sample feedback (office portal “Feedback” screen) ─────────────────
+        $demoCitizen = User::where('email', 'citizen@eservices.demo')->first();
+        if ($demoCitizen && Feedback::query()->where('government_office_id', $office->id)->doesntExist()) {
+            Feedback::create([
+                'user_id' => $demoCitizen->id,
+                'government_office_id' => $office->id,
+                'service_request_id' => null,
+                'rating' => 4,
+                'comment' => 'Helpful staff; waiting area could use clearer signage.',
+                'office_reply' => 'Thank you for visiting. We are adding floor markers and a digital queue board this month.',
+                'reply_is_public' => true,
+                'replied_at' => now()->subDay(),
+            ]);
+            Feedback::create([
+                'user_id' => $demoCitizen->id,
+                'government_office_id' => $office->id,
+                'service_request_id' => null,
+                'rating' => 5,
+                'comment' => 'Fast service for my document request.',
+                'office_reply' => null,
+                'reply_is_public' => true,
+                'replied_at' => null,
+            ]);
+        }
 
         // ── Extra sample citizens (once; avoids dozens of duplicates when re-seeding)
         if (User::where('role', 'citizen')->whereNot('email', 'citizen@eservices.demo')->doesntExist()) {

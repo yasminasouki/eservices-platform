@@ -97,7 +97,7 @@ class CitizenServiceRequestController extends Controller
     {
         $requests = ServiceRequest::query()
             ->where('user_id', auth()->id())
-            ->with(['service:id,name', 'governmentOffice:id,name'])
+            ->with(['service:id,name', 'governmentOffice:id,name', 'feedback:id,service_request_id'])
             ->orderByRaw('COALESCE(submitted_at, created_at) DESC')
             ->orderByDesc('id')
             ->paginate(12)
@@ -114,6 +114,7 @@ class CitizenServiceRequestController extends Controller
             'service.category',
             'governmentOffice:id,name,address',
             'documents' => fn ($q) => $q->orderByDesc('id'),
+            'feedback',
         ]);
 
         return view('citizen.requests.show', ['request' => $serviceRequest]);

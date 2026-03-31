@@ -51,7 +51,12 @@
                             </td>
                             <td class="text-muted small">{{ $req->submitted_at?->format('M j, Y') ?? $req->created_at?->format('M j, Y') }}</td>
                             <td class="pe-4 text-end">
-                                <a href="{{ route('citizen.requests.show', $req) }}" class="btn btn-sm btn-outline-primary">Details</a>
+                                <div class="d-flex flex-wrap gap-1 justify-content-end">
+                                    <a href="{{ route('citizen.requests.show', $req) }}" class="btn btn-sm btn-outline-primary">Details</a>
+                                    @if($req->status === 'completed' && ! $req->feedback)
+                                        <a href="{{ route('citizen.feedback.request.create', $req) }}" class="btn btn-sm btn-outline-warning">Rate</a>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @empty
