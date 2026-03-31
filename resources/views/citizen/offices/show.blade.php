@@ -29,6 +29,9 @@
             @endif
         </div>
         <div class="d-flex flex-wrap gap-2">
+            <a href="{{ route('citizen.appointments.book', $office) }}" class="btn btn-success btn-sm">
+                <i class="bi bi-calendar-plus me-1"></i>Book Appointment
+            </a>
             <a href="{{ route('citizen.feedback.office.create', $office) }}" class="btn btn-outline-primary btn-sm">
                 <i class="bi bi-star me-1"></i>Leave feedback
             </a>
@@ -97,5 +100,35 @@
                 </div>
             </div>
         @endforeach
+    @endif
+
+    @if(isset($availableSlots) && $availableSlots->isNotEmpty())
+        <div class="card card-soft mb-4">
+            <div class="card-header bg-white border-0 fw-semibold">
+                <i class="bi bi-calendar-check me-2 text-success"></i>Available Appointments
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    @foreach($availableSlots as $slot)
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-semibold">{{ \Carbon\Carbon::parse($slot->date)->format('l, d M Y') }}</div>
+                                <div class="text-muted small">
+                                    {{ \Carbon\Carbon::parse($slot->start_time)->format('H:i') }}
+                                    –
+                                    {{ \Carbon\Carbon::parse($slot->end_time)->format('H:i') }}
+                                </div>
+                            </div>
+                            <form method="POST" action="{{ route('citizen.appointments.store', [$office, $slot]) }}">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    <i class="bi bi-calendar-plus me-1"></i>Book
+                                </button>
+                            </form>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
     @endif
 @endsection

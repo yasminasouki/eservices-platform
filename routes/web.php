@@ -9,11 +9,13 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\SocialAuthController;
+use App\Http\Controllers\Citizen\CitizenAppointmentController;
 use App\Http\Controllers\Citizen\CitizenDashboardController;
 use App\Http\Controllers\Citizen\CitizenFeedbackController;
 use App\Http\Controllers\Citizen\CitizenOfficeDirectoryController;
 use App\Http\Controllers\Citizen\CitizenServiceRequestController;
 use App\Http\Controllers\Citizen\IdVerificationController;
+use App\Http\Controllers\Office\OfficeAppointmentController;
 use App\Http\Controllers\Office\OfficeContextController;
 use App\Http\Controllers\Office\OfficeDashboardController;
 use App\Http\Controllers\Office\OfficeFeedbackController;
@@ -132,6 +134,20 @@ Route::middleware(['auth', 'active'])->group(function () {
                     ->except(['show'])
                     ->parameters(['services' => 'service'])
                     ->names('office.services');
+
+                Route::get('/office/{office}/time-slots', [OfficeAppointmentController::class, 'index'])
+                    ->name('office.slots.index');
+                Route::post('/office/{office}/time-slots', [OfficeAppointmentController::class, 'storeSlot'])
+                    ->name('office.slots.store');
+                Route::delete('/office/{office}/time-slots/{slot}', [OfficeAppointmentController::class, 'destroySlot'])
+                    ->name('office.slots.destroy');
+
+                Route::get('/office/{office}/appointments', [OfficeAppointmentController::class, 'appointments'])
+                    ->name('office.appointments.index');
+                Route::patch('/office/{office}/appointments/{appointment}/confirm', [OfficeAppointmentController::class, 'confirmAppointment'])
+                    ->name('office.appointments.confirm');
+                Route::patch('/office/{office}/appointments/{appointment}/cancel', [OfficeAppointmentController::class, 'cancelAppointment'])
+                    ->name('office.appointments.cancel');
             });
 
             Route::get('/office/change-password', [OfficePasswordController::class, 'showChangeForm'])->name('office.password.change');
@@ -157,6 +173,9 @@ Route::middleware(['auth', 'active'])->group(function () {
                 ->name('citizen.feedback.office.create');
             Route::post('/citizen/offices/{office}/feedback', [CitizenFeedbackController::class, 'storeForOffice'])
                 ->name('citizen.feedback.office.store');
+
+            Route::get('/citizen/offices/{office}/appointments', [CitizenAppointmentController::class, 'book'])->name('citizen.appointments.book');
+            Route::post('/citizen/offices/{office}/appointments/{slot}', [CitizenAppointmentController::class, 'store'])->name('citizen.appointments.store');
 
             Route::get('/citizen/id-verify', [IdVerificationController::class, 'show'])->name('citizen.id.verify');
             Route::post('/citizen/id-verify', [IdVerificationController::class, 'upload'])->name('citizen.id.upload');
