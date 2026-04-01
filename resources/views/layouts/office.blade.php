@@ -35,6 +35,7 @@
             @endif
             <span class="text-white small d-none d-sm-inline">{{ auth()->user()->name }}</span>
             <span class="badge bg-light text-dark">Office Staff</span>
+            @include('partials.notification-bell')
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button class="btn btn-outline-light btn-sm">

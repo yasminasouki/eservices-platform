@@ -23,6 +23,7 @@ use App\Http\Controllers\Office\OfficePasswordController;
 use App\Http\Controllers\Office\OfficeProfileController;
 use App\Http\Controllers\Office\OfficeServiceCategoryController;
 use App\Http\Controllers\Office\OfficeServiceController;
+use App\Http\Controllers\Office\NotificationController;
 use App\Http\Controllers\Office\OfficeServiceRequestController;
 use Illuminate\Support\Facades\Route;
 
@@ -152,6 +153,11 @@ Route::middleware(['auth', 'active'])->group(function () {
 
             Route::get('/office/change-password', [OfficePasswordController::class, 'showChangeForm'])->name('office.password.change');
             Route::post('/office/change-password', [OfficePasswordController::class, 'update'])->name('office.password.update');
+
+            // Notifications
+            Route::get('/office/notifications', [NotificationController::class, 'index'])->name('office.notifications.index');
+            Route::post('/office/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('office.notifications.read');
+            Route::post('/office/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('office.notifications.read-all');
         });
 
         Route::middleware('role:citizen')->group(function () {
