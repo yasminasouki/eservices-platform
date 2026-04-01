@@ -144,6 +144,14 @@ A web-based platform that digitizes and streamlines public services provided by 
 - Email: `manager@beirut.gov`
 - Password: `password`
 - Complete **2FA setup** on first sign-in like the admin account.
+-use this command to clear the already signed in staff 
+-UPDATE users 
+SET two_factor_secret = NULL,
+    two_factor_recovery_codes = NULL,
+    two_factor_confirmed_at = NULL,
+    social_provider = 'seed',
+    social_provider_id = 'local-demo-office'
+WHERE email = 'manager@beirut.gov';
 
 ## Environment Variables
 
@@ -159,6 +167,23 @@ This is the shared team API key for Lebanese ID OCR extraction (25,000 requests/
 - main → production ready only, never push directly
 - develop → integration branch, all PRs merge here
 - feature/your-task → create a new branch for every task
+
+## Brief — Appointment Management
+
+What We Built:
+Task 1 — Manage Officer Time Slots
+Office staff can create, view and delete available time slots for citizen appointments
+Task 2 — Office Views Appointments
+Office staff can view all booked appointments, confirm or cancel them with a reason
+Task 3 — Send Email Reminders
+System sends automatic email reminder to citizen 24 hours before their appointment
+
+###1. No new packages needed
+2. No .env changes needed
+3. No new migrations needed
+4. Run: php artisan schedule:work
+   to run scheduler locally(to send the email at the moment to test it)
+
 
 
 
