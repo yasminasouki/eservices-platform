@@ -7,6 +7,7 @@ use App\Models\Document;
 use App\Models\GovernmentOffice;
 use App\Models\Service;
 use App\Models\ServiceRequest;
+use App\Notifications\NewServiceRequestNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -86,6 +87,15 @@ class CitizenServiceRequestController extends Controller
                     'uploaded_by' => 'citizen',
                 ]);
             }
+        });
+
+        $office->staff()->each(function ($staffMember) use ($created, $service, $office) {
+            $staffMember->notify(new NewServiceRequestNotification(
+                auth()->user()->name,
+                $service->name,
+                $created->id,
+                $office->id,
+            ));
         });
 
         return redirect()
