@@ -59,7 +59,13 @@
                                     <strong class="text-body">Office:</strong> {{ $rev->office_reply }}
                                 </div>
                             @elseif($rev->office_reply && ! $rev->reply_is_public)
-                                <p class="small text-muted fst-italic mb-0">The office sent a private reply to this visitor.</p>
+                                @if(auth()->id() === $rev->user_id)
+                                    <div class="small border-start border-3 border-secondary ps-2 text-muted">
+                                        <strong class="text-body">Office (private reply to you):</strong> {{ $rev->office_reply }}
+                                    </div>
+                                @else
+                                    <p class="small text-muted fst-italic mb-0">The office sent a private reply to this visitor.</p>
+                                @endif
                             @endif
                             <div class="text-muted" style="font-size: 0.75rem;">{{ $rev->created_at?->format('M j, Y') }}</div>
                         </li>

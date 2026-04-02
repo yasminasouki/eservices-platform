@@ -1,4 +1,9 @@
-{{-- Notification Bell — polled every 5 s via JS fetch --}}
+@php
+    $notifIndexUrl = $notificationIndexUrl ?? route('office.notifications.index');
+    $notifReadAllUrl = $notificationReadAllUrl ?? route('office.notifications.read-all');
+    $notifReadBaseUrl = rtrim($notificationReadOneBaseUrl ?? url('/office/notifications'), '/');
+@endphp
+{{-- Notification bell — polled every 5 s; URLs overridable for citizen vs office --}}
 <div class="dropdown" id="notif-dropdown">
     <button
         class="btn btn-outline-light btn-sm position-relative"
@@ -34,13 +39,14 @@
 
 <script>
 (function () {
-    const CSRF      = '{{ csrf_token() }}';
-    const INDEX_URL = '{{ route('office.notifications.index') }}';
-    const READ_ALL  = '{{ route('office.notifications.read-all') }}';
-    const badge     = document.getElementById('notif-badge');
-    const list      = document.getElementById('notif-list');
-    const empty     = document.getElementById('notif-empty');
-    const markAllBtn = document.getElementById('notif-mark-all');
+    const CSRF           = @json(csrf_token());
+    const INDEX_URL      = @json($notifIndexUrl);
+    const READ_ALL       = @json($notifReadAllUrl);
+    const READ_BASE_URL  = @json($notifReadBaseUrl);
+    const badge          = document.getElementById('notif-badge');
+    const list           = document.getElementById('notif-list');
+    const empty          = document.getElementById('notif-empty');
+    const markAllBtn     = document.getElementById('notif-mark-all');
 
     function renderNotifications(data) {
         if (data.count > 0) {
@@ -50,7 +56,6 @@
             badge.style.display = 'none';
         }
 
-        // Remove existing items, keep the empty placeholder
         list.querySelectorAll('.notif-item').forEach(el => el.remove());
 
         if (!data.notifications || data.notifications.length === 0) {
@@ -65,7 +70,7 @@
             li.className = 'notif-item border-bottom';
             li.dataset.id = n.id;
             li.innerHTML =
-                '<a href="' + n.url + '" class="d-flex gap-2 px-3 py-2 text-decoration-none text-dark notif-link">' +
+                '<a href="' + escAttr(n.url) + '" class="d-flex gap-2 px-3 py-2 text-decoration-none text-dark notif-link">' +
                     '<i class="bi bi-envelope-fill text-primary mt-1 flex-shrink-0"></i>' +
                     '<div class="flex-grow-1 overflow-hidden">' +
                         '<div class="small lh-sm">' + escHtml(n.message) + '</div>' +
@@ -73,8 +78,13 @@
                     '</div>' +
                 '</a>';
 
-            li.querySelector('.notif-link').addEventListener('click', function () {
-                markOne(n.id);
+            const link = li.querySelector('.notif-link');
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                const href = link.getAttribute('href') || '#';
+                markOne(n.id).finally(function () {
+                    window.location.href = href;
+                });
             });
 
             list.insertBefore(li, empty);
@@ -87,11 +97,21 @@
         return d.innerHTML;
     }
 
+    function escAttr(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
     function markOne(id) {
-        fetch('{{ url('office/notifications') }}/' + id + '/read', {
+        return fetch(READ_BASE_URL + '/' + encodeURIComponent(id) + '/read', {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
-        }).catch(() => {});
+            credentials: 'same-origin',
+            keepalive: true,
+        }).catch(function () {});
     }
 
     function poll() {
@@ -99,9 +119,9 @@
             headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
             credentials: 'same-origin',
         })
-        .then(r => r.ok ? r.json() : null)
-        .then(data => { if (data) renderNotifications(data); })
-        .catch(() => {});
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (data) { if (data) renderNotifications(data); })
+        .catch(function () {});
     }
 
     markAllBtn.addEventListener('click', function () {
@@ -110,11 +130,10 @@
             headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
             credentials: 'same-origin',
         })
-        .then(() => poll())
-        .catch(() => {});
+        .then(function () { poll(); })
+        .catch(function () {});
     });
 
-    // Initial load + poll every 5 seconds
     poll();
     setInterval(poll, 5000);
 })();

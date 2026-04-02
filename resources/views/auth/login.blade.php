@@ -1,6 +1,7 @@
 @extends('layouts.auth')
 @section('title', 'Login — E-Services Platform')
-@section('subtitle', 'Sign in to your account')
+@section('heading', 'Welcome back')
+@section('subtitle', 'Sign in with your email to access citizen services.')
 
 @section('content')
     <form method="POST" action="{{ route('login') }}" autocomplete="off">
@@ -12,7 +13,7 @@
                 <span class="input-group-text"><i class="bi bi-envelope"></i></span>
                 <input type="email" id="email" name="email"
                        class="form-control @error('email') is-invalid @enderror"
-                       value="{{ old('email') }}" placeholder="you@example.com" required autofocus
+                       value="{{ old('email') }}" placeholder="Enter your email" required autofocus
                        autocomplete="off" readonly onfocus="this.removeAttribute('readonly')">
                 @error('email')
                     <div class="invalid-feedback">{{ $message }}</div>
@@ -26,7 +27,7 @@
                 <span class="input-group-text"><i class="bi bi-lock"></i></span>
                 <input type="password" id="password" name="password"
                        class="form-control @error('password') is-invalid @enderror"
-                       placeholder="••••••••" required
+                       placeholder="Enter your password" required
                        autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly')">
                 <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                     <i class="bi bi-eye" id="eyeIcon"></i>
@@ -73,18 +74,18 @@
             </div>
         </div>
 
-        <p class="text-center mb-0 small text-muted">
-            Don't have an account?
-            <a href="{{ route('register') }}" class="text-decoration-none fw-semibold text-primary">Create one</a>
-        </p>
-        <p class="text-center mt-2 mb-0 small text-muted">
-            Admin access?
-            <a href="{{ route('admin.login') }}" class="text-decoration-none fw-semibold text-primary">Admin Login</a>
-        </p>
-        <p class="text-center mt-2 mb-0 small text-muted">
-            Municipality staff?
-            <a href="{{ route('municipality.login') }}" class="text-decoration-none fw-semibold text-primary">Municipality Login</a>
-        </p>
+        <div class="auth-links-stack text-center small text-muted pt-1">
+            <p class="mb-0">
+                Don't have an account?
+                <a href="{{ route('register') }}" class="text-decoration-none fw-semibold text-primary">Create one</a>
+            </p>
+            <p class="mt-2 mb-0">
+                <span class="text-secondary">Other portals:</span>
+                <a href="{{ route('admin.login') }}" class="text-decoration-none fw-semibold text-primary ms-1">Admin</a>
+                <span class="text-secondary mx-1">·</span>
+                <a href="{{ route('municipality.login') }}" class="text-decoration-none fw-semibold text-primary">Municipality</a>
+            </p>
+        </div>
     </form>
 
     @push('scripts')

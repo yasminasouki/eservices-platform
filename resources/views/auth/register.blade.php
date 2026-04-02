@@ -1,6 +1,7 @@
 @extends('layouts.auth')
 @section('title', 'Register — E-Services Platform')
-@section('subtitle', 'Create your citizen account')
+@section('heading', 'Create your account')
+@section('subtitle', 'Enter your details to register as a citizen.')
 
 @section('content')
     <form method="POST" action="{{ route('register') }}" enctype="multipart/form-data">
@@ -12,7 +13,7 @@
                 <span class="input-group-text"><i class="bi bi-person"></i></span>
                 <input type="text" id="name" name="name"
                        class="form-control @error('name') is-invalid @enderror"
-                       value="{{ old('name') }}" placeholder="John Doe" required autofocus>
+                       value="{{ old('name') }}" required autofocus>
                 @error('name')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -25,7 +26,7 @@
                 <span class="input-group-text"><i class="bi bi-envelope"></i></span>
                 <input type="email" id="email" name="email"
                        class="form-control @error('email') is-invalid @enderror"
-                       value="{{ old('email') }}" placeholder="you@example.com" required>
+                       value="{{ old('email') }}" required>
                 @error('email')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror

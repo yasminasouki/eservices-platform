@@ -15,6 +15,7 @@ use App\Http\Controllers\Citizen\CitizenFeedbackController;
 use App\Http\Controllers\Citizen\CitizenOfficeDirectoryController;
 use App\Http\Controllers\Citizen\CitizenServiceRequestController;
 use App\Http\Controllers\Citizen\IdVerificationController;
+use App\Http\Controllers\Office\NotificationController;
 use App\Http\Controllers\Office\OfficeAppointmentController;
 use App\Http\Controllers\Office\OfficeContextController;
 use App\Http\Controllers\Office\OfficeDashboardController;
@@ -23,7 +24,6 @@ use App\Http\Controllers\Office\OfficePasswordController;
 use App\Http\Controllers\Office\OfficeProfileController;
 use App\Http\Controllers\Office\OfficeServiceCategoryController;
 use App\Http\Controllers\Office\OfficeServiceController;
-use App\Http\Controllers\Office\NotificationController;
 use App\Http\Controllers\Office\OfficeServiceRequestController;
 use Illuminate\Support\Facades\Route;
 
@@ -186,6 +186,10 @@ Route::middleware(['auth', 'active'])->group(function () {
             Route::get('/citizen/id-verify', [IdVerificationController::class, 'show'])->name('citizen.id.verify');
             Route::post('/citizen/id-verify', [IdVerificationController::class, 'upload'])->name('citizen.id.upload');
             Route::post('/citizen/id-save', [IdVerificationController::class, 'save'])->name('citizen.id.save');
+
+            Route::get('/citizen/notifications', [NotificationController::class, 'index'])->name('citizen.notifications.index');
+            Route::post('/citizen/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('citizen.notifications.read');
+            Route::post('/citizen/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('citizen.notifications.read-all');
         });
     });
 });
