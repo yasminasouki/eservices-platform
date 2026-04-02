@@ -1,6 +1,10 @@
 @extends('layouts.auth')
+@section('auth_body_class', 'auth-variant-admin')
 @section('title', 'Admin Login — E-Services Platform')
-@section('subtitle', 'Administrator access only')
+@section('auth_brand_icon', 'bi-shield-lock-fill')
+@section('heading', 'Admin sign-in')
+@section('heading_badge', 'Admin')
+@section('subtitle', 'Use your administrator credentials. This area is not for public accounts.')
 
 @section('content')
     <form method="POST" action="{{ route('admin.login.attempt') }}">
@@ -12,7 +16,7 @@
                 <span class="input-group-text"><i class="bi bi-envelope"></i></span>
                 <input type="email" id="email" name="email"
                        class="form-control @error('email') is-invalid @enderror"
-                       value="{{ old('email') }}" placeholder="admin@example.com" required autofocus>
+                       value="{{ old('email') }}" placeholder="Enter your email" required autofocus>
                 @error('email')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -25,7 +29,7 @@
                 <span class="input-group-text"><i class="bi bi-lock"></i></span>
                 <input type="password" id="password" name="password"
                        class="form-control @error('password') is-invalid @enderror"
-                       placeholder="••••••••" required>
+                       placeholder="Enter your password" required>
                 <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                     <i class="bi bi-eye" id="eyeIcon"></i>
                 </button>
@@ -47,10 +51,11 @@
             <i class="bi bi-shield-lock me-2"></i>Admin Sign In
         </button>
 
-        <p class="text-center mb-0 small text-muted">
-            Citizen portal?
-            <a href="{{ route('login') }}" class="text-decoration-none fw-semibold text-primary">Citizen Login</a>
-        </p>
+        <div class="auth-links-stack text-center small text-muted pt-1">
+            <p class="mb-0">
+                <a href="{{ route('login') }}" class="text-decoration-none fw-semibold text-primary">← Citizen portal</a>
+            </p>
+        </div>
     </form>
 
     @push('scripts')

@@ -37,9 +37,9 @@ class ServiceRequest extends Model
     protected function casts(): array
     {
         return [
-            'submitted_at'  => 'datetime',
-            'reviewed_at'   => 'datetime',
-            'completed_at'  => 'datetime',
+            'submitted_at' => 'datetime',
+            'reviewed_at' => 'datetime',
+            'completed_at' => 'datetime',
         ];
     }
 
@@ -93,12 +93,6 @@ class ServiceRequest extends Model
     public function feedback(): HasOne
     {
         return $this->hasOne(Feedback::class);
-    }
-
-    /** Notifications triggered by this request */
-    public function notifications(): HasMany
-    {
-        return $this->hasMany(Notification::class);
     }
 
     /** Chat messages in the context of this request */

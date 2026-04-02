@@ -1,6 +1,10 @@
 @extends('layouts.auth')
+@section('auth_body_class', 'auth-variant-municipality')
 @section('title', 'Municipality Portal — E-Services Platform')
-@section('subtitle', 'Municipality Staff Access')
+@section('auth_brand_icon', 'bi-building')
+@section('heading', 'Municipality sign-in')
+@section('heading_badge', 'Staff')
+@section('subtitle', 'Sign in with your office email to manage services and appointments.')
 
 @section('content')
     <form method="POST" action="{{ route('municipality.login.attempt') }}" autocomplete="off">
@@ -12,7 +16,7 @@
                 <span class="input-group-text"><i class="bi bi-envelope"></i></span>
                 <input type="email" id="email" name="email"
                        class="form-control @error('email') is-invalid @enderror"
-                       value="{{ old('email') }}" placeholder="you@municipality.gov.lb" required autofocus
+                       value="{{ old('email') }}" placeholder="Enter your email" required autofocus
                        autocomplete="off" readonly onfocus="this.removeAttribute('readonly')">
                 @error('email')
                     <div class="invalid-feedback">{{ $message }}</div>
@@ -26,7 +30,7 @@
                 <span class="input-group-text"><i class="bi bi-lock"></i></span>
                 <input type="password" id="password" name="password"
                        class="form-control @error('password') is-invalid @enderror"
-                       placeholder="••••••••" required
+                       placeholder="Enter your password" required
                        autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly')">
                 <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                     <i class="bi bi-eye" id="eyeIcon"></i>
@@ -49,14 +53,14 @@
             <i class="bi bi-building me-2"></i>Municipality Sign In
         </button>
 
-        <p class="text-center mb-0 small text-muted">
-            Citizen portal?
-            <a href="{{ route('login') }}" class="text-decoration-none fw-semibold text-primary">Citizen Login</a>
-        </p>
-        <p class="text-center mt-2 mb-0 small text-muted">
-            Admin access?
-            <a href="{{ route('admin.login') }}" class="text-decoration-none fw-semibold text-primary">Admin Login</a>
-        </p>
+        <div class="auth-links-stack text-center small text-muted pt-1">
+            <p class="mb-0">
+                <a href="{{ route('login') }}" class="text-decoration-none fw-semibold text-primary">← Citizen portal</a>
+            </p>
+            <p class="mt-2 mb-0">
+                <a href="{{ route('admin.login') }}" class="text-decoration-none fw-semibold text-primary">Admin portal</a>
+            </p>
+        </div>
     </form>
 
     @push('scripts')

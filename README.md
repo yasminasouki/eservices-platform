@@ -89,6 +89,14 @@ A web-based platform that digitizes and streamlines public services provided by 
    composer install
    npm install
 
+   **If `composer install` fails** (e.g. “your PHP version”, “ext-*”, or other platform requirement errors), install dependencies with:
+
+   ```bash
+   composer install --ignore-platform-reqs
+   ```
+
+   Use this so everyone can get a working `vendor/` folder when their local PHP or extensions don’t exactly match Composer’s checks. Prefer matching the project’s PHP version when you can.
+
    # The following packages are already included in composer.json and will be
    # installed automatically by `composer install`. No need to run them manually.
    # They are listed here for reference only:

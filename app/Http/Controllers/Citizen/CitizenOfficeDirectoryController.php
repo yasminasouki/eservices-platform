@@ -45,9 +45,9 @@ class CitizenOfficeDirectoryController extends Controller
             ->whereNotNull('rating')
             ->latest()
             ->limit(12)
-            ->get(['id', 'rating', 'comment', 'office_reply', 'reply_is_public', 'replied_at', 'created_at']);
+            ->get(['id', 'user_id', 'rating', 'comment', 'office_reply', 'reply_is_public', 'replied_at', 'created_at']);
 
-        $availableSlots = \App\Models\OfficerTimeSlot::query()
+        $availableSlots = OfficerTimeSlot::query()
             ->where('government_office_id', $office->id)
             ->where('is_available', true)
             ->whereDate('date', '>=', today())
@@ -56,10 +56,10 @@ class CitizenOfficeDirectoryController extends Controller
             ->get();
 
         return view('citizen.offices.show', [
-            'office'         => $office,
-            'categories'     => $categories,
-            'avgRating'      => $avgRating !== null ? round((float) $avgRating, 1) : null,
-            'publicReviews'  => $publicReviews,
+            'office' => $office,
+            'categories' => $categories,
+            'avgRating' => $avgRating !== null ? round((float) $avgRating, 1) : null,
+            'publicReviews' => $publicReviews,
             'availableSlots' => $availableSlots,
         ]);
     }

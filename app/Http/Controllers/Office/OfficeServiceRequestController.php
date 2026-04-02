@@ -7,6 +7,7 @@ use App\Models\Document;
 use App\Models\GovernmentOffice;
 use App\Models\ServiceRequest;
 use App\Models\ServiceRequestStatusLog;
+use App\Notifications\OfficeAddedDocumentNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -220,6 +221,11 @@ class OfficeServiceRequestController extends Controller
             'type' => $validated['type'],
             'uploaded_by' => 'office',
         ]);
+
+        $serviceRequest->loadMissing('citizen');
+        if ($serviceRequest->citizen) {
+            $serviceRequest->citizen->notify(new OfficeAddedDocumentNotification($serviceRequest, $office));
+        }
 
         return redirect()
             ->route('office.requests.show', [$office, $serviceRequest])
