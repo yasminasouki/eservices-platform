@@ -32,6 +32,20 @@
         <span class="badge {{ $statusBadge($request->status) }} fs-6">{{ $statusLabel($request->status) }}</span>
     </div>
 
+    @if($request->governmentOffice)
+        <div class="card card-soft mb-4">
+            <div class="card-header bg-white border-0 fw-semibold d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <span>Live chat with the office</span>
+                <a href="{{ route('citizen.offices.chat', $request->governmentOffice) }}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-chat-dots me-1"></i>Open live chat
+                </a>
+            </div>
+            <div class="card-body small text-muted py-3 mb-0">
+                Message {{ $request->governmentOffice->name }} directly (not limited to this request).
+            </div>
+        </div>
+    @endif
+
     <div class="row g-4">
         <div class="col-lg-6">
             <div class="card card-soft mb-4">

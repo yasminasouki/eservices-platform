@@ -29,6 +29,9 @@
             @endif
         </div>
         <div class="d-flex flex-wrap gap-2">
+            <a href="{{ route('citizen.offices.chat', $office) }}" class="btn btn-primary btn-sm">
+                <i class="bi bi-chat-dots me-1"></i>Live chat
+            </a>
             <a href="{{ route('citizen.appointments.book', $office) }}" class="btn btn-success btn-sm">
                 <i class="bi bi-calendar-plus me-1"></i>Book Appointment
             </a>
