@@ -37,6 +37,20 @@
 
     <div class="row g-4">
         <div class="col-lg-7">
+            @if($request->citizen)
+                <div class="card card-soft mb-4 border-success border-opacity-25">
+                    <div class="card-header bg-white border-0 fw-semibold d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <span>Live chat</span>
+                        <a href="{{ route('office.chat.show', [$office, $request->citizen]) }}" class="btn btn-success btn-sm">
+                            <i class="bi bi-chat-dots me-1"></i>Open thread with {{ $request->citizen->name }}
+                        </a>
+                    </div>
+                    <div class="card-body small text-muted mb-0 py-3">
+                        General live chat with this citizen (same thread as from the office chat inbox).
+                    </div>
+                </div>
+            @endif
+
             <div class="card card-soft mb-4">
                 <div class="card-header bg-white border-0 fw-semibold">Citizen & service</div>
                 <div class="card-body">

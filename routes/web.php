@@ -12,6 +12,7 @@ use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\Citizen\CitizenAppointmentController;
 use App\Http\Controllers\Citizen\CitizenDashboardController;
 use App\Http\Controllers\Citizen\CitizenFeedbackController;
+use App\Http\Controllers\Citizen\CitizenOfficeChatController;
 use App\Http\Controllers\Citizen\CitizenOfficeDirectoryController;
 use App\Http\Controllers\Citizen\CitizenServiceRequestController;
 use App\Http\Controllers\Citizen\IdVerificationController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\Office\OfficeAppointmentController;
 use App\Http\Controllers\Office\OfficeContextController;
 use App\Http\Controllers\Office\OfficeDashboardController;
 use App\Http\Controllers\Office\OfficeFeedbackController;
+use App\Http\Controllers\Office\OfficeOfficeChatController;
 use App\Http\Controllers\Office\OfficePasswordController;
 use App\Http\Controllers\Office\OfficeProfileController;
 use App\Http\Controllers\Office\OfficeServiceCategoryController;
@@ -120,6 +122,14 @@ Route::middleware(['auth', 'active'])->group(function () {
                 Route::post('/office/{office}/requests/{serviceRequest}/documents', [OfficeServiceRequestController::class, 'storeDocument'])
                     ->name('office.requests.documents.store');
 
+                Route::get('/office/{office}/chat', [OfficeOfficeChatController::class, 'index'])
+                    ->name('office.chat.index');
+                Route::get('/office/{office}/chat/{citizen}', [OfficeOfficeChatController::class, 'show'])
+                    ->name('office.chat.show');
+                Route::post('/office/{office}/chat/{citizen}', [OfficeOfficeChatController::class, 'store'])
+                    ->middleware('throttle:60,1')
+                    ->name('office.chat.store');
+
                 Route::get('/office/{office}/feedback', [OfficeFeedbackController::class, 'index'])
                     ->name('office.feedback.index');
                 Route::get('/office/{office}/feedback/{feedback}/edit', [OfficeFeedbackController::class, 'edit'])
@@ -164,6 +174,10 @@ Route::middleware(['auth', 'active'])->group(function () {
             Route::get('/citizen/dashboard', [CitizenDashboardController::class, 'index'])->name('citizen.dashboard');
             Route::get('/citizen/offices', [CitizenOfficeDirectoryController::class, 'index'])->name('citizen.offices.index');
             Route::get('/citizen/offices/{office}', [CitizenOfficeDirectoryController::class, 'show'])->name('citizen.offices.show');
+            Route::get('/citizen/offices/{office}/chat', [CitizenOfficeChatController::class, 'index'])->name('citizen.offices.chat');
+            Route::post('/citizen/offices/{office}/chat', [CitizenOfficeChatController::class, 'store'])
+                ->middleware('throttle:60,1')
+                ->name('citizen.offices.chat.store');
             Route::get('/citizen/offices/{office}/services/{service}/apply', [CitizenServiceRequestController::class, 'create'])
                 ->name('citizen.services.apply');
             Route::post('/citizen/offices/{office}/services/{service}/apply', [CitizenServiceRequestController::class, 'store'])

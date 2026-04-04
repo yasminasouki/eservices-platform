@@ -83,27 +83,111 @@ A web-based platform that digitizes and streamlines public services provided by 
 - MySQL
 - Bootstrap
 
+## Team: installing dependencies (after clone or `git pull`)
+
+Run these from the project root. They install **everything** declared in `composer.json` / `composer.lock` and `package.json` / `package-lock.json`. Teammates should **not** run one-off `composer require` or `npm install <package>` unless they are adding a new dependency and committing the updated manifests.
+
+```bash
+composer install
+npm install
+```
+
+For a clean install that matches `package-lock.json` exactly (CI-style), you can use `npm ci` instead of `npm install`.
+
+**If `composer install` fails** (PHP version, missing `ext-*`, etc.):
+
+```bash
+composer install --ignore-platform-reqs
+```
+
+Prefer matching the project’s PHP version when you can; `--ignore-platform-reqs` is a fallback so everyone can get a working `vendor/` folder.
+
+### PHP packages (`composer.json` → `composer install`)
+
+| Package | Role in this project |
+|---------|----------------------|
+| `laravel/framework` | Laravel application core |
+| `laravel/tinker` | REPL (`php artisan tinker`) |
+| `laravel/socialite` | Google & Facebook login |
+| `pragmarx/google2fa` | TOTP secret generation / verification |
+| `pragmarx/google2fa-laravel` | Laravel integration for 2FA |
+| `bacon/bacon-qr-code` | QR images for 2FA enrollment |
+| `laravel/reverb` | WebSocket server for real-time chat (with Laravel Echo) |
+
+Transitive dependencies (Symfony, Monolog, etc.) are pulled in automatically; `composer.lock` is the source of truth for exact versions.
+
+### Front-end tooling (`package.json` → `npm install`)
+
+| Package | Role in this project |
+|---------|----------------------|
+| `vite` | Build tool and dev server |
+| `laravel-vite-plugin` | Laravel ↔ Vite integration |
+| `axios` | HTTP client (used from `resources/js/bootstrap.js`) |
+| `laravel-echo` | Subscribe to private channels and listen for broadcast events |
+| `pusher-js` | WebSocket client (Reverb speaks the Pusher protocol) |
+| `tailwindcss` / `@tailwindcss/vite` | CSS pipeline (if used in `resources/css`) |
+| `concurrently` | Used by Composer script `composer run dev` to run multiple processes |
+
+## Clone, `git pull`, and what Git does not include
+
+These paths are **not** in the repository (see `.gitignore`). Each developer creates them locally:
+
+| Path | How to get it |
+|------|----------------|
+| `.env` | Copy from `.env.example` and edit (never commit `.env`). |
+| `vendor/` | `composer install` |
+| `node_modules/` | `npm install` |
+| `public/build/` | `npm run build`, or `npm run dev` while you edit JS/CSS |
+
+**After every `git pull`** — especially when `composer.lock` or `package-lock.json` changed — run:
+
+```bash
+composer install
+npm install
+npm run build
+```
+
+Use `npm run dev` instead of `npm run build` if you are actively working on front-end assets and want Vite’s dev server with hot reload.
+
+**First-time clone** also needs the steps in **Local Setup** below (`php artisan key:generate`, database, `php artisan migrate`, `php artisan storage:link`, optional seed).
+
+**Run the app with live chat (WebSockets) in one process:**
+
+```bash
+composer run dev
+```
+
+That starts `php artisan serve`, `php artisan reverb:start`, the queue worker, Pail, and `npm run dev`. Alternatively, use separate terminals: `php artisan serve`, `php artisan reverb:start`, and `npm run dev` (see **Real-time chat**).
+
+## Real-time chat (Laravel Reverb + Echo)
+
+**Office live chat** (citizen ↔ municipality staff) is **not tied to a service request**. Citizens open it from an office’s page (**Live chat**) or `/citizen/offices/{office}/chat`. Staff use **Live chat** in the office nav or `/office/{office}/chat` (inbox) and `/office/{office}/chat/{citizen}` (thread).
+
+Broadcasting uses **private channels** `office-chat.{officeId}.{citizenUserId}` and the **`OfficeChatMessageSent`** event (`ShouldBroadcastNow`). After copying `.env.example` to `.env`, ensure **`BROADCAST_CONNECTION=reverb`** and the **`REVERB_*` / `VITE_REVERB_*`** variables are present. If you use `BROADCAST_CONNECTION=reverb` without those keys, Artisan and the app can error until you add them.
+
+For local development you need the **Reverb** WebSocket server running whenever `BROADCAST_CONNECTION=reverb`, otherwise the app cannot push chat events and the browser will not get live updates (messages still save to the database).
+
+**Option A — one command** (starts HTTP server, Reverb, queue worker, logs, and Vite):
+
+```bash
+composer run dev
+```
+
+**Option B — separate terminals:**
+
+```bash
+php artisan serve
+php artisan reverb:start
+npm run dev
+```
+
+Sending a message uses **AJAX**, so **your** new line appears in the thread right away without a full page reload. The **other** participant still relies on **Reverb + Echo** for instant delivery; if Reverb is not running, they will only see new lines after they refresh until you start `php artisan reverb:start`.
+
+Open the live chat for the **same office** in a citizen session and an office session; with Reverb up, new messages should appear on the other side without refreshing. If Echo cannot connect, check that `REVERB_HOST` / `REVERB_PORT` / `REVERB_SCHEME` match your Reverb process (defaults: `localhost`, `8080`, `http`) and that `npm run build` or `npm run dev` has run so `VITE_REVERB_*` values are baked into the front-end bundle.
+
 ## Local Setup (run these after cloning)
 
-1. Install dependencies
-   composer install
-   npm install
-
-   **If `composer install` fails** (e.g. “your PHP version”, “ext-*”, or other platform requirement errors), install dependencies with:
-
-   ```bash
-   composer install --ignore-platform-reqs
-   ```
-
-   Use this so everyone can get a working `vendor/` folder when their local PHP or extensions don’t exactly match Composer’s checks. Prefer matching the project’s PHP version when you can.
-
-   # The following packages are already included in composer.json and will be
-   # installed automatically by `composer install`. No need to run them manually.
-   # They are listed here for reference only:
-   #
-   #   composer require laravel/socialite       → Google & Facebook social login
-   #   composer require pragmarx/google2fa      → Two-factor authentication (TOTP)
-   #   composer require bacon/bacon-qr-code     → QR code generation for 2FA setup
+1. Install dependencies (see **Team: installing dependencies** above).
 
 2. Copy the environment file
    cp .env.example .env
@@ -128,8 +212,11 @@ A web-based platform that digitizes and streamlines public services provided by 
 7. Link storage
    php artisan storage:link
 
-8. Start the server
-   php artisan serve
+8. Start the server — either:
+   - `composer run dev` (recommended: also starts Reverb, queue, Vite — see **Clone, `git pull`, and what Git does not include**), or
+   - `php artisan serve` (add `php artisan reverb:start` and `npm run dev` in other terminals if you need live chat and fresh assets)
+
+   **Session cookies:** Set **`APP_URL`** in `.env` to match what you type in the browser. If you sometimes open `http://localhost:8000` and sometimes `http://127.0.0.1:8000`, the browser keeps **two separate session cookies**, which often looks like “nothing works until I delete cookies.” Pick one host and stick to it (and align `APP_URL`). For plain HTTP, session cookies are not marked Secure unless `APP_URL` is `https://` (see `config/session.php`).
 
 9. Seed default data (includes first admin account)
    php artisan db:seed
@@ -162,6 +249,39 @@ SET two_factor_secret = NULL,
 WHERE email = 'manager@beirut.gov';
 
 ## Environment Variables
+
+After running `cp .env.example .env`, configure the sections below. The file **`.env.example`** in the repo is the template; copy it and adjust for your machine.
+
+### Live chat & broadcasting (Reverb)
+
+These variables enable **real-time** office chat (the other participant’s tab updates without a refresh). They are already present in **`.env.example`** — copy them into **`.env`** and keep PHP (`REVERB_*`) and Vite (`VITE_REVERB_*`) in sync. If you change any `VITE_REVERB_*` value, run **`npm run build`** or **`npm run dev`** again so the browser bundle picks it up.
+
+```env
+BROADCAST_CONNECTION=reverb
+
+REVERB_APP_ID=100001
+REVERB_APP_KEY=local-reverb-key
+REVERB_APP_SECRET=local-reverb-secret
+REVERB_HOST="localhost"
+REVERB_PORT=8080
+REVERB_SCHEME=http
+
+VITE_REVERB_APP_KEY="${REVERB_APP_KEY}"
+VITE_REVERB_HOST="${REVERB_HOST}"
+VITE_REVERB_PORT="${REVERB_PORT}"
+VITE_REVERB_SCHEME="${REVERB_SCHEME}"
+```
+
+| Variable | Purpose |
+|----------|---------|
+| `BROADCAST_CONNECTION` | Set to `reverb` for live chat. Use `null` only if you intentionally disable broadcasting (other tabs will not get instant updates). |
+| `REVERB_APP_ID`, `REVERB_APP_KEY`, `REVERB_APP_SECRET` | Credentials Laravel and the Reverb server use; defaults match a typical local `php artisan reverb:start`. |
+| `REVERB_HOST`, `REVERB_PORT`, `REVERB_SCHEME` | Where the **server** publishes events (default: `http://localhost:8080`). |
+| `VITE_REVERB_*` | Same values exposed to the **browser** so Laravel Echo can open the WebSocket. Must match `REVERB_*` for host/port/scheme. |
+
+Also set **`APP_URL`** to the exact base URL you use in the browser (for example `http://127.0.0.1:8000` **or** `http://localhost:8000`, not both interchangeably) so sessions and cookies stay consistent.
+
+### OCR.space (Lebanese ID extraction)
 
 After running `cp .env.example .env`, add your OCR.space key for Lebanese ID extraction:
 

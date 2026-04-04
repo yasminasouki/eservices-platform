@@ -169,7 +169,14 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    /*
+    | When SESSION_SECURE_COOKIE is not set, derive from APP_URL so local http://
+    | (php artisan serve) gets Secure=false. Otherwise browsers may refuse to send
+    | the session cookie on plain HTTP and the site appears broken until cookies are cleared.
+    */
+    'secure' => env('SESSION_SECURE_COOKIE') !== null
+        ? filter_var(env('SESSION_SECURE_COOKIE'), FILTER_VALIDATE_BOOLEAN)
+        : (parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_SCHEME) === 'https'),
 
     /*
     |--------------------------------------------------------------------------

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Citizen') — E-Services Platform</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
@@ -24,6 +25,7 @@
         .form-control:focus, .form-select:focus { border-color: var(--accent-mid); box-shadow: 0 0 0 0.2rem var(--accent-subtle); }
     </style>
     @stack('styles')
+    @stack('head')
 </head>
 <body class="bg-light">
     <nav class="navbar navbar-dark px-3" style="background: linear-gradient(135deg, #4a148c, #6a1b9a);">
@@ -44,6 +46,14 @@
                onmouseover="this.style.background='rgba(255,255,255,0.25)'"
                onmouseout="this.style.background='rgba(255,255,255,0.15)'">
                 <i class="bi bi-folder2-open"></i> My requests
+            </a>
+            <a href="{{ route('citizen.offices.index') }}"
+               class="d-none d-md-flex align-items-center gap-1 text-white text-decoration-none px-3 py-1 rounded-pill"
+               style="background:rgba(255,255,255,0.15);font-size:0.85rem;"
+               title="Pick an office, then open Live chat"
+               onmouseover="this.style.background='rgba(255,255,255,0.25)'"
+               onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                <i class="bi bi-chat-dots"></i> Message an office
             </a>
             <div class="d-none d-sm-flex align-items-center gap-2">
                 <div class="d-flex align-items-center justify-content-center rounded-circle bg-white bg-opacity-25 text-white fw-bold"
