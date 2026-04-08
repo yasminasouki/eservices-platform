@@ -18,39 +18,39 @@ class IdVerificationService
     public function submitForVerification(string $frontPath, string $backPath): array
     {
         [$frontText, $frontResponse] = $this->ocr($frontPath);
-        [$backText,  $backResponse]  = $this->ocr($backPath);
+        [$backText,  $backResponse] = $this->ocr($backPath);
 
         $extracted = $this->parseIdText($frontText, $backText);
 
         IdVerificationRequest::create([
-            'user_id'                   => auth()->id(),
-            'id_document_path'          => $frontPath,
-            'id_document_back_path'     => $backPath,
-            'api_provider'              => 'ocr_space',
-            'api_response'              => $frontResponse,
-            'api_response_back'         => $backResponse,
-            'extracted_name'            => $extracted['extracted_name'],
-            'extracted_father_name'     => $extracted['extracted_father_name'],
-            'extracted_mother_name'     => $extracted['extracted_mother_name'],
-            'extracted_place_of_birth'  => $extracted['extracted_place_of_birth'],
-            'extracted_gender'          => $extracted['extracted_gender'],
-            'extracted_dob'             => $extracted['extracted_dob'],
-            'extracted_id_number'       => $extracted['extracted_id_number'],
+            'user_id' => auth()->id(),
+            'id_document_path' => $frontPath,
+            'id_document_back_path' => $backPath,
+            'api_provider' => 'ocr_space',
+            'api_response' => $frontResponse,
+            'api_response_back' => $backResponse,
+            'extracted_name' => $extracted['extracted_name'],
+            'extracted_father_name' => $extracted['extracted_father_name'],
+            'extracted_mother_name' => $extracted['extracted_mother_name'],
+            'extracted_place_of_birth' => $extracted['extracted_place_of_birth'],
+            'extracted_gender' => $extracted['extracted_gender'],
+            'extracted_dob' => $extracted['extracted_dob'],
+            'extracted_id_number' => $extracted['extracted_id_number'],
             'extracted_registry_number' => $extracted['extracted_registry_number'],
-            'extracted_issue_date'      => $extracted['extracted_issue_date'],
-            'extracted_expiry_date'     => $extracted['extracted_expiry_date'],
-            'extracted_blood_type'      => $extracted['extracted_blood_type'],
-            'extracted_marital_status'  => $extracted['extracted_marital_status'],
-            'extracted_locality'        => $extracted['extracted_locality'],
-            'extracted_governorate'     => $extracted['extracted_governorate'],
-            'extracted_district'        => $extracted['extracted_district'],
-            'status'                    => 'pending',
+            'extracted_issue_date' => $extracted['extracted_issue_date'],
+            'extracted_expiry_date' => $extracted['extracted_expiry_date'],
+            'extracted_blood_type' => $extracted['extracted_blood_type'],
+            'extracted_marital_status' => $extracted['extracted_marital_status'],
+            'extracted_locality' => $extracted['extracted_locality'],
+            'extracted_governorate' => $extracted['extracted_governorate'],
+            'extracted_district' => $extracted['extracted_district'],
+            'status' => 'pending',
         ]);
 
         Log::info('ID verification submitted via OCR.space (front + back).', [
             'front_path' => $frontPath,
-            'back_path'  => $backPath,
-            'extracted'  => $extracted,
+            'back_path' => $backPath,
+            'extracted' => $extracted,
         ]);
 
         return array_merge($extracted, ['status' => 'pending']);
@@ -65,31 +65,84 @@ class IdVerificationService
      */
     private function ocr(string $documentPath): array
     {
-        $absolutePath = Storage::path($documentPath);
+        [$text, $data] = $this->requestOcrSpace($documentPath, '1');
 
-        $response = Http::timeout(60)->asMultipart()
-            ->post(config('services.ocr_space.url'), [
-                ['name' => 'apikey',             'contents' => config('services.ocr_space.key')],
-                ['name' => 'language',           'contents' => 'ara'],
-                ['name' => 'isOverlayRequired',  'contents' => 'false'],
-                ['name' => 'OCREngine',          'contents' => '1'],
-                ['name' => 'scale',              'contents' => 'true'],
-                ['name' => 'detectOrientation',  'contents' => 'true'],
-                [
-                    'name'     => 'file',
-                    'contents' => fopen($absolutePath, 'r'),
-                    'filename' => basename($absolutePath),
-                ],
-            ]);
+        $minChars = (int) config('services.ocr_space.fallback_min_chars', 50);
+        if ($minChars > 0 && strlen(trim($text)) < $minChars) {
+            [$text2, $data2] = $this->requestOcrSpace($documentPath, '2');
+            if (strlen(trim($text2)) > strlen(trim($text))) {
+                return [$text2, $data2];
+            }
+        }
+
+        return [$text, $data];
+    }
+
+    /**
+     * Single OCR.space request. Merges every ParsedResults block (multi-region / multi-page).
+     */
+    private function requestOcrSpace(string $documentPath, string $ocrEngine): array
+    {
+        $absolutePath = Storage::path($documentPath);
+        $connectTimeout = (int) config('services.ocr_space.connect_timeout', 30);
+
+        $ext = strtolower(pathinfo($absolutePath, PATHINFO_EXTENSION));
+        $filetype = match ($ext) {
+            'pdf' => 'PDF',
+            'png' => 'PNG',
+            'gif' => 'GIF',
+            'jpg', 'jpeg' => 'JPG',
+            default => 'AUTO',
+        };
+
+        $handle = fopen($absolutePath, 'rb');
+        if ($handle === false) {
+            Log::error('ID OCR: could not open file.', ['path' => $documentPath]);
+
+            return ['', []];
+        }
+
+        try {
+            $response = Http::timeout(90)
+                ->connectTimeout($connectTimeout)
+                ->asMultipart()
+                ->post(config('services.ocr_space.url'), [
+                    ['name' => 'apikey',             'contents' => config('services.ocr_space.key')],
+                    ['name' => 'language',           'contents' => 'ara'],
+                    ['name' => 'isOverlayRequired',  'contents' => 'false'],
+                    ['name' => 'OCREngine',          'contents' => $ocrEngine],
+                    ['name' => 'scale',              'contents' => 'true'],
+                    ['name' => 'detectOrientation',  'contents' => 'true'],
+                    ['name' => 'filetype',           'contents' => $filetype],
+                    [
+                        'name' => 'file',
+                        'contents' => $handle,
+                        'filename' => basename($absolutePath),
+                    ],
+                ]);
+        } finally {
+            if (is_resource($handle)) {
+                fclose($handle);
+            }
+        }
 
         $responseData = $response->json() ?? [];
 
+        // Missing key must mean "not errored" — (?? true) wrongly discarded good responses.
+        $processingFailed = filter_var($responseData['IsErroredOnProcessing'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
         $parsedText = '';
-        if ($response->successful() && ! ($responseData['IsErroredOnProcessing'] ?? true)) {
-            $parsedText = $responseData['ParsedResults'][0]['ParsedText'] ?? '';
+        if ($response->successful() && ! $processingFailed) {
+            foreach ($responseData['ParsedResults'] ?? [] as $block) {
+                $t = $block['ParsedText'] ?? '';
+                if ($t !== '') {
+                    $parsedText .= ($parsedText === '' ? '' : "\n").$t;
+                }
+            }
         } else {
             Log::warning('OCR.space API error', [
-                'status'        => $response->status(),
+                'status' => $response->status(),
+                'engine' => $ocrEngine,
                 'error_message' => $responseData['ErrorMessage'] ?? null,
                 'document_path' => $documentPath,
             ]);
@@ -132,11 +185,11 @@ class IdVerificationService
      */
     private function parseIdText(string $frontText, string $backText): array
     {
-        $arabicIndic     = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
-        $western         = ['0','1','2','3','4','5','6','7','8','9'];
-        $normaliseDigits = static fn(string $s): string => str_replace($arabicIndic, $western, $s);
+        $arabicIndic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+        $western = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        $normaliseDigits = static fn (string $s): string => str_replace($arabicIndic, $western, $s);
         // Collapse inner whitespace to single space
-        $collapse = static fn(string $s): string => trim(preg_replace('/\s+/', ' ', $s));
+        $collapse = static fn (string $s): string => trim(preg_replace('/\s+/', ' ', $s));
 
         // ── FRONT SIDE ────────────────────────────────────────────────────────
 
@@ -199,8 +252,8 @@ class IdVerificationService
             // Find ABO type
             preg_match('/\b(AB|A|B|O)\b/i', $raw, $t);
             $type = isset($t[1]) ? strtoupper($t[1]) : (preg_match('/[A-Z]/i', $raw, $t2) ? strtoupper($t2[0]) : '');
-            $rh   = preg_match('/[+\-]/', $raw, $r) ? $r[0] : '';
-            $bloodType = ($type . $rh) ?: null;
+            $rh = preg_match('/[+\-]/', $raw, $r) ? $r[0] : '';
+            $bloodType = ($type.$rh) ?: null;
         }
 
         // Issue date: تاريخ الإصدار (OCR: تاربخ الاصدار: — value often garbled)
@@ -250,21 +303,21 @@ class IdVerificationService
         $fullName = implode(' ', array_filter([$firstName, $lastName])) ?: null;
 
         return [
-            'extracted_name'            => $fullName,
-            'extracted_father_name'     => $fatherName,
-            'extracted_mother_name'     => $motherName,
-            'extracted_place_of_birth'  => $placeOfBirth,
-            'extracted_gender'          => $gender,
-            'extracted_dob'             => $this->reconstructDate($dob),
-            'extracted_id_number'       => $idNumber,
+            'extracted_name' => $fullName,
+            'extracted_father_name' => $fatherName,
+            'extracted_mother_name' => $motherName,
+            'extracted_place_of_birth' => $placeOfBirth,
+            'extracted_gender' => $gender,
+            'extracted_dob' => $this->reconstructDate($dob),
+            'extracted_id_number' => $idNumber,
             'extracted_registry_number' => $registryNumber,
-            'extracted_issue_date'      => $this->reconstructDate($issueDate),
-            'extracted_expiry_date'     => null, // not present on Lebanese IDs
-            'extracted_blood_type'      => $bloodType,
-            'extracted_marital_status'  => $marital,
-            'extracted_locality'        => $locality,
-            'extracted_governorate'     => $governorate,
-            'extracted_district'        => $district,
+            'extracted_issue_date' => $this->reconstructDate($issueDate),
+            'extracted_expiry_date' => null, // not present on Lebanese IDs
+            'extracted_blood_type' => $bloodType,
+            'extracted_marital_status' => $marital,
+            'extracted_locality' => $locality,
+            'extracted_governorate' => $governorate,
+            'extracted_district' => $district,
         ];
     }
 
@@ -275,11 +328,13 @@ class IdVerificationService
      */
     private function reconstructDate(?string $raw): ?string
     {
-        if (! $raw) return null;
+        if (! $raw) {
+            return null;
+        }
 
         // Keep only digits and separators
         $cleaned = preg_replace('/[^\d\/.\-]/', '', $raw);
-        $parts   = array_filter(preg_split('/[\/.\-]/', $cleaned));
+        $parts = array_filter(preg_split('/[\/.\-]/', $cleaned));
 
         $year = null;
         $rest = [];
@@ -288,18 +343,22 @@ class IdVerificationService
             // Extract 4-digit year from within potentially garbled part (e.g. "19811")
             if (preg_match('/((?:19|20)\d{2})/', $part, $y)) {
                 $year = $y[1];
-                $rem  = str_replace($year, '', $part);
-                if (strlen($rem) > 1) $rest[] = $rem; // skip 1-char artifacts
+                $rem = str_replace($year, '', $part);
+                if (strlen($rem) > 1) {
+                    $rest[] = $rem;
+                } // skip 1-char artifacts
             } else {
                 $rest[] = $part;
             }
         }
 
-        if (! $year) return null;
+        if (! $year) {
+            return null;
+        }
 
         // Identify month (1–12) and day (1–31) from remaining parts
         $month = null;
-        $day   = null;
+        $day = null;
         foreach ($rest as $part) {
             $n = (int) $part;
             if ($n >= 1 && $n <= 12 && $month === null) {

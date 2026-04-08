@@ -27,10 +27,16 @@
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-4">
         <div>
             <h2 class="fw-bold mb-1">Request #{{ $request->id }}</h2>
-            <p class="text-muted small mb-0 font-monospace">Tracking: {{ $request->qr_code }}</p>
+            <p class="text-muted small mb-0">Save or print the QR below to check status anytime without logging in.</p>
         </div>
         <span class="badge {{ $statusBadge($request->status) }} fs-6">{{ $statusLabel($request->status) }}</span>
     </div>
+
+    @include('partials.service-request-public-qr', [
+        'trackingUrl' => $trackingUrl,
+        'trackingQrDataUri' => $trackingQrDataUri,
+        'referenceCode' => $request->qr_code,
+    ])
 
     @if($request->governmentOffice)
         <div class="card card-soft mb-4">

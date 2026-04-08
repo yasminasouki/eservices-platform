@@ -20,7 +20,34 @@ class CitizenOfficeDirectoryController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        return view('citizen.offices.index', compact('offices'));
+        $mapMarkers = GovernmentOffice::query()
+            ->where('is_active', true)
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->withCount(['services' => fn ($q) => $q->where('is_active', true)])
+            ->orderBy('name')
+            ->limit(500)
+            ->get(['id', 'name', 'latitude', 'longitude', 'address'])
+            ->map(fn (GovernmentOffice $o) => [
+                'id' => $o->id,
+                'name' => $o->name,
+                'lat' => (float) $o->latitude,
+                'lng' => (float) $o->longitude,
+                'address' => $o->address,
+                'url' => route('citizen.offices.show', $o),
+                'services' => (int) $o->services_count,
+            ])
+            ->values();
+
+        $mapConfig = [
+            'defaultLat' => config('maps.default_center.lat'),
+            'defaultLng' => config('maps.default_center.lng'),
+            'tileUrl' => config('maps.tile_url'),
+            'attribution' => config('maps.tile_attribution'),
+            'maxZoom' => config('maps.max_zoom'),
+        ];
+
+        return view('citizen.offices.index', compact('offices', 'mapMarkers', 'mapConfig'));
     }
 
     public function show(GovernmentOffice $office): View
@@ -55,12 +82,32 @@ class CitizenOfficeDirectoryController extends Controller
             ->orderBy('start_time')
             ->get();
 
+        $mapConfig = [
+            'defaultLat' => config('maps.default_center.lat'),
+            'defaultLng' => config('maps.default_center.lng'),
+            'tileUrl' => config('maps.tile_url'),
+            'attribution' => config('maps.tile_attribution'),
+            'maxZoom' => config('maps.max_zoom'),
+        ];
+
+        $officeMap = null;
+        if ($office->latitude !== null && $office->longitude !== null) {
+            $officeMap = [
+                'lat' => (float) $office->latitude,
+                'lng' => (float) $office->longitude,
+                'name' => $office->name,
+                'address' => $office->address,
+            ];
+        }
+
         return view('citizen.offices.show', [
             'office' => $office,
             'categories' => $categories,
             'avgRating' => $avgRating !== null ? round((float) $avgRating, 1) : null,
             'publicReviews' => $publicReviews,
             'availableSlots' => $availableSlots,
+            'mapConfig' => $mapConfig,
+            'officeMap' => $officeMap,
         ]);
     }
 }

@@ -2,6 +2,10 @@
 
 @section('title', $office->name)
 
+@if($officeMap ?? null)
+    @include('partials.maps.leaflet-assets')
+@endif
+
 @section('content')
     <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb small mb-0">
@@ -41,6 +45,36 @@
             <a href="{{ route('citizen.offices.index') }}" class="btn btn-outline-secondary btn-sm">All offices</a>
         </div>
     </div>
+
+    @if($officeMap ?? null)
+        <div class="card card-soft mb-4">
+            <div class="card-header bg-white border-0 fw-semibold">
+                <i class="bi bi-map me-2"></i>Location
+            </div>
+            <div class="card-body">
+                <div class="leaflet-map-shell mb-3">
+                    <div id="citizen-office-show-map" class="leaflet-map leaflet-map-sm" role="region" aria-label="Map of office location"></div>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="https://www.openstreetmap.org/?mlat={{ $officeMap['lat'] }}&mlon={{ $officeMap['lng'] }}#map=16/{{ $officeMap['lat'] }}/{{ $officeMap['lng'] }}"
+                       class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener noreferrer">
+                        Open in OpenStreetMap
+                    </a>
+                    @if($office->google_maps_url)
+                        <a href="{{ $office->google_maps_url }}" class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener noreferrer">
+                            Google Maps link
+                        </a>
+                    @endif
+                </div>
+            </div>
+        </div>
+    @elseif($office->google_maps_url)
+        <div class="mb-4">
+            <a href="{{ $office->google_maps_url }}" class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener noreferrer">
+                <i class="bi bi-geo-alt me-1"></i>Open map link
+            </a>
+        </div>
+    @endif
 
     @if($publicReviews->isNotEmpty())
         <div class="card card-soft mb-4">
@@ -141,3 +175,21 @@
         </div>
     @endif
 @endsection
+
+@if($officeMap ?? null)
+@push('scripts')
+<script>
+(function () {
+    var cfg = @json($mapConfig ?? []);
+    var m = @json($officeMap);
+    var el = document.getElementById('citizen-office-show-map');
+    if (!el || typeof L === 'undefined' || !m) return;
+    var map = L.map(el, { scrollWheelZoom: false }).setView([m.lat, m.lng], 16);
+    L.tileLayer(cfg.tileUrl, { attribution: cfg.attribution, maxZoom: cfg.maxZoom }).addTo(map);
+    var popup = '<strong>' + (m.name || '').replace(/</g, '&lt;') + '</strong>';
+    if (m.address) popup += '<br><span class="small text-muted">' + String(m.address).replace(/</g, '&lt;') + '</span>';
+    L.marker([m.lat, m.lng]).addTo(map).bindPopup(popup);
+})();
+</script>
+@endpush
+@endif

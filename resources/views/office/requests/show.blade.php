@@ -35,6 +35,12 @@
         </span>
     </div>
 
+    @include('partials.service-request-public-qr', [
+        'trackingUrl' => $trackingUrl,
+        'trackingQrDataUri' => $trackingQrDataUri,
+        'referenceCode' => $request->qr_code,
+    ])
+
     <div class="row g-4">
         <div class="col-lg-7">
             @if($request->citizen)

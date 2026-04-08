@@ -8,6 +8,7 @@ use App\Models\GovernmentOffice;
 use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Notifications\NewServiceRequestNotification;
+use App\Support\QrCodeDataUri;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -100,7 +101,7 @@ class CitizenServiceRequestController extends Controller
 
         return redirect()
             ->route('citizen.requests.show', $created)
-            ->with('success', 'Your request has been submitted. The office will review it shortly.');
+            ->with('success', 'Your request has been submitted. Use the QR code on this page to track status offline without logging in.');
     }
 
     public function index(): View
@@ -127,7 +128,14 @@ class CitizenServiceRequestController extends Controller
             'feedback',
         ]);
 
-        return view('citizen.requests.show', ['request' => $serviceRequest]);
+        $trackingUrl = route('requests.track', ['token' => $serviceRequest->qr_code]);
+        $trackingQrDataUri = QrCodeDataUri::svgDataUri($trackingUrl, 260);
+
+        return view('citizen.requests.show', [
+            'request' => $serviceRequest,
+            'trackingUrl' => $trackingUrl,
+            'trackingQrDataUri' => $trackingQrDataUri,
+        ]);
     }
 
     private function assertCatalogAccess(GovernmentOffice $office, Service $service): void
