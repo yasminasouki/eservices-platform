@@ -8,6 +8,8 @@ use App\Models\GovernmentOffice;
 use App\Models\ServiceRequest;
 use App\Models\ServiceRequestStatusLog;
 use App\Notifications\OfficeAddedDocumentNotification;
+use App\Services\ServiceRequestPdfAutomationService;
+use App\Support\QrCodeDataUri;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -100,9 +102,14 @@ class OfficeServiceRequestController extends Controller
             'statusLogs' => fn ($q) => $q->orderByDesc('created_at')->with('changedBy:id,name'),
         ]);
 
+        $trackingUrl = route('requests.track', ['token' => $serviceRequest->qr_code]);
+        $trackingQrDataUri = QrCodeDataUri::svgDataUri($trackingUrl, 260);
+
         return view('office.requests.show', [
             'office' => $office,
             'request' => $serviceRequest,
+            'trackingUrl' => $trackingUrl,
+            'trackingQrDataUri' => $trackingQrDataUri,
         ]);
     }
 
@@ -188,9 +195,25 @@ class OfficeServiceRequestController extends Controller
             }
         });
 
+        $success = 'Request status updated.';
+        if ($oldStatus !== $newStatus) {
+            $serviceRequest->refresh();
+            app(ServiceRequestPdfAutomationService::class)->onStatusChanged(
+                $serviceRequest,
+                $oldStatus,
+                $newStatus,
+                auth()->id(),
+            );
+            if ($newStatus === 'approved') {
+                $success .= ' An official approval PDF was added under Documents.';
+            } elseif ($newStatus === 'completed') {
+                $success .= ' Completion certificate and receipt PDFs were added under Documents.';
+            }
+        }
+
         return redirect()
             ->route('office.requests.show', [$office, $serviceRequest])
-            ->with('success', 'Request status updated.');
+            ->with('success', $success);
     }
 
     public function storeDocument(Request $request, GovernmentOffice $office, ServiceRequest $serviceRequest): RedirectResponse

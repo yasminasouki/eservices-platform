@@ -53,6 +53,7 @@
                             <td class="pe-4 text-end">
                                 <div class="d-flex flex-wrap gap-1 justify-content-end">
                                     <a href="{{ route('citizen.requests.show', $req) }}" class="btn btn-sm btn-outline-primary">Details</a>
+                                    <a href="{{ route('requests.track', ['token' => $req->qr_code]) }}" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener" title="Public status (no login)">QR status</a>
                                     @if($req->status === 'completed' && ! $req->feedback)
                                         <a href="{{ route('citizen.feedback.request.create', $req) }}" class="btn btn-sm btn-outline-warning">Rate</a>
                                     @endif

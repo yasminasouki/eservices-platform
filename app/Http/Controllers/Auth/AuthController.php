@@ -4,10 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use BaconQrCode\Renderer\ImageRenderer;
-use BaconQrCode\Renderer\Image\SvgImageBackEnd;
-use BaconQrCode\Renderer\RendererStyle\RendererStyle;
-use BaconQrCode\Writer;
+use App\Support\QrCodeDataUri;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -29,25 +26,25 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'email', 'unique:users,email'],
-            'phone'    => ['required', 'string', 'max:20'],
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'unique:users,email'],
+            'phone' => ['required', 'string', 'max:20'],
             'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()],
         ]);
 
         $user = User::create([
-            'name'               => $request->name,
-            'email'              => $request->email,
-            'phone'              => $request->phone,
-            'password'           => $request->password,
-            'role'               => 'citizen',
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'password' => $request->password,
+            'role' => 'citizen',
             'id_document_status' => 'pending',
-            'is_active'          => true,
+            'is_active' => true,
         ]);
 
         $secret = $this->google2fa->generateSecretKey();
         $user->forceFill([
-            'two_factor_secret'         => encrypt($secret),
+            'two_factor_secret' => encrypt($secret),
             'two_factor_recovery_codes' => encrypt(json_encode($this->generateRecoveryCodes())),
         ])->save();
 
@@ -83,13 +80,13 @@ class AuthController extends Controller
     private function authenticateAndLogin(Request $request, ?string $requiredRole = null)
     {
         $request->validate([
-            'email'    => ['required', 'email'],
+            'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (! $user || ! Hash::check($request->password, $user->password)) {
             return back()
                 ->withErrors(['email' => 'These credentials do not match our records.'])
                 ->withInput($request->only('email'));
@@ -119,7 +116,7 @@ class AuthController extends Controller
                 ->withInput($request->only('email'));
         }
 
-        if (!$user->is_active) {
+        if (! $user->is_active) {
             return back()
                 ->withErrors(['email' => 'Your account has been deactivated. Please contact support.'])
                 ->withInput($request->only('email'));
@@ -136,13 +133,13 @@ class AuthController extends Controller
 
         // Municipality users and admins: provision TOTP on first login (citizens get this at registration).
         if (
-            !$user->social_provider
+            ! $user->social_provider
             && ($user->isOfficeUser() || $user->role === 'admin')
-            && !$user->two_factor_secret
+            && ! $user->two_factor_secret
         ) {
             $secret = $this->google2fa->generateSecretKey();
             $user->forceFill([
-                'two_factor_secret'         => encrypt($secret),
+                'two_factor_secret' => encrypt($secret),
                 'two_factor_recovery_codes' => encrypt(json_encode($this->generateRecoveryCodes())),
             ])->save();
 
@@ -180,16 +177,16 @@ class AuthController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user->two_factor_secret) {
+        if (! $user->two_factor_secret) {
             $secret = $this->google2fa->generateSecretKey();
             $user->forceFill([
-                'two_factor_secret'         => encrypt($secret),
+                'two_factor_secret' => encrypt($secret),
                 'two_factor_recovery_codes' => encrypt(json_encode($this->generateRecoveryCodes())),
             ])->save();
             $user->refresh();
         }
 
-        $secret        = decrypt($user->two_factor_secret);
+        $secret = decrypt($user->two_factor_secret);
         $recoveryCodes = json_decode(decrypt($user->two_factor_recovery_codes), true);
 
         $qrCodeUrl = $this->google2fa->getQRCodeUrl(
@@ -198,7 +195,7 @@ class AuthController extends Controller
             $secret
         );
 
-        $qrCode = $this->generateQrCode($qrCodeUrl);
+        $qrCode = QrCodeDataUri::svgDataUri($qrCodeUrl, 200);
 
         return view('auth.2fa-setup', compact('secret', 'qrCode', 'recoveryCodes'));
     }
@@ -209,10 +206,10 @@ class AuthController extends Controller
             'code' => ['required', 'string', 'digits:6'],
         ]);
 
-        $user   = Auth::user();
+        $user = Auth::user();
         $secret = decrypt($user->two_factor_secret);
 
-        if (!$this->google2fa->verifyKey($secret, $request->code)) {
+        if (! $this->google2fa->verifyKey($secret, $request->code)) {
             return back()->withErrors(['code' => 'The code you entered is invalid. Please try again.']);
         }
 
@@ -220,7 +217,7 @@ class AuthController extends Controller
         session(['2fa_verified' => true]);
 
         // New citizen accounts must verify their email before reaching the dashboard.
-        if ($user->role === 'citizen' && !$user->hasVerifiedEmail()) {
+        if ($user->role === 'citizen' && ! $user->hasVerifiedEmail()) {
             return redirect()->route('verification.notice')
                 ->with('info', 'Please verify your email address to complete your account setup.');
         }
@@ -233,7 +230,7 @@ class AuthController extends Controller
 
     public function show2faVerify()
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('login');
         }
 
@@ -246,15 +243,15 @@ class AuthController extends Controller
             'code' => ['required', 'string'],
         ]);
 
-        $user   = Auth::user();
+        $user = Auth::user();
         $secret = decrypt($user->two_factor_secret);
-        $code   = preg_replace('/\s+/', '', $request->code);
+        $code = preg_replace('/\s+/', '', $request->code);
 
         $valid = strlen($code) === 6
             ? $this->google2fa->verifyKey($secret, $code, 1)
             : $this->verifyRecoveryCode($user, $code);
 
-        if (!$valid) {
+        if (! $valid) {
             return back()->withErrors(['code' => 'The code you entered is invalid.']);
         }
 
@@ -283,16 +280,16 @@ class AuthController extends Controller
     private function getDashboardRoute(User $user): string
     {
         return match ($user->role) {
-            'admin'       => 'admin.dashboard',
+            'admin' => 'admin.dashboard',
             'office_user' => 'office.dashboard',
-            default       => 'citizen.dashboard',
+            default => 'citizen.dashboard',
         };
     }
 
     private function generateRecoveryCodes(): array
     {
         return array_map(
-            fn() => strtoupper(Str::random(5)) . '-' . strtoupper(Str::random(5)),
+            fn () => strtoupper(Str::random(5)).'-'.strtoupper(Str::random(5)),
             range(1, 8)
         );
     }
@@ -301,24 +298,13 @@ class AuthController extends Controller
     {
         $codes = json_decode(decrypt($user->two_factor_recovery_codes), true);
 
-        if (!$codes || !in_array($code, $codes)) {
+        if (! $codes || ! in_array($code, $codes)) {
             return false;
         }
 
-        $remaining = array_values(array_filter($codes, fn($c) => $c !== $code));
+        $remaining = array_values(array_filter($codes, fn ($c) => $c !== $code));
         $user->forceFill(['two_factor_recovery_codes' => encrypt(json_encode($remaining))])->save();
 
         return true;
-    }
-
-    private function generateQrCode(string $url): string
-    {
-        $renderer = new ImageRenderer(
-            new RendererStyle(200),
-            new SvgImageBackEnd()
-        );
-        $writer = new Writer($renderer);
-
-        return 'data:image/svg+xml;base64,' . base64_encode($writer->writeString($url));
     }
 }

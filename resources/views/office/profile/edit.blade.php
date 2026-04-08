@@ -2,6 +2,8 @@
 
 @section('title', 'Edit — '.$office->name)
 
+@include('partials.maps.leaflet-assets')
+
 @section('content')
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
         <div>
@@ -72,15 +74,28 @@
 
                 <div class="col-md-6">
                     <label class="form-label">Latitude</label>
-                    <input type="text" name="latitude" class="form-control @error('latitude') is-invalid @enderror"
+                    <input type="text" name="latitude" id="office-latitude-input"
+                           class="form-control @error('latitude') is-invalid @enderror"
                            value="{{ old('latitude', $office->latitude) }}" placeholder="e.g. 33.8938">
                     @error('latitude')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">Longitude</label>
-                    <input type="text" name="longitude" class="form-control @error('longitude') is-invalid @enderror"
+                    <input type="text" name="longitude" id="office-longitude-input"
+                           class="form-control @error('longitude') is-invalid @enderror"
                            value="{{ old('longitude', $office->longitude) }}" placeholder="e.g. 35.5018">
                     @error('longitude')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Place search (OpenStreetMap Nominatim)</label>
+                    <input type="search" class="form-control" id="office-nominatim-query"
+                           placeholder="Type an address and pause — results appear below" autocomplete="off">
+                    <p class="small text-muted mb-2 mt-1">Search is debounced and should not be automated (Nominatim fair-use). Drag the pin or click the map to fine-tune.</p>
+                    <div id="office-nominatim-results" class="list-group small mb-2"></div>
+                    <div class="leaflet-map-shell">
+                        <div id="office-profile-map" class="leaflet-map leaflet-map-sm" role="application" aria-label="Map to set office coordinates"></div>
+                    </div>
                 </div>
 
                 <div class="col-12">
@@ -146,3 +161,114 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+    var cfg = @json($mapConfig ?? []);
+    var latIn = document.getElementById('office-latitude-input');
+    var lngIn = document.getElementById('office-longitude-input');
+    var qEl = document.getElementById('office-nominatim-query');
+    var resEl = document.getElementById('office-nominatim-results');
+    var mapEl = document.getElementById('office-profile-map');
+    if (!latIn || !lngIn || !mapEl || typeof L === 'undefined') return;
+
+    function parseNum(v) {
+        var n = parseFloat(String(v).replace(',', '.'), 10);
+        return isNaN(n) ? null : n;
+    }
+
+    function round6(n) {
+        return Math.round(n * 1e6) / 1e6;
+    }
+
+    function writeInputs(lat, lng) {
+        latIn.value = String(round6(lat));
+        lngIn.value = String(round6(lng));
+    }
+
+    var defLat = cfg.defaultLat;
+    var defLng = cfg.defaultLng;
+    var lat0 = parseNum(latIn.value);
+    var lng0 = parseNum(lngIn.value);
+    if (lat0 !== null && lng0 !== null) {
+        defLat = lat0;
+        defLng = lng0;
+    }
+
+    var map = L.map(mapEl, { scrollWheelZoom: true }).setView([defLat, defLng], lat0 !== null && lng0 !== null ? 16 : 11);
+    L.tileLayer(cfg.tileUrl, { attribution: cfg.attribution, maxZoom: cfg.maxZoom }).addTo(map);
+
+    var marker = L.marker([defLat, defLng], { draggable: true }).addTo(map);
+
+    marker.on('dragend', function () {
+        var p = marker.getLatLng();
+        writeInputs(p.lat, p.lng);
+    });
+
+    map.on('click', function (e) {
+        marker.setLatLng(e.latlng);
+        writeInputs(e.latlng.lat, e.latlng.lng);
+    });
+
+    function trySyncMarkerFromInputs() {
+        var la = parseNum(latIn.value);
+        var lo = parseNum(lngIn.value);
+        if (la === null || lo === null) return;
+        marker.setLatLng([la, lo]);
+        map.setView([la, lo], Math.max(map.getZoom(), 14));
+    }
+
+    latIn.addEventListener('change', trySyncMarkerFromInputs);
+    lngIn.addEventListener('change', trySyncMarkerFromInputs);
+
+    var searchTimer = null;
+    var lastReq = 0;
+
+    function showResults(items) {
+        resEl.innerHTML = '';
+        if (!items || !items.length) return;
+        items.forEach(function (it) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'list-group-item list-group-item-action text-start';
+            b.textContent = it.display_name || (it.lat + ',' + it.lon);
+            b.addEventListener('click', function () {
+                var la = parseFloat(it.lat, 10);
+                var lo = parseFloat(it.lon, 10);
+                if (isNaN(la) || isNaN(lo)) return;
+                marker.setLatLng([la, lo]);
+                map.setView([la, lo], 16);
+                writeInputs(la, lo);
+                resEl.innerHTML = '';
+                qEl.value = '';
+            });
+            resEl.appendChild(b);
+        });
+    }
+
+    if (qEl) {
+        qEl.addEventListener('input', function () {
+            var q = qEl.value.trim();
+            if (searchTimer) clearTimeout(searchTimer);
+            resEl.innerHTML = '';
+            if (q.length < 3) return;
+            searchTimer = setTimeout(function () {
+                var now = Date.now();
+                var wait = Math.max(0, 1100 - (now - lastReq));
+                setTimeout(function () {
+                    lastReq = Date.now();
+                    var url = cfg.nominatim + '?format=json&q=' + encodeURIComponent(q) + '&limit=5';
+                    fetch(url, { headers: { 'Accept': 'application/json' } })
+                        .then(function (r) { return r.json(); })
+                        .then(showResults)
+                        .catch(function () {
+                            resEl.innerHTML = '';
+                        });
+                }, wait);
+            }, 600);
+        });
+    }
+})();
+</script>
+@endpush

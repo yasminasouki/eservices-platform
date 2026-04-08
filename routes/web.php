@@ -27,10 +27,17 @@ use App\Http\Controllers\Office\OfficeProfileController;
 use App\Http\Controllers\Office\OfficeServiceCategoryController;
 use App\Http\Controllers\Office\OfficeServiceController;
 use App\Http\Controllers\Office\OfficeServiceRequestController;
+use App\Http\Controllers\Public\ServiceRequestTrackingController;
 use Illuminate\Support\Facades\Route;
 
 // ── Root ──────────────────────────────────────────────────────────────────────
 Route::get('/', fn () => redirect()->route('login'));
+
+// Public request tracking (QR / offline — no login; token is the same as ServiceRequest.qr_code)
+Route::get('/track/{token}', [ServiceRequestTrackingController::class, 'show'])
+    ->where('token', '[A-Za-z0-9\-]+')
+    ->middleware('throttle:120,1')
+    ->name('requests.track');
 
 // ── Guest-only routes ─────────────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {

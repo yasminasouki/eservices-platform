@@ -51,6 +51,14 @@ class OfficeProfileController extends Controller
             'weekdays' => self::WEEKDAYS,
             'hoursByDay' => $hoursByDay,
             'contact' => $contact,
+            'mapConfig' => [
+                'defaultLat' => config('maps.default_center.lat'),
+                'defaultLng' => config('maps.default_center.lng'),
+                'tileUrl' => config('maps.tile_url'),
+                'attribution' => config('maps.tile_attribution'),
+                'maxZoom' => config('maps.max_zoom'),
+                'nominatim' => config('maps.nominatim_endpoint'),
+            ],
         ]);
     }
 
