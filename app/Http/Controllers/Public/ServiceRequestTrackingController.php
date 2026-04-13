@@ -23,13 +23,15 @@ class ServiceRequestTrackingController extends Controller
         $serviceRequest = ServiceRequest::query()
             ->where('qr_code', $token)
             ->with([
-                'service:id,name',
+                'service:id,name,price',
                 'governmentOffice:id,name',
+                'payment:id,service_request_id,status',
             ])
             ->firstOrFail();
 
         return view('public.service-request-track', [
             'request' => $serviceRequest,
+            'awaitingPayment' => $serviceRequest->submitted_at === null && $serviceRequest->requiresCitizenPayment(),
         ]);
     }
 }

@@ -19,6 +19,13 @@ class ServiceRequest extends Model
         'completed',
     ];
 
+    /** Citizen may attach more files after initial submit (not rejected/completed/approved). */
+    public const STATUSES_ALLOWING_CITIZEN_FOLLOWUP_DOCUMENTS = [
+        'pending',
+        'in_review',
+        'missing_documents',
+    ];
+
     protected $fillable = [
         'user_id',
         'service_id',
@@ -75,6 +82,22 @@ class ServiceRequest extends Model
     public function payment(): HasOne
     {
         return $this->hasOne(Payment::class);
+    }
+
+    /** Service has a positive price (fee required before the office receives the request). */
+    public function requiresCitizenPayment(): bool
+    {
+        return (float) ($this->service?->price ?? 0) > 0;
+    }
+
+    /** Fee not yet settled — submitted_at is set only after payment completes. */
+    public function awaitingCitizenPayment(): bool
+    {
+        if (! $this->requiresCitizenPayment()) {
+            return false;
+        }
+
+        return $this->submitted_at === null;
     }
 
     /** Appointment linked to this request */

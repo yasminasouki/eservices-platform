@@ -81,7 +81,7 @@
                         <th>Email</th>
                         <th>Assigned Offices</th>
                         <th>Status</th>
-                        <th class="text-end">Actions</th>
+                        <th class="text-end" style="min-width:11rem">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -104,6 +104,9 @@
                                 @endif
                             </td>
                             <td class="text-end">
+                                <a href="{{ route('admin.office-users.edit', $user) }}" class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="bi bi-pencil-square"></i> Edit
+                                </a>
                                 <form method="POST" action="{{ route('admin.office-users.toggle-active', $user) }}" class="d-inline">
                                     @csrf
                                     @method('PATCH')

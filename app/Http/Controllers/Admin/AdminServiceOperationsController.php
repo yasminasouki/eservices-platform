@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\GovernmentOffice;
 use App\Models\ServiceRequest;
+use App\Support\QrCodeDataUri;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 
 class AdminServiceOperationsController extends Controller
 {
@@ -18,9 +20,9 @@ class AdminServiceOperationsController extends Controller
 
         $validated = $request->validate([
             'government_office_id' => ['nullable', 'integer', 'exists:government_offices,id'],
-            'status'               => ['nullable', 'string', Rule::in(ServiceRequest::STATUSES)],
-            'date_from'            => ['nullable', 'date'],
-            'date_to'              => ['nullable', 'date'],
+            'status' => ['nullable', 'string', Rule::in(ServiceRequest::STATUSES)],
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date'],
         ]);
 
         if (
@@ -65,15 +67,36 @@ class AdminServiceOperationsController extends Controller
             ->get(['id', 'name']);
 
         return view('admin.service-requests.index', [
-            'requests'     => $requests,
-            'offices'      => $offices,
+            'requests' => $requests,
+            'offices' => $offices,
             'statusCounts' => $statusCounts,
-            'filters'      => [
+            'filters' => [
                 'government_office_id' => $validated['government_office_id'] ?? null,
-                'status'               => $validated['status'] ?? null,
-                'date_from'            => $validated['date_from'] ?? null,
-                'date_to'              => $validated['date_to'] ?? null,
+                'status' => $validated['status'] ?? null,
+                'date_from' => $validated['date_from'] ?? null,
+                'date_to' => $validated['date_to'] ?? null,
             ],
+        ]);
+    }
+
+    public function show(ServiceRequest $serviceRequest): View
+    {
+        $serviceRequest->load([
+            'citizen:id,name,email,phone',
+            'service.category',
+            'governmentOffice.municipality:id,name',
+            'payment',
+            'documents.uploader:id,name',
+            'statusLogs' => fn ($q) => $q->orderByDesc('created_at')->with('changedBy:id,name'),
+        ]);
+
+        $trackingUrl = route('requests.track', ['token' => $serviceRequest->qr_code]);
+        $trackingQrDataUri = QrCodeDataUri::svgDataUri($trackingUrl, 220);
+
+        return view('admin.service-requests.show', [
+            'request' => $serviceRequest,
+            'trackingUrl' => $trackingUrl,
+            'trackingQrDataUri' => $trackingQrDataUri,
         ]);
     }
 

@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AdminReportsController;
 use App\Http\Controllers\Admin\AdminServiceOperationsController;
 use App\Http\Controllers\Admin\AdminUserManagementController;
 use App\Http\Controllers\Admin\GovernmentOfficeController;
+use App\Http\Controllers\Admin\MunicipalityController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\Citizen\CitizenDashboardController;
 use App\Http\Controllers\Citizen\CitizenFeedbackController;
 use App\Http\Controllers\Citizen\CitizenOfficeChatController;
 use App\Http\Controllers\Citizen\CitizenOfficeDirectoryController;
+use App\Http\Controllers\Citizen\CitizenPaymentController;
 use App\Http\Controllers\Citizen\CitizenServiceRequestController;
 use App\Http\Controllers\Citizen\IdVerificationController;
 use App\Http\Controllers\Office\NotificationController;
@@ -28,6 +30,7 @@ use App\Http\Controllers\Office\OfficeServiceCategoryController;
 use App\Http\Controllers\Office\OfficeServiceController;
 use App\Http\Controllers\Office\OfficeServiceRequestController;
 use App\Http\Controllers\Public\ServiceRequestTrackingController;
+use App\Http\Controllers\Webhooks\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
 
 // ── Root ──────────────────────────────────────────────────────────────────────
@@ -38,6 +41,10 @@ Route::get('/track/{token}', [ServiceRequestTrackingController::class, 'show'])
     ->where('token', '[A-Za-z0-9\-]+')
     ->middleware('throttle:120,1')
     ->name('requests.track');
+
+Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handle'])
+    ->middleware('throttle:120,1')
+    ->name('webhooks.stripe');
 
 // ── Guest-only routes ─────────────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {
@@ -83,6 +90,9 @@ Route::middleware(['auth', 'active'])->group(function () {
 
         Route::middleware('role:admin')->group(function () {
             Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+            Route::resource('/admin/municipalities', MunicipalityController::class)
+                ->except(['show'])
+                ->names('admin.municipalities');
             Route::resource('/admin/offices', GovernmentOfficeController::class)
                 ->except(['show'])
                 ->parameters(['offices' => 'office'])
@@ -92,6 +102,12 @@ Route::middleware(['auth', 'active'])->group(function () {
                 ->name('admin.office-users.index');
             Route::post('/admin/office-users', [AdminUserManagementController::class, 'officeUsersStore'])
                 ->name('admin.office-users.store');
+            Route::get('/admin/office-users/{user}/edit', [AdminUserManagementController::class, 'officeUsersEdit'])
+                ->name('admin.office-users.edit');
+            Route::put('/admin/office-users/{user}', [AdminUserManagementController::class, 'officeUsersUpdate'])
+                ->name('admin.office-users.update');
+            Route::post('/admin/office-users/{user}/password-reset', [AdminUserManagementController::class, 'officeUsersSendPasswordReset'])
+                ->name('admin.office-users.password-reset');
             Route::patch('/admin/office-users/{user}/toggle-active', [AdminUserManagementController::class, 'officeUsersToggleActive'])
                 ->name('admin.office-users.toggle-active');
 
@@ -102,6 +118,8 @@ Route::middleware(['auth', 'active'])->group(function () {
 
             Route::get('/admin/service-requests', [AdminServiceOperationsController::class, 'index'])
                 ->name('admin.service-requests.index');
+            Route::get('/admin/service-requests/{serviceRequest}', [AdminServiceOperationsController::class, 'show'])
+                ->name('admin.service-requests.show');
 
             Route::get('/admin/reports', [AdminReportsController::class, 'index'])
                 ->name('admin.reports.index');
@@ -191,6 +209,21 @@ Route::middleware(['auth', 'active'])->group(function () {
                 ->name('citizen.services.apply.store');
             Route::get('/citizen/requests', [CitizenServiceRequestController::class, 'index'])->name('citizen.requests.index');
             Route::get('/citizen/requests/{serviceRequest}', [CitizenServiceRequestController::class, 'show'])->name('citizen.requests.show');
+            Route::get('/citizen/requests/{serviceRequest}/pay', [CitizenPaymentController::class, 'pay'])->name('citizen.requests.pay');
+            Route::post('/citizen/requests/{serviceRequest}/pay/stripe/confirm', [CitizenPaymentController::class, 'confirmStripeElements'])
+                ->middleware('throttle:30,1')
+                ->name('citizen.requests.pay.stripe.confirm');
+            Route::get('/citizen/payments/stripe/elements-return', [CitizenPaymentController::class, 'stripeElementsReturn'])->name('citizen.payments.stripe.elements-return');
+            Route::get('/citizen/payments/stripe/return', [CitizenPaymentController::class, 'stripeReturn'])->name('citizen.payments.stripe.return');
+            Route::post('/citizen/requests/{serviceRequest}/pay/crypto-quote', [CitizenPaymentController::class, 'cryptoQuote'])
+                ->middleware('throttle:30,1')
+                ->name('citizen.requests.pay.crypto-quote');
+            Route::post('/citizen/requests/{serviceRequest}/pay/crypto-confirm', [CitizenPaymentController::class, 'cryptoConfirm'])
+                ->middleware('throttle:20,1')
+                ->name('citizen.requests.pay.crypto-confirm');
+            Route::post('/citizen/requests/{serviceRequest}/documents', [CitizenServiceRequestController::class, 'storeAdditionalDocuments'])
+                ->middleware('throttle:30,1')
+                ->name('citizen.requests.documents.store');
             Route::get('/citizen/requests/{serviceRequest}/feedback', [CitizenFeedbackController::class, 'createForRequest'])
                 ->name('citizen.feedback.request.create');
             Route::post('/citizen/requests/{serviceRequest}/feedback', [CitizenFeedbackController::class, 'storeForRequest'])

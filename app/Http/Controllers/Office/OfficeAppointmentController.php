@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\GovernmentOffice;
 use App\Models\OfficerTimeSlot;
+use App\Notifications\AppointmentConfirmedNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -25,18 +26,18 @@ class OfficeAppointmentController extends Controller
     public function storeSlot(Request $request, GovernmentOffice $office)
     {
         $request->validate([
-            'date'       => ['required', 'date', 'after_or_equal:today'],
+            'date' => ['required', 'date', 'after_or_equal:today'],
             'start_time' => ['required', 'date_format:H:i'],
-            'end_time'   => ['required', 'date_format:H:i', 'after:start_time'],
+            'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
         ]);
 
         OfficerTimeSlot::create([
             'government_office_id' => $office->id,
-            'user_id'              => auth()->id(),
-            'date'                 => $request->date,
-            'start_time'           => $request->start_time,
-            'end_time'             => $request->end_time,
-            'is_available'         => true,
+            'user_id' => auth()->id(),
+            'date' => $request->date,
+            'start_time' => $request->start_time,
+            'end_time' => $request->end_time,
+            'is_available' => true,
         ]);
 
         return back()->with('success', 'Time slot added successfully.');
@@ -44,7 +45,7 @@ class OfficeAppointmentController extends Controller
 
     public function destroySlot(GovernmentOffice $office, OfficerTimeSlot $slot)
     {
-        if (!$slot->is_available) {
+        if (! $slot->is_available) {
             return back()->with('error', 'Cannot delete a booked slot.');
         }
 
@@ -55,7 +56,7 @@ class OfficeAppointmentController extends Controller
 
     public function appointments(GovernmentOffice $office)
     {
-        $appointments = Appointment::whereHas('timeSlot', fn($q) => $q->where('government_office_id', $office->id))
+        $appointments = Appointment::whereHas('timeSlot', fn ($q) => $q->where('government_office_id', $office->id))
             ->with(['citizen', 'timeSlot', 'serviceRequest'])
             ->join('officer_time_slots', 'appointments.officer_time_slot_id', '=', 'officer_time_slots.id')
             ->orderBy('officer_time_slots.date')
@@ -68,10 +69,18 @@ class OfficeAppointmentController extends Controller
 
     public function confirmAppointment(GovernmentOffice $office, Appointment $appointment): RedirectResponse
     {
+        abort_unless($appointment->government_office_id === $office->id, 404);
+
+        if ($appointment->status !== 'scheduled') {
+            return back()->with('error', 'Only scheduled appointments can be confirmed.');
+        }
+
         $appointment->update([
-            'status'       => 'confirmed',
+            'status' => 'confirmed',
             'confirmed_at' => now(),
         ]);
+
+        $appointment->citizen?->notify(new AppointmentConfirmedNotification($appointment));
 
         return back()->with('success', 'Appointment confirmed.');
     }
@@ -83,9 +92,9 @@ class OfficeAppointmentController extends Controller
         ]);
 
         $appointment->update([
-            'status'               => 'cancelled',
-            'cancellation_reason'  => $request->cancellation_reason,
-            'cancelled_at'         => now(),
+            'status' => 'cancelled',
+            'cancellation_reason' => $request->cancellation_reason,
+            'cancelled_at' => now(),
         ]);
 
         $appointment->timeSlot->update(['is_available' => true]);

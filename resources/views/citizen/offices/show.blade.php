@@ -6,6 +6,13 @@
     @include('partials.maps.leaflet-assets')
 @endif
 
+@push('styles')
+<style>
+    html { scroll-behavior: smooth; }
+    #office-appointments { scroll-margin-top: 1rem; }
+</style>
+@endpush
+
 @section('content')
     <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb small mb-0">
@@ -36,7 +43,7 @@
             <a href="{{ route('citizen.offices.chat', $office) }}" class="btn btn-primary btn-sm">
                 <i class="bi bi-chat-dots me-1"></i>Live chat
             </a>
-            <a href="{{ route('citizen.appointments.book', $office) }}" class="btn btn-success btn-sm">
+            <a href="#office-appointments" class="btn btn-success btn-sm">
                 <i class="bi bi-calendar-plus me-1"></i>Book Appointment
             </a>
             <a href="{{ route('citizen.feedback.office.create', $office) }}" class="btn btn-outline-primary btn-sm">
@@ -75,6 +82,44 @@
             </a>
         </div>
     @endif
+
+    <div class="card card-soft mb-4" id="office-appointments" tabindex="-1">
+        <div class="card-header bg-white border-0 fw-semibold d-flex align-items-center gap-2">
+            <i class="bi bi-calendar-check text-success"></i>
+            Appointments
+        </div>
+        <div class="card-body">
+            @if(isset($availableSlots) && $availableSlots->isNotEmpty())
+                <p class="text-muted small mb-3 mb-md-2">Choose an open slot below. You will confirm the booking in one step.</p>
+                <ul class="list-group list-group-flush rounded border">
+                    @foreach($availableSlots as $slot)
+                        <li class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <div>
+                                <div class="fw-semibold">{{ \Carbon\Carbon::parse($slot->date)->format('l, d M Y') }}</div>
+                                <div class="text-muted small">
+                                    {{ \Carbon\Carbon::parse($slot->start_time)->format('H:i') }}
+                                    –
+                                    {{ \Carbon\Carbon::parse($slot->end_time)->format('H:i') }}
+                                </div>
+                            </div>
+                            <form method="POST" action="{{ route('citizen.appointments.store', [$office, $slot]) }}" class="flex-shrink-0">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    <i class="bi bi-calendar-plus me-1"></i>Book this slot
+                                </button>
+                            </form>
+                        </li>
+                    @endforeach
+                </ul>
+            @else
+                <div class="alert alert-light border text-muted mb-0 small">
+                    <i class="bi bi-calendar-x me-2 text-secondary"></i>
+                    <strong class="text-body">No available appointments right now.</strong>
+                    This office has not published any open time slots yet, or they are all booked. Please check back later, use <a href="{{ route('citizen.offices.chat', $office) }}">live chat</a>, or try another office.
+                </div>
+            @endif
+        </div>
+    </div>
 
     @if($publicReviews->isNotEmpty())
         <div class="card card-soft mb-4">
@@ -144,37 +189,26 @@
             </div>
         @endforeach
     @endif
-
-    @if(isset($availableSlots) && $availableSlots->isNotEmpty())
-        <div class="card card-soft mb-4">
-            <div class="card-header bg-white border-0 fw-semibold">
-                <i class="bi bi-calendar-check me-2 text-success"></i>Available Appointments
-            </div>
-            <div class="card-body p-0">
-                <ul class="list-group list-group-flush">
-                    @foreach($availableSlots as $slot)
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <div class="fw-semibold">{{ \Carbon\Carbon::parse($slot->date)->format('l, d M Y') }}</div>
-                                <div class="text-muted small">
-                                    {{ \Carbon\Carbon::parse($slot->start_time)->format('H:i') }}
-                                    –
-                                    {{ \Carbon\Carbon::parse($slot->end_time)->format('H:i') }}
-                                </div>
-                            </div>
-                            <form method="POST" action="{{ route('citizen.appointments.store', [$office, $slot]) }}">
-                                @csrf
-                                <button type="submit" class="btn btn-sm btn-success">
-                                    <i class="bi bi-calendar-plus me-1"></i>Book
-                                </button>
-                            </form>
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
-        </div>
-    @endif
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+    function scrollToAppointments() {
+        var el = document.getElementById('office-appointments');
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            el.focus({ preventScroll: true });
+        }
+    }
+    if (window.location.hash === '#office-appointments') {
+        window.requestAnimationFrame(function () {
+            setTimeout(scrollToAppointments, 100);
+        });
+    }
+})();
+</script>
+@endpush
 
 @if($officeMap ?? null)
 @push('scripts')

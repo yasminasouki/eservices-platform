@@ -16,6 +16,7 @@ class Payment extends Model
         'method',
         'status',
         'transaction_id',
+        'stripe_checkout_session_id',
         'crypto_wallet_address',
         'gateway_response',
         'paid_at',
@@ -24,10 +25,10 @@ class Payment extends Model
     protected function casts(): array
     {
         return [
-            'amount'           => 'decimal:2',
-            'exchange_rate'    => 'decimal:6',
+            'amount' => 'decimal:2',
+            'exchange_rate' => 'decimal:6',
             'gateway_response' => 'array',
-            'paid_at'          => 'datetime',
+            'paid_at' => 'datetime',
         ];
     }
 

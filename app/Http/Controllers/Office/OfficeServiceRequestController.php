@@ -7,6 +7,7 @@ use App\Models\Document;
 use App\Models\GovernmentOffice;
 use App\Models\ServiceRequest;
 use App\Models\ServiceRequestStatusLog;
+use App\Notifications\MissingDocumentsRequestedNotification;
 use App\Notifications\OfficeAddedDocumentNotification;
 use App\Services\ServiceRequestPdfAutomationService;
 use App\Support\QrCodeDataUri;
@@ -40,7 +41,9 @@ class OfficeServiceRequestController extends Controller
             ]);
         }
 
-        $filterQuery = ServiceRequest::query()->where('government_office_id', $office->id);
+        $filterQuery = ServiceRequest::query()
+            ->where('government_office_id', $office->id)
+            ->whereNotNull('submitted_at');
 
         if (! empty($validated['date_from'])) {
             $filterQuery->whereRaw('DATE(COALESCE(submitted_at, created_at)) >= ?', [$validated['date_from']]);
@@ -93,6 +96,7 @@ class OfficeServiceRequestController extends Controller
     public function show(GovernmentOffice $office, ServiceRequest $serviceRequest): View
     {
         $this->assertRequestBelongsToOffice($office, $serviceRequest);
+        $this->assertRequestSubmittedToOffice($serviceRequest);
 
         $serviceRequest->load([
             'citizen:id,name,email,phone',
@@ -116,6 +120,7 @@ class OfficeServiceRequestController extends Controller
     public function updateStatus(Request $request, GovernmentOffice $office, ServiceRequest $serviceRequest): RedirectResponse
     {
         $this->assertRequestBelongsToOffice($office, $serviceRequest);
+        $this->assertRequestSubmittedToOffice($serviceRequest);
 
         foreach (['rejection_reason', 'missing_docs_note', 'status_note'] as $field) {
             if ($request->input($field) === '') {
@@ -208,6 +213,13 @@ class OfficeServiceRequestController extends Controller
                 $success .= ' An official approval PDF was added under Documents.';
             } elseif ($newStatus === 'completed') {
                 $success .= ' Completion certificate and receipt PDFs were added under Documents.';
+            } elseif ($newStatus === 'missing_documents') {
+                $serviceRequest->loadMissing('citizen');
+                if ($serviceRequest->citizen) {
+                    $serviceRequest->citizen->notify(
+                        new MissingDocumentsRequestedNotification($serviceRequest, $office)
+                    );
+                }
             }
         }
 
@@ -219,6 +231,7 @@ class OfficeServiceRequestController extends Controller
     public function storeDocument(Request $request, GovernmentOffice $office, ServiceRequest $serviceRequest): RedirectResponse
     {
         $this->assertRequestBelongsToOffice($office, $serviceRequest);
+        $this->assertRequestSubmittedToOffice($serviceRequest);
 
         if ($request->input('description') === '') {
             $request->merge(['description' => null]);
@@ -258,6 +271,11 @@ class OfficeServiceRequestController extends Controller
     private function assertRequestBelongsToOffice(GovernmentOffice $office, ServiceRequest $serviceRequest): void
     {
         abort_unless((int) $serviceRequest->government_office_id === (int) $office->id, 404);
+    }
+
+    private function assertRequestSubmittedToOffice(ServiceRequest $serviceRequest): void
+    {
+        abort_unless($serviceRequest->submitted_at !== null, 404);
     }
 
     private function normalizeFilterInputs(Request $request): void
