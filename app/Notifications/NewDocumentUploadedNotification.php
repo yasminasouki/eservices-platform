@@ -14,6 +14,7 @@ class NewDocumentUploadedNotification extends Notification
         private readonly string $citizenName,
         private readonly int $requestId,
         private readonly int $officeId,
+        private readonly int $documentCount = 1,
     ) {}
 
     public function via(object $notifiable): array
@@ -23,11 +24,17 @@ class NewDocumentUploadedNotification extends Notification
 
     public function toDatabase(object $notifiable): array
     {
+        $n = max(1, $this->documentCount);
+        $docPhrase = $n === 1
+            ? 'a new document'
+            : $n.' new documents';
+
         return [
-            'message' => "{$this->citizenName} uploaded a new document on request #{$this->requestId}.",
+            'message' => "{$this->citizenName} uploaded {$docPhrase} on request #{$this->requestId}.",
             'citizen_name' => $this->citizenName,
             'request_id' => $this->requestId,
             'office_id' => $this->officeId,
+            'document_count' => $n,
             'url' => route('office.requests.show', [$this->officeId, $this->requestId]),
         ];
     }

@@ -28,11 +28,13 @@ class OfficeDashboardController extends Controller
 
         $pending = ServiceRequest::query()
             ->whereIn('government_office_id', $officeIds)
+            ->whereNotNull('submitted_at')
             ->where('status', 'pending')
             ->count();
 
         $completedToday = ServiceRequest::query()
             ->whereIn('government_office_id', $officeIds)
+            ->whereNotNull('submitted_at')
             ->where('status', 'completed')
             ->whereDate('completed_at', now()->toDateString())
             ->count();
@@ -51,6 +53,7 @@ class OfficeDashboardController extends Controller
 
         $latestRequests = ServiceRequest::query()
             ->whereIn('government_office_id', $officeIds)
+            ->whereNotNull('submitted_at')
             ->with(['citizen:id,name', 'service:id,name'])
             ->orderByRaw('COALESCE(submitted_at, created_at) DESC')
             ->orderByDesc('id')

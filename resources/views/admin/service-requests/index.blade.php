@@ -104,7 +104,9 @@
                 <tbody>
                     @forelse($requests as $req)
                         <tr>
-                            <td class="fw-semibold">#{{ $req->id }}</td>
+                            <td class="fw-semibold">
+                                <a href="{{ route('admin.service-requests.show', $req) }}">#{{ $req->id }}</a>
+                            </td>
                             <td>
                                 <div>{{ $req->citizen?->name ?? 'N/A' }}</div>
                                 <div class="text-muted small">{{ $req->citizen?->email ?? '' }}</div>

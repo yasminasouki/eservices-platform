@@ -42,6 +42,10 @@ return Application::configure(basePath: dirname(__DIR__))
             '2fa' => RequireTwoFactor::class,
             'office.access' => EnsureOfficeStaffBelongsToOffice::class,
         ]);
+
+        $middleware->validateCsrfTokens([
+            'webhooks/stripe',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

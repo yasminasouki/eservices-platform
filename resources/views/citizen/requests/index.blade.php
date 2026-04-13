@@ -37,7 +37,7 @@
                         <th>Office</th>
                         <th>Status</th>
                         <th>Submitted</th>
-                        <th class="pe-4"></th>
+                        <th class="pe-4">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -48,10 +48,16 @@
                             <td>{{ $req->governmentOffice?->name ?? '—' }}</td>
                             <td>
                                 <span class="badge {{ $statusBadge($req->status) }}">{{ $statusLabel($req->status) }}</span>
+                                @if((float) ($req->service?->price ?? 0) > 0 && $req->submitted_at === null)
+                                    <div class="small text-warning mt-1"><i class="bi bi-cash-coin me-1"></i>Payment due</div>
+                                @endif
                             </td>
                             <td class="text-muted small">{{ $req->submitted_at?->format('M j, Y') ?? $req->created_at?->format('M j, Y') }}</td>
                             <td class="pe-4 text-end">
                                 <div class="d-flex flex-wrap gap-1 justify-content-end">
+                                    @if((float) ($req->service?->price ?? 0) > 0 && $req->submitted_at === null)
+                                        <a href="{{ route('citizen.requests.pay', $req) }}" class="btn btn-sm btn-warning text-dark">Pay</a>
+                                    @endif
                                     <a href="{{ route('citizen.requests.show', $req) }}" class="btn btn-sm btn-outline-primary">Details</a>
                                     <a href="{{ route('requests.track', ['token' => $req->qr_code]) }}" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener" title="Public status (no login)">QR status</a>
                                     @if($req->status === 'completed' && ! $req->feedback)

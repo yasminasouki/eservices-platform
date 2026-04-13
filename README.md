@@ -113,6 +113,8 @@ Prefer matching the project’s PHP version when you can; `--ignore-platform-req
 | `pragmarx/google2fa-laravel` | Laravel integration for 2FA |
 | `bacon/bacon-qr-code` | QR images for 2FA enrollment |
 | `laravel/reverb` | WebSocket server for real-time chat (with Laravel Echo) |
+| `stripe/stripe-php` | Server-side Stripe API (PaymentIntents, webhooks) for citizen checkout |
+| `dompdf/dompdf` | PDF generation (approval notices, certificates, receipts) |
 
 Transitive dependencies (Symfony, Monolog, etc.) are pulled in automatically; `composer.lock` is the source of truth for exact versions.
 
@@ -239,7 +241,7 @@ Open the live chat for the **same office** in a citizen session and an office se
 - Email: `manager@beirut.gov`
 - Password: `password`
 - Complete **2FA setup** on first sign-in like the admin account.
--use this command to clear the already signed in staff 
+- Use this command to clear the already signed-in staff:
 -UPDATE users 
 SET two_factor_secret = NULL,
     two_factor_recovery_codes = NULL,
@@ -285,11 +287,78 @@ Also set **`APP_URL`** to the exact base URL you use in the browser (for example
 
 After running `cp .env.example .env`, add your OCR.space key for Lebanese ID extraction:
 
-```
-OCR_SPACE_API_KEY=K89286009588957
+```env
+OCR_SPACE_API_KEY=
 ```
 
-This is the shared team API key for Lebanese ID OCR extraction (25,000 requests/month free). Do **not** replace it unless you register your own key at https://ocr.space/ocrapi
+Get a free key at [ocr.space/ocrapi](https://ocr.space/ocrapi) (or ask your team lead for the shared key in a **private** channel — do not commit real keys to Git).
+
+### Stripe (citizen payments)
+
+Add these to **`.env`** (values from [Stripe Test API keys](https://dashboard.stripe.com/test/apikeys) or from a teammate via chat / password manager — **never** commit real keys; GitHub will reject the push):
+
+```env
+STRIPE_SECRET=
+STRIPE_PUBLISHABLE_KEY=
+STRIPE_WEBHOOK_SECRET=
+```
+
+Leave `STRIPE_WEBHOOK_SECRET` empty until webhooks are configured; see **Stripe webhook** under **Branch: `admin-fix`** for `whsec_…` setup. Use the standard **`sk_test_…`** value for `STRIPE_SECRET`, not a restricted `rk_test_…` key.
+
+## Branch: `admin-fix` — what changed
+
+Work on this branch adds **admin tooling**, **citizen payments**, **municipality management**, and related polish. After merging or checking out this branch, run **`composer install`**, **`npm install`**, and **`php artisan migrate`** so new PHP dependencies and the payments migration are applied.
+
+### Features and fixes (high level)
+
+- **Admin — municipalities:** CRUD for municipalities (`/admin/municipalities`) with list and form views.
+- **Admin — service requests:** Improved listing and a **detail** view for a single request; service-operations and user-management controller updates; office-user admin UI (index/edit).
+- **Citizen — payments:** Checkout for a service request with **Stripe** (embedded card flow / PaymentIntent) and an optional **cryptocurrency** path with live-style USD→crypto quotes (`CurrencyExchangeService`, Frankfurter + CoinGecko; configurable in `config/payments.php`).
+- **Stripe webhooks:** `POST /webhooks/stripe` handled by `StripeWebhookController` (CSRF excluded in `bootstrap/app.php`). Set `STRIPE_WEBHOOK_SECRET` after you add the endpoint in the Stripe Dashboard.
+- **Payments config:** `config/payments.php` centralizes Stripe keys, crypto receiving addresses, and exchange URLs; see **`.env.example`** for all related variables.
+- **Data model:** `payments` table extended (e.g. `stripe_checkout_session_id`, expanded `method` enum) — migration `2026_04_09_230000_extend_payments_for_checkout.php`.
+- **Notifications:** New/updated mail notifications (e.g. appointment confirmed, missing documents requested, document uploads).
+- **Public / citizen / office flows:** Updates to service-request **tracking**, citizen request and office views, and office dashboard/appointment/request handling where tied to the above.
+
+### PHP / Composer
+
+No extra **manual** `composer require` is needed if you run **`composer install`** from a lock file that already includes:
+
+- **`stripe/stripe-php`** — required for Stripe checkout and webhooks.
+
+### Database
+
+```bash
+php artisan migrate
+```
+
+This applies the payments extension migration (and any others merged with the branch).
+
+### Environment variables (payments)
+
+Copy from **`.env.example`** into your local **`.env`** (never commit `.env`):
+
+| Variable | Purpose |
+|----------|---------|
+| `STRIPE_SECRET` | Server secret key (`sk_test_…` or `sk_live_…`) |
+| `STRIPE_PUBLISHABLE_KEY` | Publishable key for Stripe.js / Elements (`pk_test_…` or `pk_live_…`) |
+| `STRIPE_WEBHOOK_SECRET` | Signing secret from **Developers → Webhooks** (`whsec_…`) — empty until the endpoint is configured |
+| `CRYPTO_*` | Optional real wallet addresses; on `local`, demo addresses can apply when empty (see `config/payments.php`) |
+
+Fill the Stripe variables using the Dashboard or your team’s shared credentials (not this repo).
+
+### Stripe webhook (local or deployed)
+
+1. In Stripe: **Developers → Webhooks → Add endpoint**.  
+2. URL: your app base + `/webhooks/stripe` (e.g. `https://your-ngrok-url.test/webhooks/stripe` for local tunneling).  
+3. Subscribe at least to **`checkout.session.completed`** and **`payment_intent.succeeded`** (handled in `StripeWebhookController`).  
+4. Copy the endpoint **Signing secret** into **`STRIPE_WEBHOOK_SECRET`** in `.env`.
+
+For local development, [Stripe CLI](https://stripe.com/docs/stripe-cli) can forward webhooks: `stripe listen --forward-to localhost:8000/webhooks/stripe` and use the CLI’s temporary signing secret.
+
+### Editor / IDE (optional)
+
+No new **VS Code extensions** are required for this branch. Use whatever you already use for **PHP (Laravel)** and **Blade**. If front-end assets fail to build, ensure **Node.js** matches a current LTS and run **`npm install`** again.
 
 ## Branching Strategy
 - main → production ready only, never push directly
@@ -311,8 +380,3 @@ System sends automatic email reminder to citizen 24 hours before their appointme
 3. No new migrations needed
 4. Run: php artisan schedule:work
    to run scheduler locally(to send the email at the moment to test it)
-
-
-
-
-

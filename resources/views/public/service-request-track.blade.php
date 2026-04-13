@@ -31,7 +31,11 @@
                     <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap mb-4">
                         <div>
                             <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 0.7rem; letter-spacing: 0.04em;">Current status</div>
-                            <span class="badge {{ $statusBadge($request->status) }} fs-6">{{ $statusLabel($request->status) }}</span>
+                            @if(!empty($awaitingPayment))
+                                <span class="badge bg-secondary fs-6">Awaiting payment</span>
+                            @else
+                                <span class="badge {{ $statusBadge($request->status) }} fs-6">{{ $statusLabel($request->status) }}</span>
+                            @endif
                         </div>
                         <div class="text-end small text-muted">
                             <div>Updated {{ $request->updated_at->format('M j, Y g:i A') }}</div>
@@ -44,10 +48,21 @@
                         <dt class="col-sm-4 text-muted">Office</dt>
                         <dd class="col-sm-8 mb-2">{{ $request->governmentOffice?->name ?? '—' }}</dd>
                         <dt class="col-sm-4 text-muted">Submitted</dt>
-                        <dd class="col-sm-8 mb-0">{{ $request->submitted_at?->format('M j, Y g:i A') ?? $request->created_at?->format('M j, Y g:i A') }}</dd>
+                        <dd class="col-sm-8 mb-0">
+                            @if(!empty($awaitingPayment))
+                                <span class="text-muted">After payment is completed</span>
+                            @else
+                                {{ $request->submitted_at?->format('M j, Y g:i A') ?? $request->created_at?->format('M j, Y g:i A') }}
+                            @endif
+                        </dd>
                     </dl>
 
-                    @if($request->status === 'missing_documents')
+                    @if(!empty($awaitingPayment))
+                        <div class="alert alert-warning small mt-4 mb-0">
+                            <i class="bi bi-cash-coin me-1"></i>
+                            This request has a service fee. Sign in to your citizen account to pay by card or cryptocurrency. The office will start processing it only after payment is confirmed.
+                        </div>
+                    @elseif($request->status === 'missing_documents')
                         <div class="alert alert-warning small mt-4 mb-0">
                             <i class="bi bi-file-earmark-plus me-1"></i>
                             This request needs additional documents. Sign in to your citizen account to see details and upload files.

@@ -10,6 +10,9 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 class AdminUserManagementController extends Controller
 {
@@ -21,8 +24,8 @@ class AdminUserManagementController extends Controller
             ->where('role', 'office_user')
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', '%' . $search . '%')
-                        ->orWhere('email', 'like', '%' . $search . '%');
+                    $q->where('name', 'like', '%'.$search.'%')
+                        ->orWhere('email', 'like', '%'.$search.'%');
                 });
             })
             ->with('governmentOffices:id,name')
@@ -71,12 +74,12 @@ class AdminUserManagementController extends Controller
             name: $user->name,
             email: $validated['email'],
             password: $validated['password'],
-            officeName: !empty($validated['government_office_id'])
+            officeName: ! empty($validated['government_office_id'])
                 ? GovernmentOffice::find($validated['government_office_id'])->name
                 : 'Not Assigned',
         ));
 
-        if (!empty($validated['government_office_id'])) {
+        if (! empty($validated['government_office_id'])) {
             OfficeUserAssignment::create([
                 'government_office_id' => $validated['government_office_id'],
                 'user_id' => $user->id,
@@ -89,10 +92,81 @@ class AdminUserManagementController extends Controller
             ->with('success', 'Municipality user created successfully.');
     }
 
+    public function officeUsersEdit(User $user): View
+    {
+        abort_unless($user->role === 'office_user', 404);
+
+        $user->load('governmentOffices:id,name');
+        $offices = GovernmentOffice::query()->orderBy('name')->get(['id', 'name']);
+
+        return view('admin.users.office-users.edit', [
+            'user' => $user,
+            'offices' => $offices,
+        ]);
+    }
+
+    public function officeUsersUpdate(Request $request, User $user)
+    {
+        abort_unless($user->role === 'office_user', 404);
+
+        if ($request->input('password') === '') {
+            $request->merge(['password' => null]);
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+            'assignments' => ['nullable', 'array'],
+            'assignments.*' => ['integer', 'distinct', 'exists:government_offices,id'],
+            'role' => ['nullable', 'array'],
+            'role.*' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $updates = [
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
+        ];
+
+        if (! empty($validated['password'])) {
+            $updates['password'] = Hash::make($validated['password']);
+            $updates['must_change_password'] = false;
+        }
+
+        $user->update($updates);
+
+        $pivot = [];
+        foreach ($validated['assignments'] ?? [] as $officeId) {
+            $role = $request->input('role.'.$officeId);
+            $pivot[(int) $officeId] = [
+                'role_in_office' => ($role !== null && $role !== '') ? $role : null,
+            ];
+        }
+
+        $user->governmentOffices()->sync($pivot);
+
+        return redirect()
+            ->route('admin.office-users.edit', $user)
+            ->with('success', 'User updated successfully.');
+    }
+
+    public function officeUsersSendPasswordReset(User $user)
+    {
+        abort_unless($user->role === 'office_user', 404);
+
+        $status = Password::sendResetLink(['email' => $user->email]);
+
+        return $status === Password::RESET_LINK_SENT
+            ? back()->with('success', 'Password reset link sent to '.$user->email.'.')
+            : back()->withErrors(['email' => __($status)]);
+    }
+
     public function officeUsersToggleActive(User $user)
     {
         abort_unless($user->role === 'office_user', 404);
-        $user->update(['is_active' => !$user->is_active]);
+        $user->update(['is_active' => ! $user->is_active]);
 
         return back()->with('success', 'User status updated successfully.');
     }
@@ -105,8 +179,8 @@ class AdminUserManagementController extends Controller
             ->where('role', 'citizen')
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', '%' . $search . '%')
-                        ->orWhere('email', 'like', '%' . $search . '%');
+                    $q->where('name', 'like', '%'.$search.'%')
+                        ->orWhere('email', 'like', '%'.$search.'%');
                 });
             })
             ->latest()
@@ -119,7 +193,7 @@ class AdminUserManagementController extends Controller
     public function citizensToggleActive(User $user)
     {
         abort_unless($user->role === 'citizen', 404);
-        $user->update(['is_active' => !$user->is_active]);
+        $user->update(['is_active' => ! $user->is_active]);
 
         return back()->with('success', 'Citizen status updated successfully.');
     }

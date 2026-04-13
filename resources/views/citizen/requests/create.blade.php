@@ -24,7 +24,14 @@
                     @endif
                     <dl class="row mb-0">
                         <dt class="col-5 text-muted">Fee</dt>
-                        <dd class="col-7 mb-2">{{ number_format((float) $service->price, 2) }}</dd>
+                        <dd class="col-7 mb-2">
+                            @if((float) $service->price > 0)
+                                <strong>${{ number_format((float) $service->price, 2) }} USD</strong>
+                                <div class="text-muted mt-1" style="font-size:0.75rem;">After you submit, you will pay online (card via Stripe or cryptocurrency) before the office receives this request.</div>
+                            @else
+                                <span class="badge bg-success">No fee</span>
+                            @endif
+                        </dd>
                         @if($service->duration)
                             <dt class="col-5 text-muted">Duration</dt>
                             <dd class="col-7 mb-2">{{ $service->duration }} {{ $service->duration_unit }}</dd>
