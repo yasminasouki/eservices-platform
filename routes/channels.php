@@ -48,3 +48,16 @@ Broadcast::channel('service-requests.{serviceRequestId}', function ($user, $serv
 
     return false;
 });
+
+Broadcast::channel('appointments.office.{officeId}', function ($user, $officeId) {
+    if ($user->isCitizen()) {
+        return true;
+    }
+
+    if ($user->isOfficeUser()
+        && $user->governmentOffices()->whereKey($officeId)->exists()) {
+        return true;
+    }
+
+    return false;
+});

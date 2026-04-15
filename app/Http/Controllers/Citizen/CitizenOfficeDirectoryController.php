@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Citizen;
 
 use App\Http\Controllers\Controller;
+use App\Models\Appointment;
 use App\Models\Feedback;
 use App\Models\GovernmentOffice;
 use App\Models\OfficerTimeSlot;
@@ -82,6 +83,18 @@ class CitizenOfficeDirectoryController extends Controller
             ->orderBy('start_time')
             ->get();
 
+        $myAppointments = Appointment::query()
+            ->where('appointments.user_id', auth()->id())
+            ->where('appointments.government_office_id', $office->id)
+            ->whereIn('status', ['scheduled', 'confirmed'])
+            ->whereHas('timeSlot', fn ($q) => $q->whereDate('date', '>=', today()))
+            ->with('timeSlot')
+            ->join('officer_time_slots', 'appointments.officer_time_slot_id', '=', 'officer_time_slots.id')
+            ->orderBy('officer_time_slots.date')
+            ->orderBy('officer_time_slots.start_time')
+            ->select('appointments.*')
+            ->get();
+
         $mapConfig = [
             'defaultLat' => config('maps.default_center.lat'),
             'defaultLng' => config('maps.default_center.lng'),
@@ -106,6 +119,7 @@ class CitizenOfficeDirectoryController extends Controller
             'avgRating' => $avgRating !== null ? round((float) $avgRating, 1) : null,
             'publicReviews' => $publicReviews,
             'availableSlots' => $availableSlots,
+            'myAppointments' => $myAppointments,
             'mapConfig' => $mapConfig,
             'officeMap' => $officeMap,
         ]);

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Office;
 
+use App\Events\OfficeAppointmentsUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\GovernmentOffice;
@@ -9,6 +10,7 @@ use App\Models\OfficerTimeSlot;
 use App\Notifications\AppointmentConfirmedNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class OfficeAppointmentController extends Controller
 {
@@ -31,6 +33,19 @@ class OfficeAppointmentController extends Controller
             'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
         ]);
 
+        $hasOverlap = OfficerTimeSlot::query()
+            ->where('government_office_id', $office->id)
+            ->whereDate('date', $request->date)
+            ->where('start_time', '<', $request->end_time)
+            ->where('end_time', '>', $request->start_time)
+            ->exists();
+
+        if ($hasOverlap) {
+            return back()
+                ->withInput()
+                ->with('error', 'This time slot overlaps an existing slot. Please choose a different time.');
+        }
+
         OfficerTimeSlot::create([
             'government_office_id' => $office->id,
             'user_id' => auth()->id(),
@@ -39,6 +54,8 @@ class OfficeAppointmentController extends Controller
             'end_time' => $request->end_time,
             'is_available' => true,
         ]);
+
+        $this->dispatchAppointmentsUpdate($office->id, 'slot_added');
 
         return back()->with('success', 'Time slot added successfully.');
     }
@@ -50,6 +67,8 @@ class OfficeAppointmentController extends Controller
         }
 
         $slot->delete();
+
+        $this->dispatchAppointmentsUpdate($office->id, 'slot_deleted');
 
         return back()->with('success', 'Time slot deleted successfully.');
     }
@@ -82,6 +101,8 @@ class OfficeAppointmentController extends Controller
 
         $appointment->citizen?->notify(new AppointmentConfirmedNotification($appointment));
 
+        $this->dispatchAppointmentsUpdate($office->id, 'confirmed');
+
         return back()->with('success', 'Appointment confirmed.');
     }
 
@@ -99,6 +120,22 @@ class OfficeAppointmentController extends Controller
 
         $appointment->timeSlot->update(['is_available' => true]);
 
+        $this->dispatchAppointmentsUpdate($office->id, 'cancelled_by_office');
+
         return back()->with('success', 'Appointment cancelled.');
+    }
+
+    private function dispatchAppointmentsUpdate(int $officeId, string $action): void
+    {
+        try {
+            OfficeAppointmentsUpdated::dispatch($officeId, $action);
+        } catch (\Throwable $e) {
+            // Do not fail CRUD actions when websocket server is unavailable.
+            Log::warning('Appointments live update broadcast failed.', [
+                'office_id' => $officeId,
+                'action' => $action,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }
