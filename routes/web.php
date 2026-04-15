@@ -236,6 +236,8 @@ Route::middleware(['auth', 'active'])->group(function () {
 
             Route::get('/citizen/offices/{office}/appointments', [CitizenAppointmentController::class, 'book'])->name('citizen.appointments.book');
             Route::post('/citizen/offices/{office}/appointments/{slot}', [CitizenAppointmentController::class, 'store'])->name('citizen.appointments.store');
+            Route::patch('/citizen/offices/{office}/appointments/{appointment}/cancel', [CitizenAppointmentController::class, 'cancel'])
+                ->name('citizen.appointments.cancel');
 
             Route::get('/citizen/id-verify', [IdVerificationController::class, 'show'])->name('citizen.id.verify');
             Route::post('/citizen/id-verify', [IdVerificationController::class, 'upload'])->name('citizen.id.upload');

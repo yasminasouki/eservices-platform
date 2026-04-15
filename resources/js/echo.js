@@ -5,19 +5,14 @@ window.Pusher = Pusher;
 
 const reverbScheme = import.meta.env.VITE_REVERB_SCHEME ?? 'https';
 const reverbPort = Number(import.meta.env.VITE_REVERB_PORT) || (reverbScheme === 'https' ? 443 : 80);
+let echoClient = null;
 
-function setupOfficeChat () {
-    const scroll = document.getElementById('live-chat-scroll');
-    if (! scroll) {
-        return;
+function getEchoClient () {
+    if (echoClient) {
+        return echoClient;
     }
 
-    const officeId = scroll.dataset.officeId;
-    const citizenUserId = scroll.dataset.citizenUserId;
-    const portal = scroll.dataset.chatPortal || 'office';
-    const currentUserId = scroll.dataset.currentUserId;
-
-    window.Echo = new Echo({
+    echoClient = new Echo({
         broadcaster: 'reverb',
         key: import.meta.env.VITE_REVERB_APP_KEY,
         wsHost: import.meta.env.VITE_REVERB_HOST,
@@ -34,12 +29,30 @@ function setupOfficeChat () {
         },
     });
 
+    window.Echo = echoClient;
+
+    return echoClient;
+}
+
+function setupOfficeChat () {
+    const scroll = document.getElementById('live-chat-scroll');
+    if (! scroll) {
+        return;
+    }
+
+    const officeId = scroll.dataset.officeId;
+    const citizenUserId = scroll.dataset.citizenUserId;
+    const portal = scroll.dataset.chatPortal || 'office';
+    const currentUserId = scroll.dataset.currentUserId;
+
+    const echo = getEchoClient();
+
     window.appendLiveChatMessage = function (payload) {
         appendIncomingMessage(payload, portal, currentUserId);
         scroll.scrollTop = scroll.scrollHeight;
     };
 
-    window.Echo.private(`office-chat.${officeId}.${citizenUserId}`)
+    echo.private(`office-chat.${officeId}.${citizenUserId}`)
         .listen('.message.sent', (payload) => {
             appendIncomingMessage(payload, portal, currentUserId);
             scroll.scrollTop = scroll.scrollHeight;
@@ -104,10 +117,31 @@ function setupOfficeChat () {
     });
 }
 
+function setupAppointmentLiveUpdates () {
+    document.querySelectorAll('[data-appointments-live][data-office-id]').forEach((root) => {
+        const officeId = root.dataset.officeId;
+        if (!officeId) {
+            return;
+        }
+
+        const echo = getEchoClient();
+        echo.private(`appointments.office.${officeId}`)
+            .listen('.appointments.updated', (payload) => {
+                window.dispatchEvent(new CustomEvent('appointments-updated', {
+                    detail: payload,
+                }));
+            });
+    });
+}
+
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupOfficeChat);
+    document.addEventListener('DOMContentLoaded', () => {
+        setupOfficeChat();
+        setupAppointmentLiveUpdates();
+    });
 } else {
     setupOfficeChat();
+    setupAppointmentLiveUpdates();
 }
 
 /**

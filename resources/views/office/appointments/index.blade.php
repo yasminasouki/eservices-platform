@@ -75,7 +75,7 @@
     </div>
 
     {{-- Slots Table --}}
-    <div class="card card-soft">
+    <div class="card card-soft" id="office-slots-root" data-appointments-live data-office-id="{{ $office->id }}">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
@@ -112,6 +112,15 @@
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
+                                    @elseif($slot->appointment && in_array($slot->appointment->status, ['scheduled', 'confirmed'], true))
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-danger"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#cancelSlotAppointmentModal"
+                                                data-action="{{ route('office.appointments.cancel', [$office, $slot->appointment]) }}"
+                                                data-slot-label="{{ \Carbon\Carbon::parse($slot->date)->format('d M Y') }} {{ \Carbon\Carbon::parse($slot->start_time)->format('H:i') }}-{{ \Carbon\Carbon::parse($slot->end_time)->format('H:i') }}">
+                                            <i class="bi bi-x-circle me-1"></i>Cancel appointment
+                                        </button>
                                     @else
                                         <span class="text-muted small">—</span>
                                     @endif
@@ -138,3 +147,114 @@
 
 </div>
 @endsection
+
+{{-- Cancel appointment from slot modal --}}
+<div class="modal fade" id="cancelSlotAppointmentModal" tabindex="-1" aria-labelledby="cancelSlotAppointmentLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form method="POST" id="cancelSlotAppointmentForm">
+            @csrf
+            @method('PATCH')
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold" id="cancelSlotAppointmentLabel">
+                        <i class="bi bi-x-circle me-2 text-danger"></i>Cancel booked appointment
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted mb-2">
+                        Slot: <span id="cancelSlotAppointmentLabelText" class="fw-semibold text-body">—</span>
+                    </p>
+                    <label for="cancel_slot_reason" class="form-label fw-semibold">
+                        Reason for cancellation <span class="text-danger">*</span>
+                    </label>
+                    <textarea id="cancel_slot_reason"
+                              name="cancellation_reason"
+                              class="form-control"
+                              rows="4"
+                              maxlength="500"
+                              placeholder="Please provide a reason..."
+                              required></textarea>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-x-lg me-1"></i>Cancel appointment
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+(function () {
+    var officeId = {{ (int) $office->id }};
+    var refreshInFlight = false;
+
+    function refreshSlotsSection() {
+        if (refreshInFlight) return;
+        refreshInFlight = true;
+
+        var url = new URL(window.location.href);
+        url.searchParams.set('_appointments_refresh', Date.now().toString());
+
+        fetch(url.toString(), {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'text/html'
+            }
+        })
+            .then(function (response) { return response.text(); })
+            .then(function (html) {
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(html, 'text/html');
+                var incoming = doc.getElementById('office-slots-root');
+                var current = document.getElementById('office-slots-root');
+                if (!incoming || !current) return;
+                current.replaceWith(incoming);
+            })
+            .finally(function () {
+                refreshInFlight = false;
+            });
+    }
+
+    window.addEventListener('appointments-updated', function (event) {
+        var payload = event.detail || {};
+        if (Number(payload.office_id) !== officeId) {
+            return;
+        }
+        refreshSlotsSection();
+    });
+
+    var cancelModal = document.getElementById('cancelSlotAppointmentModal');
+    if (cancelModal) {
+        cancelModal.addEventListener('show.bs.modal', function (event) {
+            var trigger = event.relatedTarget;
+            var action = trigger ? trigger.dataset.action : '';
+            var slotLabel = trigger ? (trigger.dataset.slotLabel || '—') : '—';
+            var form = document.getElementById('cancelSlotAppointmentForm');
+            var slotText = document.getElementById('cancelSlotAppointmentLabelText');
+            var reason = document.getElementById('cancel_slot_reason');
+
+            if (form) {
+                form.action = action;
+            }
+            if (slotText) {
+                slotText.textContent = slotLabel;
+            }
+            if (reason) {
+                reason.value = '';
+            }
+        });
+    }
+
+    setInterval(function () {
+        if (document.visibilityState === 'visible') {
+            refreshSlotsSection();
+        }
+    }, 5000);
+})();
+</script>
+@endpush

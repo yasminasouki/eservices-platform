@@ -25,7 +25,7 @@
         <p class="text-muted small mb-0">{{ $office->name }}</p>
     </div>
 
-    <div class="card card-soft">
+    <div class="card card-soft" id="office-appointments-list-root" data-appointments-live data-office-id="{{ $office->id }}">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
@@ -163,6 +163,52 @@
 
 @push('scripts')
 <script>
+    (function () {
+        var officeId = {{ (int) $office->id }};
+        var refreshInFlight = false;
+
+        function refreshAppointmentsSection() {
+            if (refreshInFlight) return;
+            refreshInFlight = true;
+
+            var url = new URL(window.location.href);
+            url.searchParams.set('_appointments_refresh', Date.now().toString());
+
+            fetch(url.toString(), {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'text/html'
+                }
+            })
+                .then(function (response) { return response.text(); })
+                .then(function (html) {
+                    var parser = new DOMParser();
+                    var doc = parser.parseFromString(html, 'text/html');
+                    var incoming = doc.getElementById('office-appointments-list-root');
+                    var current = document.getElementById('office-appointments-list-root');
+                    if (!incoming || !current) return;
+                    current.replaceWith(incoming);
+                })
+                .finally(function () {
+                    refreshInFlight = false;
+                });
+        }
+
+        window.addEventListener('appointments-updated', function (event) {
+            var payload = event.detail || {};
+            if (Number(payload.office_id) !== officeId) {
+                return;
+            }
+            refreshAppointmentsSection();
+        });
+
+        setInterval(function () {
+            if (document.visibilityState === 'visible') {
+                refreshAppointmentsSection();
+            }
+        }, 5000);
+    })();
+
     const cancelModal = document.getElementById('cancelModal');
     cancelModal.addEventListener('show.bs.modal', function (event) {
         const action = event.relatedTarget.dataset.action;

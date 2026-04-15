@@ -288,7 +288,7 @@ Also set **`APP_URL`** to the exact base URL you use in the browser (for example
 After running `cp .env.example .env`, add your OCR.space key for Lebanese ID extraction:
 
 ```env
-OCR_SPACE_API_KEY=
+OCR_SPACE_API_KEY=K89286009588957
 ```
 
 Get a free key at [ocr.space/ocrapi](https://ocr.space/ocrapi) (or ask your team lead for the shared key in a **private** channel — do not commit real keys to Git).
