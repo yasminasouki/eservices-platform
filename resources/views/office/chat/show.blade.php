@@ -57,7 +57,6 @@
 @endsection
 
 @push('scripts')
-    @vite(['resources/js/app.js'])
     <script>
         (function () {
             var el = document.getElementById('live-chat-scroll');

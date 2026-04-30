@@ -114,6 +114,8 @@
 
     var cfg = @json($mapConfig ?? []);
     var rawMarkers = @json($markersJson);
+
+    function initMap() {
     var mapEl = document.getElementById('citizen-offices-map');
     if (!mapEl || typeof L === 'undefined') return;
 
@@ -121,7 +123,8 @@
     var map = L.map(mapEl, { scrollWheelZoom: false });
     L.tileLayer(cfg.tileUrl, {
         attribution: cfg.attribution,
-        maxZoom: cfg.maxZoom
+        maxZoom: cfg.maxZoom,
+        subdomains: 'abcd',
     }).addTo(map);
 
     var bounds = L.latLngBounds(latlngs);
@@ -221,6 +224,13 @@
         sortBtn.addEventListener('click', function () {
             sortRowsByDistance();
         });
+    }
+    } // end initMap
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initMap);
+    } else {
+        initMap();
     }
 })();
 </script>

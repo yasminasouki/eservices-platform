@@ -224,6 +224,8 @@ Route::middleware(['auth', 'active'])->group(function () {
             Route::post('/citizen/requests/{serviceRequest}/documents', [CitizenServiceRequestController::class, 'storeAdditionalDocuments'])
                 ->middleware('throttle:30,1')
                 ->name('citizen.requests.documents.store');
+            Route::get('/citizen/requests/{serviceRequest}/documents/{document}/download', [CitizenServiceRequestController::class, 'downloadDocument'])
+                ->name('citizen.requests.documents.download');
             Route::get('/citizen/requests/{serviceRequest}/feedback', [CitizenFeedbackController::class, 'createForRequest'])
                 ->name('citizen.feedback.request.create');
             Route::post('/citizen/requests/{serviceRequest}/feedback', [CitizenFeedbackController::class, 'storeForRequest'])

@@ -181,7 +181,14 @@
                                     <div class="small mt-1 text-muted">{{ $doc->description }}</div>
                                 @endif
                             </div>
-                            <a href="{{ Storage::url($doc->file_path) }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">Open</a>
+                            <div class="d-flex gap-2">
+                                <a href="{{ Storage::url($doc->file_path) }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i>Open
+                                </a>
+                                <a href="{{ route('citizen.requests.documents.download', [$request, $doc]) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-download me-1"></i>Download
+                                </a>
+                            </div>
                         </li>
                     @endforeach
                 </ul>

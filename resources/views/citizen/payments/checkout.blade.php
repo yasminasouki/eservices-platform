@@ -156,6 +156,13 @@
                         <div class="card card-soft mb-3 border-primary border-opacity-25">
                             <div class="card-header bg-white border-0 fw-semibold small">Send cryptocurrency</div>
                             <div class="card-body small">
+                                @if(!empty($cryptoQuoteExpiresAt))
+                                    <p class="small text-muted border rounded px-2 py-2 bg-light mb-3 mb-md-3">
+                                        <i class="bi bi-clock-history me-1"></i>This rate and amount are valid until
+                                        <strong>{{ \Illuminate\Support\Carbon::parse($cryptoQuoteExpiresAt)->timezone(config('app.timezone'))->format('M j, Y g:i A T') }}</strong>.
+                                        After that, click <strong>Get quote</strong> again.
+                                    </p>
+                                @endif
                                 <dl class="row mb-3">
                                     <dt class="col-sm-4 text-muted">Asset</dt>
                                     <dd class="col-sm-8 mb-2 text-uppercase">{{ $cryptoQuote['asset'] }}</dd>

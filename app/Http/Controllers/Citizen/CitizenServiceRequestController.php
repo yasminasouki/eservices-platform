@@ -14,6 +14,7 @@ use App\Support\QrCodeDataUri;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
@@ -247,6 +248,15 @@ class CitizenServiceRequestController extends Controller
         return redirect()
             ->route('citizen.requests.show', $serviceRequest)
             ->with('success', $msg);
+    }
+
+    public function downloadDocument(ServiceRequest $serviceRequest, Document $document): mixed
+    {
+        abort_unless((int) $serviceRequest->user_id === (int) auth()->id(), 404);
+        abort_unless((int) $document->service_request_id === (int) $serviceRequest->id, 404);
+        abort_unless(Storage::disk('public')->exists($document->file_path), 404);
+
+        return Storage::disk('public')->download($document->file_path, $document->file_name);
     }
 
     private function assertCatalogAccess(GovernmentOffice $office, Service $service): void

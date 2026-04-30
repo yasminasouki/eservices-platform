@@ -5,6 +5,7 @@ namespace App\Notifications;
 use App\Models\GovernmentOffice;
 use App\Models\ServiceRequest;
 use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
 class OfficeAddedDocumentNotification extends Notification
@@ -18,15 +19,23 @@ class OfficeAddedDocumentNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'broadcast'];
     }
 
     public function toDatabase(object $notifiable): array
     {
-        $officeName = $this->office->name;
+        return $this->payload();
+    }
 
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage($this->payload());
+    }
+
+    private function payload(): array
+    {
         return [
-            'message' => "{$officeName} uploaded a document for your service request.",
+            'message' => "{$this->office->name} uploaded a document for your service request.",
             'request_id' => $this->serviceRequest->id,
             'office_id' => $this->office->id,
             'url' => route('citizen.requests.show', $this->serviceRequest),
