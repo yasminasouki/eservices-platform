@@ -19,9 +19,9 @@ return [
     | Low-traffic dev: https://tile.openstreetmap.org is fine.
     | Production: use your own tile server or a provider per OSM tile policy.
     */
-    'tile_url' => env('OSM_TILE_URL', 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'),
+    'tile_url' => env('OSM_TILE_URL', 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'),
 
-    'tile_attribution' => '&copy; <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap</a>',
+    'tile_attribution' => '&copy; <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" rel="noopener">CARTO</a>',
 
     /*
     | Browser-side Nominatim search (OpenStreetMap). Be respectful: debounce, no bulk scraping.

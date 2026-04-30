@@ -11,7 +11,9 @@ use App\Services\Payments\CompleteStripePaymentIntentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use RuntimeException;
 use Stripe\Exception\ApiErrorException;
@@ -56,6 +58,18 @@ class CitizenPaymentController extends Controller
 
         $cryptoSessionKey = 'crypto_quote_'.$serviceRequest->id;
         $cryptoQuote = session($cryptoSessionKey);
+        if (! is_array($cryptoQuote) && $payment->method === 'cryptocurrency') {
+            $cryptoQuote = $this->hydrateCryptoSessionFromPayment($payment, $cryptoSessionKey);
+        }
+
+        if (is_array($cryptoQuote)) {
+            $quotedAt = $this->parseCryptoQuotedAt($payment->gateway_response ?? []);
+            $ttlMinutes = (int) config('payments.crypto.quote_valid_for_minutes', 45);
+            if ($quotedAt === null || $quotedAt->copy()->addMinutes($ttlMinutes)->isPast()) {
+                session()->forget($cryptoSessionKey);
+                $cryptoQuote = null;
+            }
+        }
 
         $stripeSecretOk = $this->stripeSecret() !== '';
         $stripePublishableOk = $this->stripePublishableKey() !== '';
@@ -93,6 +107,9 @@ class CitizenPaymentController extends Controller
             'cryptoAddresses' => $this->cryptoAddresses(),
             'showDemoCryptoNotice' => (bool) config('payments.crypto.show_demo_crypto_notice'),
             'stripeElementsError' => $stripeElementsError,
+            'cryptoQuoteExpiresAt' => is_array($cryptoQuote)
+                ? $this->cryptoQuoteExpiresAtIso($payment)
+                : null,
         ]);
     }
 
@@ -279,15 +296,20 @@ class CitizenPaymentController extends Controller
             return back()->withErrors(['crypto' => 'Could not load an exchange rate. Try again shortly.']);
         }
 
+        $gateway = array_merge($payment->gateway_response ?? [], [
+            'crypto_quote' => $quote,
+            'crypto_wallet' => $addresses[$walletKey],
+            'crypto_quoted_at' => now()->toIso8601String(),
+        ]);
+        foreach (['crypto_tx_reference', 'crypto_confirmed_by_citizen_at', 'crypto_citizen_submitted_at'] as $k) {
+            unset($gateway[$k]);
+        }
+
         $payment->update([
             'method' => 'cryptocurrency',
             'exchange_rate' => $quote['usd_per_unit'],
             'crypto_wallet_address' => $addresses[$walletKey],
-            'gateway_response' => array_merge($payment->gateway_response ?? [], [
-                'crypto_quote' => $quote,
-                'crypto_wallet' => $addresses[$walletKey],
-                'crypto_quoted_at' => now()->toIso8601String(),
-            ]),
+            'gateway_response' => $gateway,
         ]);
 
         session([
@@ -314,24 +336,60 @@ class CitizenPaymentController extends Controller
             return back()->withErrors(['crypto' => 'Generate a cryptocurrency quote first.']);
         }
 
+        if ($payment->status === 'completed') {
+            return redirect()
+                ->route('citizen.requests.show', $serviceRequest)
+                ->with('info', 'This payment is already completed.');
+        }
+
+        $quotedAt = $this->parseCryptoQuotedAt($payment->gateway_response ?? []);
+        if ($quotedAt === null) {
+            return back()->withErrors(['crypto' => 'Generate a fresh cryptocurrency quote before confirming.']);
+        }
+
+        $ttlMinutes = (int) config('payments.crypto.quote_valid_for_minutes', 45);
+        if ($quotedAt->copy()->addMinutes($ttlMinutes)->isPast()) {
+            session()->forget('crypto_quote_'.$serviceRequest->id);
+
+            return back()->withErrors([
+                'crypto' => 'This quote has expired. Click "Get quote" again for a current amount and rate.',
+            ]);
+        }
+
         $validated = $request->validate([
             'tx_reference' => ['nullable', 'string', 'max:500'],
         ]);
 
-        $ref = $validated['tx_reference'] ?? null;
-        if ($ref === '') {
-            $ref = null;
+        $ref = $this->normalizeCryptoTxReference($validated['tx_reference'] ?? null);
+        $autoComplete = (bool) config('payments.crypto.auto_complete_after_citizen_submit', false);
+        $requireRef = ! $autoComplete
+            && (bool) config('payments.crypto.require_tx_reference_when_manual_verify', true);
+        $minLen = (int) config('payments.crypto.tx_reference_min_length', 10);
+
+        if ($requireRef && (strlen((string) $ref) < $minLen)) {
+            return back()->withErrors([
+                'crypto' => 'Please paste your transaction hash or explorer link (at least '.$minLen.' characters) so the office can verify your transfer.',
+            ]);
+        }
+
+        $existingSubmit = $payment->gateway_response['crypto_citizen_submitted_at'] ?? null;
+        if (! $autoComplete && $existingSubmit && $ref === null) {
+            return redirect()
+                ->route('citizen.requests.pay', $serviceRequest)
+                ->with('info', 'We already recorded your payment notice. If you need to add a transaction reference, paste it below and submit again.');
         }
 
         $gateway = array_merge($payment->gateway_response ?? [], [
             'crypto_tx_reference' => $ref,
             'crypto_confirmed_by_citizen_at' => now()->toIso8601String(),
+            'crypto_citizen_submitted_at' => $payment->gateway_response['crypto_citizen_submitted_at'] ?? now()->toIso8601String(),
         ]);
-        $payment->update(['gateway_response' => $gateway]);
 
-        if (config('payments.crypto.auto_complete_after_citizen_submit')) {
+        $transactionId = $this->uniqueCryptoTransactionId($payment, $ref);
+
+        if ($autoComplete) {
             $this->completePayment->complete($payment, [
-                'transaction_id' => $ref,
+                'transaction_id' => $transactionId,
                 'gateway_response' => $gateway,
             ]);
 
@@ -341,6 +399,8 @@ class CitizenPaymentController extends Controller
                 ->route('citizen.requests.show', $serviceRequest)
                 ->with('success', 'Payment recorded. Your request is now with the office.');
         }
+
+        $payment->update(['gateway_response' => $gateway]);
 
         return redirect()
             ->route('citizen.requests.pay', $serviceRequest)
@@ -372,6 +432,103 @@ class CitizenPaymentController extends Controller
             'eth' => trim((string) config('payments.crypto.eth_address')),
             'usdt' => trim((string) config('payments.crypto.usdt_erc20_address')),
         ];
+    }
+
+    /**
+     * Restore session quote payload from the payment row (e.g. new session / expired session cookie).
+     *
+     * @return array<string, mixed>|null
+     */
+    private function hydrateCryptoSessionFromPayment(Payment $payment, string $sessionKey): ?array
+    {
+        $gw = $payment->gateway_response ?? [];
+        $quote = $gw['crypto_quote'] ?? null;
+        if (! is_array($quote)) {
+            return null;
+        }
+
+        $wallet = $gw['crypto_wallet'] ?? $payment->crypto_wallet_address;
+        if (! is_string($wallet) || $wallet === '') {
+            return null;
+        }
+
+        $payload = array_merge($quote, ['wallet' => $wallet]);
+        session([$sessionKey => $payload]);
+
+        return $payload;
+    }
+
+    private function cryptoQuoteExpiresAtIso(Payment $payment): ?string
+    {
+        $parsed = $this->parseCryptoQuotedAt($payment->gateway_response ?? []);
+        if ($parsed === null) {
+            return null;
+        }
+        $ttl = (int) config('payments.crypto.quote_valid_for_minutes', 45);
+
+        return $parsed->copy()->addMinutes($ttl)->timezone(config('app.timezone'))->toIso8601String();
+    }
+
+    /**
+     * @param  array<string, mixed>  $gatewayResponse
+     */
+    private function parseCryptoQuotedAt(array $gatewayResponse): ?Carbon
+    {
+        $raw = $gatewayResponse['crypto_quoted_at'] ?? null;
+        if (! is_string($raw) || $raw === '') {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($raw);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    private function normalizeCryptoTxReference(?string $raw): ?string
+    {
+        if ($raw === null) {
+            return null;
+        }
+
+        $s = trim($raw);
+        if ($s === '') {
+            return null;
+        }
+
+        if (strlen($s) > 500) {
+            $s = substr($s, 0, 500);
+        }
+
+        if (preg_match('/0x[a-fA-F0-9]{64}/', $s, $m)) {
+            return strtolower($m[0]);
+        }
+
+        if (preg_match('/\bbc1[a-z0-9]{20,120}\b/i', $s, $m)) {
+            return strtolower($m[0]);
+        }
+
+        if (preg_match('/\b(tb1|bc1)[a-z0-9]{20,120}\b/i', $s, $m)) {
+            return strtolower($m[0]);
+        }
+
+        if (preg_match('/(?<![0-9a-fA-F])([a-fA-F0-9]{64})(?![0-9a-fA-F])/', $s, $m)) {
+            return strtolower($m[1]);
+        }
+
+        return $s;
+    }
+
+    private function uniqueCryptoTransactionId(Payment $payment, ?string $normalizedRef): string
+    {
+        if (is_string($normalizedRef) && $normalizedRef !== '') {
+            $base = 'crypto:'.$payment->id.':'.$normalizedRef;
+
+            return strlen($base) <= 255 ? $base : substr($base, 0, 255);
+        }
+
+        return 'crypto:'.$payment->id.':'.Str::lower(Str::random(26));
     }
 
     /**

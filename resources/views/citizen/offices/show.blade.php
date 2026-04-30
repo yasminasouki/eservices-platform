@@ -372,13 +372,20 @@
 (function () {
     var cfg = @json($mapConfig ?? []);
     var m = @json($officeMap);
-    var el = document.getElementById('citizen-office-show-map');
-    if (!el || typeof L === 'undefined' || !m) return;
-    var map = L.map(el, { scrollWheelZoom: false }).setView([m.lat, m.lng], 16);
-    L.tileLayer(cfg.tileUrl, { attribution: cfg.attribution, maxZoom: cfg.maxZoom }).addTo(map);
-    var popup = '<strong>' + (m.name || '').replace(/</g, '&lt;') + '</strong>';
-    if (m.address) popup += '<br><span class="small text-muted">' + String(m.address).replace(/</g, '&lt;') + '</span>';
-    L.marker([m.lat, m.lng]).addTo(map).bindPopup(popup);
+    function initMap() {
+        var el = document.getElementById('citizen-office-show-map');
+        if (!el || typeof L === 'undefined' || !m) return;
+        var map = L.map(el, { scrollWheelZoom: false }).setView([m.lat, m.lng], 16);
+        L.tileLayer(cfg.tileUrl, { attribution: cfg.attribution, maxZoom: cfg.maxZoom, subdomains: 'abcd' }).addTo(map);
+        var popup = '<strong>' + (m.name || '').replace(/</g, '&lt;') + '</strong>';
+        if (m.address) popup += '<br><span class="small text-muted">' + String(m.address).replace(/</g, '&lt;') + '</span>';
+        L.marker([m.lat, m.lng]).addTo(map).bindPopup(popup);
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initMap);
+    } else {
+        initMap();
+    }
 })();
 </script>
 @endpush

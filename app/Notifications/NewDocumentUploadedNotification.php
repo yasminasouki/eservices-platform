@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
 /** Notify office staff when a citizen adds documents to an existing request (not used on initial submit). */
@@ -19,15 +20,23 @@ class NewDocumentUploadedNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'broadcast'];
     }
 
     public function toDatabase(object $notifiable): array
     {
+        return $this->payload();
+    }
+
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage($this->payload());
+    }
+
+    private function payload(): array
+    {
         $n = max(1, $this->documentCount);
-        $docPhrase = $n === 1
-            ? 'a new document'
-            : $n.' new documents';
+        $docPhrase = $n === 1 ? 'a new document' : $n.' new documents';
 
         return [
             'message' => "{$this->citizenName} uploaded {$docPhrase} on request #{$this->requestId}.",

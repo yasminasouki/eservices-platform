@@ -51,6 +51,19 @@ return [
             env('PAYMENTS_CRYPTO_AUTO_COMPLETE', env('APP_ENV') === 'local'),
             FILTER_VALIDATE_BOOL
         ),
+        /*
+         * After this many minutes, the citizen must click "Get quote" again before confirming.
+         * Prevents paying against an expired CoinGecko rate without refreshing.
+         */
+        'quote_valid_for_minutes' => max(5, min(24 * 60, (int) env('PAYMENTS_CRYPTO_QUOTE_VALID_MINUTES', 45))),
+        /*
+         * When auto_complete is false (production-style), require a tx hash / reference before accepting "I have sent".
+         */
+        'require_tx_reference_when_manual_verify' => filter_var(
+            env('PAYMENTS_CRYPTO_REQUIRE_TX_REFERENCE', true),
+            FILTER_VALIDATE_BOOL
+        ),
+        'tx_reference_min_length' => max(6, min(200, (int) env('PAYMENTS_CRYPTO_TX_REF_MIN_LENGTH', 10))),
     ],
 
     /*

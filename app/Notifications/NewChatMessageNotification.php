@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Str;
 
@@ -18,15 +19,23 @@ class NewChatMessageNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'broadcast'];
     }
 
     public function toDatabase(object $notifiable): array
     {
-        $preview = Str::limit(trim($this->bodyPreview), 120);
+        return $this->payload();
+    }
 
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage($this->payload());
+    }
+
+    private function payload(): array
+    {
         return [
-            'message' => "{$this->senderName}: {$preview}",
+            'message' => "{$this->senderName}: ".Str::limit(trim($this->bodyPreview), 120),
             'url' => $this->url,
         ];
     }

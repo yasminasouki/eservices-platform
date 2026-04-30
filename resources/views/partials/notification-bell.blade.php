@@ -2,8 +2,9 @@
     $notifIndexUrl = $notificationIndexUrl ?? route('office.notifications.index');
     $notifReadAllUrl = $notificationReadAllUrl ?? route('office.notifications.read-all');
     $notifReadBaseUrl = rtrim($notificationReadOneBaseUrl ?? url('/office/notifications'), '/');
+    $notifUserId = auth()->id();
 @endphp
-{{-- Notification bell — polled every 5 s; URLs overridable for citizen vs office --}}
+{{-- Notification bell — real-time via WebSocket (Echo) with 30s polling fallback --}}
 <div class="dropdown" id="notif-dropdown">
     <button
         class="btn btn-outline-light btn-sm position-relative"
@@ -135,6 +136,25 @@
     });
 
     poll();
-    setInterval(poll, 5000);
+    setInterval(poll, 30000);
+
+    // Real-time: subscribe to user's private channel when Echo is ready
+    var userId = @json($notifUserId);
+    function subscribeEcho(echo) {
+        echo.private('App.Models.User.' + userId)
+            .notification(function () { poll(); });
+    }
+
+    if (window.Echo) {
+        subscribeEcho(window.Echo);
+    } else {
+        // Echo.js bootstraps asynchronously — wait for it
+        var echoCheck = setInterval(function () {
+            if (window.Echo) {
+                clearInterval(echoCheck);
+                subscribeEcho(window.Echo);
+            }
+        }, 300);
+    }
 })();
 </script>
