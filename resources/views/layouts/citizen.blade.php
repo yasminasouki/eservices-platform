@@ -55,14 +55,62 @@
                onmouseout="this.style.background='rgba(255,255,255,0.15)'">
                 <i class="bi bi-chat-dots"></i> Message an office
             </a>
-            <div class="d-none d-sm-flex align-items-center gap-2">
-                <div class="d-flex align-items-center justify-content-center rounded-circle bg-white bg-opacity-25 text-white fw-bold"
-                     style="width:34px;height:34px;font-size:0.85rem;">
-                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                </div>
-                <div class="lh-sm">
-                    <div class="text-white fw-semibold" style="font-size:0.85rem;">{{ auth()->user()->name }}</div>
-                    <div class="text-white-50" style="font-size:0.7rem;">Citizen</div>
+            <div class="dropdown d-none d-sm-flex">
+                <button class="btn btn-sm d-flex align-items-center gap-2 text-white border-0 dropdown-toggle"
+                        style="background:rgba(255,255,255,0.15);border-radius:8px;padding:6px 12px;"
+                        type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="d-flex align-items-center justify-content-center rounded-circle bg-white bg-opacity-25 text-white fw-bold"
+                         style="width:28px;height:28px;font-size:0.8rem;">
+                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                    </div>
+                    <span style="font-size:0.85rem;">{{ auth()->user()->name }}</span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end shadow p-0" style="min-width:280px;">
+                    <div class="px-3 py-3 border-bottom bg-light rounded-top">
+                        <div class="fw-semibold">{{ auth()->user()->name }}</div>
+                        <div class="small text-muted">{{ auth()->user()->email }}</div>
+                        @php
+                            $idStatus = auth()->user()->id_document_status ?? 'not uploaded';
+                            $idBadge = match($idStatus) {
+                                'verified' => 'bg-success',
+                                'rejected' => 'bg-danger',
+                                'pending'  => 'bg-warning text-dark',
+                                default    => 'bg-secondary',
+                            };
+                        @endphp
+                        <div class="mt-1">
+                            <span class="badge {{ $idBadge }} small">
+                                ID: {{ ucfirst($idStatus) }}
+                            </span>
+                        </div>
+                    </div>
+                    @php
+                        $verification = \App\Models\IdVerificationRequest::where('user_id', auth()->id())
+                            ->latest()->first();
+                    @endphp
+                    @if($verification)
+                        <div class="px-3 py-2 small border-bottom">
+                            <div class="text-muted mb-1 fw-semibold">ID Information</div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Name</span>
+                                <span>{{ $verification->extracted_name ?? '—' }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">DOB</span>
+                                <span>{{ $verification->extracted_dob?->format('Y-m-d') ?? '—' }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">ID Number</span>
+                                <span>{{ $verification->extracted_id_number ?? '—' }}</span>
+                            </div>
+                        </div>
+                    @endif
+                    <div class="px-3 py-2">
+                        <a href="{{ route('citizen.id.verify') }}" class="dropdown-item rounded px-2 py-1 small">
+                            <i class="bi bi-person-vcard me-2"></i>
+                            {{ $verification ? 'View ID verification' : 'Upload your ID' }}
+                        </a>
+                    </div>
                 </div>
             </div>
             @include('partials.notification-bell', [

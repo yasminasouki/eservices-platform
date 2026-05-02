@@ -24,6 +24,7 @@
         .btn-primary:hover, .btn-primary:focus { background: linear-gradient(135deg, #172554, #1e40af); border: none; }
         .form-control:focus, .form-select:focus { border-color: var(--accent-mid); box-shadow: 0 0 0 0.2rem var(--accent-subtle); }
     </style>
+    @vite(['resources/js/app.js'])
     @stack('styles')
 </head>
 <body class="bg-light">
@@ -42,6 +43,11 @@
                     <div class="text-white-50" style="font-size:0.7rem;">Admin</div>
                 </div>
             </div>
+            @include('partials.notification-bell', [
+                'notificationIndexUrl' => route('admin.notifications.index'),
+                'notificationReadAllUrl' => route('admin.notifications.read-all'),
+                'notificationReadOneBaseUrl' => url('/admin/notifications'),
+            ])
             <form method="POST" action="{{ route('logout') }}" id="logout-form">
                 @csrf
                 <button type="button" class="btn btn-sm d-flex align-items-center gap-1 text-white border-0"

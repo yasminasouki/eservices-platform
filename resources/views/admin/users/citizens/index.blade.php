@@ -60,6 +60,10 @@
                                 @endif
                             </td>
                             <td class="text-end">
+                                <a href="{{ route('admin.citizens.show', $citizen) }}"
+                                   class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="bi bi-eye me-1"></i>View
+                                </a>
                                 <form method="POST" action="{{ route('admin.citizens.toggle-active', $citizen) }}" class="d-inline">
                                     @csrf
                                     @method('PATCH')

@@ -5,11 +5,15 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Mail\WelcomeOfficeMail;
 use App\Models\GovernmentOffice;
+use App\Models\IdVerificationRequest;
 use App\Models\OfficeUserAssignment;
 use App\Models\User;
+use App\Notifications\IdVerificationResultNotification;
+use App\Notifications\NewIdVerificationNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -196,5 +200,51 @@ class AdminUserManagementController extends Controller
         $user->update(['is_active' => ! $user->is_active]);
 
         return back()->with('success', 'Citizen status updated successfully.');
+    }
+
+    public function citizensShow(User $user)
+    {
+        abort_unless($user->role === 'citizen', 404);
+
+        $verification = IdVerificationRequest::where('user_id', $user->id)->latest()->first();
+
+        return view('admin.users.citizens.show', compact('user', 'verification'));
+    }
+
+    public function citizensApproveId(User $user)
+    {
+        abort_unless($user->role === 'citizen', 404);
+
+        $verification = IdVerificationRequest::where('user_id', $user->id)->latest()->firstOrFail();
+
+        $verification->update([
+            'status'      => 'verified',
+            'verified_at' => now(),
+        ]);
+
+        $user->update(['id_document_status' => 'verified']);
+
+        $user->notify(new IdVerificationResultNotification('verified'));
+
+        return back()->with('success', 'ID verified successfully.');
+    }
+
+    public function citizensRejectId(Request $request, User $user)
+    {
+        abort_unless($user->role === 'citizen', 404);
+
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'max:500'],
+        ]);
+
+        $verification = IdVerificationRequest::where('user_id', $user->id)->latest()->firstOrFail();
+
+        $verification->update(['status' => 'rejected']);
+
+        $user->update(['id_document_status' => 'rejected']);
+
+        $user->notify(new IdVerificationResultNotification('rejected', $validated['reason']));
+
+        return back()->with('success', 'ID rejected.');
     }
 }
