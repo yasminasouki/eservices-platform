@@ -115,6 +115,12 @@ Route::middleware(['auth', 'active'])->group(function () {
                 ->name('admin.citizens.index');
             Route::patch('/admin/citizens/{user}/toggle-active', [AdminUserManagementController::class, 'citizensToggleActive'])
                 ->name('admin.citizens.toggle-active');
+            Route::get('/admin/citizens/{user}', [AdminUserManagementController::class, 'citizensShow'])
+                ->name('admin.citizens.show');
+            Route::patch('/admin/citizens/{user}/approve-id', [AdminUserManagementController::class, 'citizensApproveId'])
+                ->name('admin.citizens.approve-id');
+            Route::patch('/admin/citizens/{user}/reject-id', [AdminUserManagementController::class, 'citizensRejectId'])
+                ->name('admin.citizens.reject-id');
 
             Route::get('/admin/service-requests', [AdminServiceOperationsController::class, 'index'])
                 ->name('admin.service-requests.index');
@@ -123,6 +129,43 @@ Route::middleware(['auth', 'active'])->group(function () {
 
             Route::get('/admin/reports', [AdminReportsController::class, 'index'])
                 ->name('admin.reports.index');
+
+            Route::get('/admin/notifications', function () {
+                $notifications = auth()->user()
+                    ->unreadNotifications()
+                    ->latest()
+                    ->take(20)
+                    ->get()
+                    ->map(fn($n) => [
+                        'id'         => $n->id,
+                        'message'    => $n->data['message'] ?? '',
+                        'url'        => $n->data['url'] ?? '#',
+                        'created_at' => $n->created_at->diffForHumans(),
+                    ]);
+
+                return response()->json([
+                    'count'         => auth()->user()->unreadNotifications()->count(),
+                    'notifications' => $notifications,
+                ]);
+            })->name('admin.notifications.index');
+
+            Route::post('/admin/notifications/read-all', function () {
+                auth()->user()->unreadNotifications()->markAsRead();
+                return response()->json(['ok' => true]);
+            })->name('admin.notifications.read-all');
+
+            Route::post('/admin/notifications/{id}/read', function (string $id) {
+                auth()->user()->notifications()->where('id', $id)->update(['read_at' => now()]);
+                return response()->json(['ok' => true]);
+            })->name('admin.notifications.read-one');
+
+            Route::get('/admin/id-documents/{path}', function (string $path) {
+                $fullPath = storage_path('app/' . $path);
+
+                abort_unless(file_exists($fullPath), 404);
+
+                return response()->file($fullPath);
+            })->where('path', '.*')->name('admin.id-documents.show');
         });
 
         Route::middleware('role:office_user')->group(function () {

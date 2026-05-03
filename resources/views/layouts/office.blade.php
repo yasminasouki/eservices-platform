@@ -57,7 +57,11 @@
                     <div class="text-white-50" style="font-size:0.7rem;">Office Staff</div>
                 </div>
             </div>
-            @include('partials.notification-bell')
+            @include('partials.notification-bell', [
+                'notificationIndexUrl' => route('office.notifications.index'),
+                'notificationReadAllUrl' => route('office.notifications.read-all'),
+                'notificationReadOneBaseUrl' => url('/office/notifications'),
+            ])
             <form method="POST" action="{{ route('logout') }}" id="logout-form">
                 @csrf
                 <button type="button" class="btn btn-sm d-flex align-items-center gap-1 text-white border-0"

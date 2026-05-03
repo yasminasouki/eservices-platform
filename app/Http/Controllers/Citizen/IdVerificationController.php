@@ -46,6 +46,14 @@ class IdVerificationController extends Controller
 
         Auth::user()->update(['id_document' => $frontPath]);
 
+        $admin = \App\Models\User::where('role', 'admin')->first();
+        if ($admin) {
+            $admin->notify(new \App\Notifications\NewIdVerificationNotification(
+                Auth::user()->name,
+                Auth::user()->id,
+            ));
+        }
+
         return redirect()->route('citizen.id.verify')
             ->with('success', 'Your ID documents have been submitted and are awaiting review.');
     }

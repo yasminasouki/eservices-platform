@@ -222,7 +222,7 @@ class AuthController extends Controller
                 ->with('info', 'Please verify your email address to complete your account setup.');
         }
 
-        return redirect()->route($this->getDashboardRoute($user))
+        return $this->redirectToDashboard($user)
             ->with('success', 'Two-factor authentication has been enabled successfully.');
     }
 
