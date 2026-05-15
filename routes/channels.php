@@ -49,6 +49,21 @@ Broadcast::channel('service-requests.{serviceRequestId}', function ($user, $serv
     return false;
 });
 
+/*
+|--------------------------------------------------------------------------
+| Service request status updates (citizen view — live progress bar)
+|--------------------------------------------------------------------------
+*/
+Broadcast::channel('service-request.{serviceRequestId}', function ($user, $serviceRequestId) {
+    $sr = ServiceRequest::query()->find($serviceRequestId);
+
+    if (! $sr) {
+        return false;
+    }
+
+    return (int) $user->id === (int) $sr->user_id;
+});
+
 Broadcast::channel('appointments.office.{officeId}', function ($user, $officeId) {
     if ($user->isCitizen()) {
         return true;

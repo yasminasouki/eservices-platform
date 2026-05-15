@@ -1,12 +1,12 @@
 @extends('layouts.admin')
 
-@section('title', 'Reports & analytics')
+@section('title', __('ui.admin_reports_title'))
 
 @section('content')
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
         <div>
-            <h2 class="fw-bold mb-1">Reports & analytics</h2>
-            <p class="text-muted mb-0">Request volume and revenue by government office. Filters apply to submission dates for requests and payment dates for revenue.</p>
+            <h2 class="fw-bold mb-1">{{ __('ui.admin_reports_title') }}</h2>
+            <p class="text-muted mb-0">{{ __('ui.admin_reports_subtitle') }}</p>
         </div>
     </div>
 
@@ -14,9 +14,9 @@
         <div class="card-body">
             <form method="GET" action="{{ route('admin.reports.index') }}" class="row g-3 align-items-end">
                 <div class="col-md-4 col-lg-3">
-                    <label for="government_office_id" class="form-label small text-muted mb-1">Office</label>
+                    <label for="government_office_id" class="form-label small text-muted mb-1">{{ __('ui.admin_reports_filter_office') }}</label>
                     <select name="government_office_id" id="government_office_id" class="form-select">
-                        <option value="">All offices</option>
+                        <option value="">{{ __('ui.admin_reports_filter_all_offices') }}</option>
                         @foreach($offices as $office)
                             <option value="{{ $office->id }}" @selected((string) ($filters['government_office_id'] ?? '') === (string) $office->id)>
                                 {{ $office->name }}
@@ -25,20 +25,20 @@
                     </select>
                 </div>
                 <div class="col-md-4 col-lg-2">
-                    <label for="date_from" class="form-label small text-muted mb-1">From (requests / payments)</label>
+                    <label for="date_from" class="form-label small text-muted mb-1">{{ __('ui.admin_reports_filter_from') }}</label>
                     <input type="date" name="date_from" id="date_from" class="form-control"
                            value="{{ $filters['date_from'] ?? '' }}">
                 </div>
                 <div class="col-md-4 col-lg-2">
-                    <label for="date_to" class="form-label small text-muted mb-1">To</label>
+                    <label for="date_to" class="form-label small text-muted mb-1">{{ __('ui.admin_reports_filter_to') }}</label>
                     <input type="date" name="date_to" id="date_to" class="form-control"
                            value="{{ $filters['date_to'] ?? '' }}">
                 </div>
                 <div class="col-md-8 col-lg-5 d-flex flex-wrap gap-2">
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-funnel me-1"></i>Apply
+                        <i class="bi bi-funnel me-1"></i>{{ __('ui.admin_reports_filter_apply') }}
                     </button>
-                    <a href="{{ route('admin.reports.index') }}" class="btn btn-outline-secondary">Reset</a>
+                    <a href="{{ route('admin.reports.index') }}" class="btn btn-outline-secondary">{{ __('ui.admin_reports_filter_reset') }}</a>
                 </div>
             </form>
         </div>
@@ -47,13 +47,13 @@
     <div class="row g-3 mb-4">
         <div class="col-sm-6 col-md-4">
             <div class="card card-soft p-3 h-100">
-                <div class="text-muted small">Total requests (filtered)</div>
+                <div class="text-muted small">{{ __('ui.admin_reports_stat_requests') }}</div>
                 <div class="fs-3 fw-bold">{{ number_format($totalRequests) }}</div>
             </div>
         </div>
         <div class="col-sm-6 col-md-4">
             <div class="card card-soft p-3 h-100">
-                <div class="text-muted small">Total revenue (completed)</div>
+                <div class="text-muted small">{{ __('ui.admin_reports_stat_revenue') }}</div>
                 <div class="fs-3 fw-bold text-success">${{ number_format($totalRevenue, 2) }}</div>
             </div>
         </div>
@@ -67,7 +67,7 @@
     <div class="row g-3 mb-4">
         <div class="col-lg-6">
             <div class="card card-soft p-3 h-100">
-                <h6 class="fw-semibold mb-3">Requests per office</h6>
+                <h6 class="fw-semibold mb-3">{{ __('ui.admin_reports_chart_requests') }}</h6>
                 <div style="height: 280px;">
                     <canvas id="chartRequests"></canvas>
                 </div>
@@ -75,7 +75,7 @@
         </div>
         <div class="col-lg-6">
             <div class="card card-soft p-3 h-100">
-                <h6 class="fw-semibold mb-3">Revenue per office (USD)</h6>
+                <h6 class="fw-semibold mb-3">{{ __('ui.admin_reports_chart_revenue') }}</h6>
                 <div style="height: 280px;">
                     <canvas id="chartRevenue"></canvas>
                 </div>
@@ -84,14 +84,14 @@
     </div>
 
     <div class="card card-soft">
-        <div class="card-header bg-white border-0 fw-semibold">Breakdown by office</div>
+        <div class="card-header bg-white border-0 fw-semibold">{{ __('ui.admin_reports_breakdown') }}</div>
         <div class="table-responsive">
             <table class="table mb-0 align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th>Office</th>
-                        <th class="text-end">Requests</th>
-                        <th class="text-end">Revenue</th>
+                        <th>{{ __('ui.admin_reports_col_office') }}</th>
+                        <th class="text-end">{{ __('ui.admin_reports_col_requests') }}</th>
+                        <th class="text-end">{{ __('ui.admin_reports_col_revenue') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -103,14 +103,14 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="3" class="text-center text-muted py-4">No offices match the filter.</td>
+                            <td colspan="3" class="text-center text-muted py-4">{{ __('ui.admin_reports_empty') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
                 @if($rows->isNotEmpty())
                     <tfoot class="table-light">
                         <tr>
-                            <th>Total</th>
+                            <th>{{ __('ui.admin_reports_col_total') }}</th>
                             <th class="text-end">{{ number_format($totalRequests) }}</th>
                             <th class="text-end">${{ number_format($totalRevenue, 2) }}</th>
                         </tr>

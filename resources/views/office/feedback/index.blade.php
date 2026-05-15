@@ -1,6 +1,6 @@
 @extends('layouts.office')
 
-@section('title', 'Citizen Feedback')
+@section('title', __('ui.office_fb_title'))
 
 @push('styles')
 <style>
@@ -108,8 +108,8 @@
     {{-- Page header --}}
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-4">
         <div>
-            <div class="page-title">Citizen Feedback</div>
-            <p class="page-sub">Ratings and comments from citizens who used your services.</p>
+            <div class="page-title">{{ __('ui.office_fb_title') }}</div>
+            <p class="page-sub">{{ __('ui.office_fb_subtitle') }}</p>
         </div>
     </div>
 
@@ -119,34 +119,34 @@
         {{-- Filter tabs (form-driven, GET) --}}
         <div class="filter-bar">
             <a href="{{ route('office.feedback.index', [$office, 'replied' => 'all']) }}"
-               class="filter-tab {{ $repliedFilter === 'all' ? 'active' : '' }}">All</a>
+               class="filter-tab {{ $repliedFilter === 'all' ? 'active' : '' }}">{{ __('ui.office_fb_tab_all') }}</a>
             <a href="{{ route('office.feedback.index', [$office, 'replied' => 'no']) }}"
                class="filter-tab {{ $repliedFilter === 'no' ? 'active' : '' }}">
-                <i class="bi bi-hourglass-split" style="font-size:.72rem;"></i> Awaiting reply
+                <i class="bi bi-hourglass-split" style="font-size:.72rem;"></i> {{ __('ui.office_fb_tab_awaiting') }}
             </a>
             <a href="{{ route('office.feedback.index', [$office, 'replied' => 'yes']) }}"
                class="filter-tab {{ $repliedFilter === 'yes' ? 'active' : '' }}">
-                <i class="bi bi-check-circle" style="font-size:.72rem;"></i> Replied
+                <i class="bi bi-check-circle" style="font-size:.72rem;"></i> {{ __('ui.office_fb_tab_replied') }}
             </a>
         </div>
 
         @if($entries->isEmpty())
             <div class="empty-state">
                 <div class="empty-icon"><i class="bi bi-chat-square-text"></i></div>
-                <h6>No feedback yet</h6>
-                <p>No feedback for this office matching the current filter.</p>
+                <h6>{{ __('ui.office_fb_empty') }}</h6>
+                <p>{{ __('ui.office_fb_empty_filter') }}</p>
             </div>
         @else
             <div class="table-responsive">
                 <table class="fb-table">
                     <thead>
                         <tr>
-                            <th>Citizen</th>
-                            <th>Rating</th>
-                            <th>Comment</th>
-                            <th>Linked</th>
-                            <th>Status</th>
-                            <th>Action</th>
+                            <th>{{ __('ui.office_fb_col_citizen') }}</th>
+                            <th>{{ __('ui.office_fb_col_rating') }}</th>
+                            <th>{{ __('ui.office_fb_col_comment') }}</th>
+                            <th>{{ __('ui.office_fb_col_linked') }}</th>
+                            <th>{{ __('ui.office_fb_col_status') }}</th>
+                            <th>{{ __('ui.office_fb_col_action') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -172,23 +172,23 @@
                                             <i class="bi bi-file-earmark-text me-1"></i>#{{ $fb->serviceRequest->id }}
                                         </a>
                                     @else
-                                        <span style="font-size:.82rem;color:#52916b;">General</span>
+                                        <span style="font-size:.82rem;color:#52916b;">{{ __('ui.office_fb_general') }}</span>
                                     @endif
                                 </td>
                                 <td>
                                     @if($fb->replied_at)
                                         <span class="status-pill pill-replied">
-                                            <i class="bi bi-check-circle"></i> Replied
+                                            <i class="bi bi-check-circle"></i> {{ __('ui.office_fb_status_replied') }}
                                         </span>
                                     @else
                                         <span class="status-pill pill-open">
-                                            <i class="bi bi-circle"></i> Open
+                                            <i class="bi bi-circle"></i> {{ __('ui.office_fb_status_open') }}
                                         </span>
                                     @endif
                                 </td>
                                 <td>
                                     <a href="{{ route('office.feedback.edit', [$office, $fb]) }}" class="act-btn-reply">
-                                        <i class="bi bi-reply"></i> Reply
+                                        <i class="bi bi-reply"></i> {{ __('ui.office_fb_reply') }}
                                     </a>
                                 </td>
                             </tr>

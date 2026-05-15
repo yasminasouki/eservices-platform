@@ -1,6 +1,6 @@
 @extends('layouts.office')
 
-@section('title', $isEdit ? 'Edit Service' : 'New Service')
+@section('title', $isEdit ? __('ui.office_svc_form_edit_title') : __('ui.office_svc_form_new_title'))
 
 @push('styles')
 <style>
@@ -46,11 +46,11 @@
     {{-- Page header --}}
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
         <div>
-            <div class="page-title">{{ $isEdit ? 'Edit Service' : 'New Service' }}</div>
+            <div class="page-title">{{ $isEdit ? __('ui.office_svc_form_edit_title') : __('ui.office_svc_form_new_title') }}</div>
             <p class="page-sub">{{ $office->name }}</p>
         </div>
         <a href="{{ route('office.services.index', $office) }}" class="btn-back">
-            <i class="bi bi-arrow-left"></i>Back to services
+            <i class="bi bi-arrow-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }}"></i>{{ __('ui.office_svc_form_back') }}
         </a>
     </div>
 
@@ -62,14 +62,14 @@
             @endif
 
             <div class="col-md-6">
-                <label class="form-label">Name <span class="text-danger">*</span></label>
+                <label class="form-label">{{ __('ui.office_svc_form_name') }} <span class="text-danger">*</span></label>
                 <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
                        value="{{ old('name', $service->name) }}" required>
                 @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
             <div class="col-md-6">
-                <label class="form-label">Category <span class="text-danger">*</span></label>
+                <label class="form-label">{{ __('ui.office_svc_form_category') }} <span class="text-danger">*</span></label>
                 <select name="service_category_id" class="form-select @error('service_category_id') is-invalid @enderror" required>
                     @foreach($categories as $c)
                         <option value="{{ $c->id }}" @selected((string) old('service_category_id', $service->service_category_id) === (string) $c->id)>
@@ -81,13 +81,13 @@
             </div>
 
             <div class="col-12">
-                <label class="form-label">Description</label>
+                <label class="form-label">{{ __('ui.office_svc_form_description') }}</label>
                 <textarea name="description" rows="3" class="form-control @error('description') is-invalid @enderror">{{ old('description', $service->description) }}</textarea>
                 @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
             <div class="col-md-4">
-                <label class="form-label">Price <span class="text-danger">*</span></label>
+                <label class="form-label">{{ __('ui.office_svc_form_price') }} <span class="text-danger">*</span></label>
                 <input type="number" name="price" step="0.01" min="0"
                        class="form-control @error('price') is-invalid @enderror"
                        value="{{ old('price', $service->price) }}" required>
@@ -95,7 +95,7 @@
             </div>
 
             <div class="col-md-4">
-                <label class="form-label">Duration amount</label>
+                <label class="form-label">{{ __('ui.office_svc_form_duration_amount') }}</label>
                 <input type="number" name="duration" min="1"
                        class="form-control @error('duration') is-invalid @enderror"
                        value="{{ old('duration', $service->duration) }}" placeholder="Optional">
@@ -103,9 +103,9 @@
             </div>
 
             <div class="col-md-4">
-                <label class="form-label">Duration unit <span class="text-danger">*</span></label>
+                <label class="form-label">{{ __('ui.office_svc_form_duration_unit') }} <span class="text-danger">*</span></label>
                 <select name="duration_unit" class="form-select @error('duration_unit') is-invalid @enderror" required>
-                    @foreach(['minutes' => 'Minutes', 'hours' => 'Hours', 'days' => 'Days'] as $val => $lbl)
+                    @foreach(['minutes' => __('ui.office_svc_form_minutes'), 'hours' => __('ui.office_svc_form_hours'), 'days' => __('ui.office_svc_form_days')] as $val => $lbl)
                         <option value="{{ $val }}" @selected(old('duration_unit', $service->duration_unit) === $val)>{{ $lbl }}</option>
                     @endforeach
                 </select>
@@ -113,10 +113,10 @@
             </div>
 
             <div class="col-12">
-                <label class="form-label">Required documents</label>
+                <label class="form-label">{{ __('ui.office_svc_form_req_docs') }}</label>
                 <textarea name="required_documents" rows="4"
                           class="form-control @error('required_documents') is-invalid @enderror"
-                          placeholder="One document name per line">{{ old('required_documents', $service->required_documents ? implode("\n", $service->required_documents) : '') }}</textarea>
+                          placeholder="{{ __('ui.office_svc_form_req_docs_hint') }}">{{ old('required_documents', $service->required_documents ? implode("\n", $service->required_documents) : '') }}</textarea>
                 <div class="form-text">Citizens will be asked to upload these when the citizen portal is available.</div>
                 @error('required_documents')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
@@ -126,13 +126,13 @@
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" name="is_active" value="1" id="is_active"
                            @checked((string) old('is_active', $service->is_active ? '1' : '0') === '1')>
-                    <label class="form-check-label" for="is_active">Service is visible / active</label>
+                    <label class="form-check-label" for="is_active">{{ __('ui.office_svc_form_active') }}</label>
                 </div>
             </div>
 
             <div class="col-12">
                 <button type="submit" class="btn-submit">
-                    <i class="bi bi-check2"></i>{{ $isEdit ? 'Update service' : 'Create service' }}
+                    <i class="bi bi-check2"></i>{{ $isEdit ? __('ui.office_svc_form_update_btn') : __('ui.office_svc_form_create_btn') }}
                 </button>
             </div>
         </form>

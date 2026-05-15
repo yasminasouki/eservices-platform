@@ -1,16 +1,16 @@
 @extends('layouts.auth')
 @section('title', 'Register — E-Services Platform')
 @section('auth_brand_icon', 'bi-person-fill')
-@section('auth_brand_title', 'Citizen Portal')
-@section('heading', 'Create your account')
-@section('subtitle', 'Enter your details to register as a citizen.')
+@section('auth_brand_title', __('ui.auth_citizen_portal'))
+@section('heading', __('ui.auth_register_heading'))
+@section('subtitle', __('ui.auth_register_subtitle'))
 
 @section('content')
     <form method="POST" action="{{ route('register') }}" enctype="multipart/form-data">
         @csrf
 
         <div class="mb-3">
-            <label for="name" class="form-label">Full Name</label>
+            <label for="name" class="form-label">{{ __('ui.auth_full_name') }}</label>
             <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-person"></i></span>
                 <input type="text" id="name" name="name"
@@ -23,7 +23,7 @@
         </div>
 
         <div class="mb-3">
-            <label for="email" class="form-label">Email Address</label>
+            <label for="email" class="form-label">{{ __('ui.auth_email') }}</label>
             <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-envelope"></i></span>
                 <input type="email" id="email" name="email"
@@ -36,12 +36,12 @@
         </div>
 
         <div class="mb-3">
-            <label for="phone" class="form-label">Phone Number</label>
+            <label for="phone" class="form-label">{{ __('ui.auth_phone_number') }}</label>
             <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-telephone"></i></span>
                 <input type="tel" id="phone" name="phone"
                        class="form-control @error('phone') is-invalid @enderror"
-                       value="{{ old('phone') }}" placeholder="+961 xx xxx xxx" required>
+                       value="{{ old('phone') }}" placeholder="{{ __('ui.auth_phone_placeholder') }}" required>
                 @error('phone')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -49,12 +49,12 @@
         </div>
 
         <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
+            <label for="password" class="form-label">{{ __('ui.auth_password') }}</label>
             <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-lock"></i></span>
                 <input type="password" id="password" name="password"
                        class="form-control @error('password') is-invalid @enderror"
-                       placeholder="Min. 8 characters" required>
+                       placeholder="{{ __('ui.auth_password_hint') }}" required>
                 <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                     <i class="bi bi-eye" id="eyeIcon"></i>
                 </button>
@@ -62,23 +62,23 @@
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
-            <div class="form-text">Must contain uppercase, lowercase, and numbers.</div>
+            <div class="form-text">{{ __('ui.auth_password_strength') }}</div>
         </div>
 
         <div class="mb-3">
-            <label for="password_confirmation" class="form-label">Confirm Password</label>
+            <label for="password_confirmation" class="form-label">{{ __('ui.auth_confirm_password') }}</label>
             <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
                 <input type="password" id="password_confirmation" name="password_confirmation"
-                       class="form-control" placeholder="Repeat your password" required>
+                       class="form-control" placeholder="{{ __('ui.auth_confirm_placeholder') }}" required>
             </div>
         </div>
 
         <button type="submit" class="btn btn-primary w-100 mb-3">
-            <i class="bi bi-person-plus me-2"></i>Create Account
+            <i class="bi bi-person-plus me-2"></i>{{ __('ui.auth_create_account') }}
         </button>
 
-        <div class="divider"><span>or sign up with</span></div>
+        <div class="divider"><span>{{ __('ui.auth_or_sign_up_with') }}</span></div>
 
         <div class="row g-2 mb-3">
             <div class="col-6">
@@ -103,8 +103,8 @@
         </div>
 
         <p class="text-center mb-0 small text-muted">
-            Already have an account?
-            <a href="{{ route('login') }}" class="text-decoration-none fw-semibold text-primary">Sign in</a>
+            {{ __('ui.auth_have_account') }}
+            <a href="{{ route('login') }}" class="text-decoration-none fw-semibold text-primary">{{ __('ui.auth_sign_in_link') }}</a>
         </p>
     </form>
 

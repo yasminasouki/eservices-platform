@@ -1,11 +1,17 @@
+@php $isRtl = app()->getLocale() === 'ar'; @endphp
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ $isRtl ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Office Portal') — E-Services Platform</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>@yield('title', __('ui.office_portal')) — {{ __('ui.brand_name') }}</title>
+    @if($isRtl)
+        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    @else
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    @endif
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
         :root {
@@ -188,6 +194,31 @@
             cursor: pointer; position: relative; transition: background .15s;
         }
         #notif-dropdown .notif-bell-btn:hover { background: #bbf7d0; }
+
+        /* ── RTL overrides ── */
+        [dir="rtl"] body { font-family: 'Cairo', system-ui, sans-serif; }
+        [dir="rtl"] .office-sidebar { left: auto; right: 0; border-right: none; border-left: 1px solid var(--sidebar-border); }
+        [dir="rtl"] .office-topbar { left: 0; right: var(--sidebar-width); }
+        [dir="rtl"] .office-main { margin-left: 0; margin-right: var(--sidebar-width); }
+        [dir="rtl"] .sidebar-user-caret { margin-left: 0; margin-right: auto; }
+        [dir="rtl"] .user-popup-item { text-align: right; }
+        @media (max-width: 991px) {
+            [dir="rtl"] .office-sidebar { transform: translateX(var(--sidebar-width)); }
+            [dir="rtl"] .office-sidebar.open { transform: translateX(0); }
+            [dir="rtl"] .office-main { margin-right: 0; }
+            [dir="rtl"] .office-topbar { right: 0; }
+        }
+
+        /* Language toggle */
+        .lang-btn {
+            display: inline-flex; align-items: center; gap: .35rem;
+            padding: .3rem .65rem; border-radius: 8px;
+            border: 1px solid var(--accent-light);
+            background: var(--accent-pale); color: var(--accent-dark);
+            font-size: .78rem; font-weight: 700; text-decoration: none;
+            transition: background .15s; white-space: nowrap;
+        }
+        .lang-btn:hover { background: #bbf7d0; color: var(--accent-dark); }
     </style>
     @stack('styles')
     @stack('head')
@@ -201,13 +232,13 @@
 
         <a class="sidebar-brand" href="{{ route('office.dashboard') }}">
             <span class="brand-icon"><i class="bi bi-building-fill-gear"></i></span>
-            E-Services
+            {{ __('ui.brand_name') }}
         </a>
 
         {{-- Office context switcher --}}
         @if(isset($officeNavOffices) && $officeNavOffices->count() > 1)
             <div class="office-switcher">
-                <label>Current office</label>
+                <label>{{ __('ui.offices') }}</label>
                 <form method="POST" action="{{ route('office.context') }}">
                     @csrf
                     <select name="office_id" class="form-select" onchange="this.form.submit()">
@@ -224,47 +255,47 @@
         <nav class="sidebar-nav">
             @php $ctx = $officeContext ?? null; @endphp
 
-            <span class="sidebar-section-label">Overview</span>
+            <span class="sidebar-section-label">{{ __('ui.menu') }}</span>
 
             <a href="{{ route('office.dashboard') }}"
                class="sidebar-link {{ request()->routeIs('office.dashboard') ? 'active' : '' }}">
-                <i class="bi bi-speedometer2"></i> Dashboard
+                <i class="bi bi-speedometer2"></i> {{ __('ui.dashboard') }}
             </a>
             <a href="{{ route('office.profile.index') }}"
                class="sidebar-link {{ request()->routeIs('office.profile.*') ? 'active' : '' }}">
-                <i class="bi bi-building"></i> Office Profile
+                <i class="bi bi-building"></i> {{ __('ui.offices') }}
             </a>
 
-            <span class="sidebar-section-label">Services</span>
+            <span class="sidebar-section-label">{{ __('ui.services') }}</span>
 
             @if($ctx)
                 <a href="{{ route('office.categories.index', $ctx) }}"
                    class="sidebar-link {{ request()->routeIs('office.categories.*') ? 'active' : '' }}">
-                    <i class="bi bi-grid"></i> Categories
+                    <i class="bi bi-grid"></i> {{ __('ui.categories') }}
                 </a>
                 <a href="{{ route('office.services.index', $ctx) }}"
                    class="sidebar-link {{ request()->routeIs('office.services.*') ? 'active' : '' }}">
-                    <i class="bi bi-box-seam"></i> Services
+                    <i class="bi bi-box-seam"></i> {{ __('ui.services') }}
                 </a>
             @else
-                <span class="sidebar-link disabled" title="No office assigned"><i class="bi bi-grid"></i> Categories</span>
-                <span class="sidebar-link disabled" title="No office assigned"><i class="bi bi-box-seam"></i> Services</span>
+                <span class="sidebar-link disabled"><i class="bi bi-grid"></i> {{ __('ui.categories') }}</span>
+                <span class="sidebar-link disabled"><i class="bi bi-box-seam"></i> {{ __('ui.services') }}</span>
             @endif
 
-            <span class="sidebar-section-label">Operations</span>
+            <span class="sidebar-section-label">{{ __('ui.management') }}</span>
 
             @if($ctx)
                 <a href="{{ route('office.requests.index', $ctx) }}"
                    class="sidebar-link {{ request()->routeIs('office.requests.*') ? 'active' : '' }}">
-                    <i class="bi bi-inbox"></i> Requests
+                    <i class="bi bi-inbox"></i> {{ __('ui.service_requests') }}
                 </a>
                 <a href="{{ route('office.chat.index', $ctx) }}"
                    class="sidebar-link {{ request()->routeIs('office.chat.*') ? 'active' : '' }}">
-                    <i class="bi bi-chat-dots"></i> Live Chat
+                    <i class="bi bi-chat-dots"></i> {{ __('ui.chat') }}
                 </a>
                 <a href="{{ route('office.feedback.index', $ctx) }}"
                    class="sidebar-link {{ request()->routeIs('office.feedback.*') ? 'active' : '' }}">
-                    <i class="bi bi-star"></i> Feedback
+                    <i class="bi bi-star"></i> {{ __('ui.feedback') }}
                 </a>
                 <a href="{{ route('office.slots.index', $ctx) }}"
                    class="sidebar-link {{ request()->routeIs('office.slots.*') ? 'active' : '' }}">
@@ -272,14 +303,14 @@
                 </a>
                 <a href="{{ route('office.appointments.index', $ctx) }}"
                    class="sidebar-link {{ request()->routeIs('office.appointments.*') ? 'active' : '' }}">
-                    <i class="bi bi-calendar-check"></i> Appointments
+                    <i class="bi bi-calendar-check"></i> {{ __('ui.appointments') }}
                 </a>
             @else
-                <span class="sidebar-link disabled"><i class="bi bi-inbox"></i> Requests</span>
-                <span class="sidebar-link disabled"><i class="bi bi-chat-dots"></i> Live Chat</span>
-                <span class="sidebar-link disabled"><i class="bi bi-star"></i> Feedback</span>
+                <span class="sidebar-link disabled"><i class="bi bi-inbox"></i> {{ __('ui.service_requests') }}</span>
+                <span class="sidebar-link disabled"><i class="bi bi-chat-dots"></i> {{ __('ui.chat') }}</span>
+                <span class="sidebar-link disabled"><i class="bi bi-star"></i> {{ __('ui.feedback') }}</span>
                 <span class="sidebar-link disabled"><i class="bi bi-clock"></i> Time Slots</span>
-                <span class="sidebar-link disabled"><i class="bi bi-calendar-check"></i> Appointments</span>
+                <span class="sidebar-link disabled"><i class="bi bi-calendar-check"></i> {{ __('ui.appointments') }}</span>
             @endif
 
         </nav>
@@ -288,18 +319,18 @@
         <div class="sidebar-user-wrap">
             <div class="user-popup" id="officeUserPopup">
                 <a href="{{ route('office.password.change') }}" class="user-popup-item">
-                    <i class="bi bi-key"></i> Change Password
+                    <i class="bi bi-key"></i> {{ __('ui.change_password') }}
                 </a>
                 <button type="button" class="user-popup-item danger"
                         data-bs-toggle="modal" data-bs-target="#officeLogoutModal">
-                    <i class="bi bi-box-arrow-right"></i> Log out
+                    <i class="bi bi-box-arrow-right"></i> {{ __('ui.log_out') }}
                 </button>
             </div>
             <button class="sidebar-user-btn" onclick="toggleUserPopup(event)">
                 <div class="sidebar-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</div>
                 <div>
                     <div class="sidebar-user-name">{{ auth()->user()->name }}</div>
-                    <div class="sidebar-user-role">Office Staff</div>
+                    <div class="sidebar-user-role">{{ __('ui.office_portal') }}</div>
                 </div>
                 <i class="bi bi-chevron-up sidebar-user-caret"></i>
             </button>
@@ -312,8 +343,17 @@
         <button class="topbar-hamburger" onclick="openSidebar()" aria-label="Open menu">
             <i class="bi bi-list"></i>
         </button>
-        <div class="topbar-title">@yield('title', 'Office Portal')</div>
+        <div class="topbar-title">@yield('title', __('ui.office_portal'))</div>
         <div class="topbar-actions">
+            @if($isRtl)
+                <a href="{{ route('language.switch', 'en') }}" class="lang-btn">
+                    <i class="bi bi-translate"></i> English
+                </a>
+            @else
+                <a href="{{ route('language.switch', 'ar') }}" class="lang-btn">
+                    <i class="bi bi-translate"></i> عربي
+                </a>
+            @endif
             @include('partials.notification-bell', [
                 'notificationIndexUrl'       => route('office.notifications.index'),
                 'notificationReadAllUrl'     => route('office.notifications.read-all'),
@@ -363,9 +403,9 @@
                              style="width:64px;height:64px;border-radius:18px;background:rgba(239,68,68,.1);">
                             <i class="bi bi-box-arrow-right" style="font-size:1.6rem;color:#ef4444;"></i>
                         </div>
-                        <h5 class="fw-bold mb-2" style="font-size:1.15rem;letter-spacing:-.02em;color:#0f172a;">Log out?</h5>
+                        <h5 class="fw-bold mb-2" style="font-size:1.15rem;letter-spacing:-.02em;color:#0f172a;">{{ __('ui.log_out_title') }}</h5>
                         <p style="font-size:.875rem;color:#64748b;line-height:1.6;margin:0;">
-                            Are you sure you want to log out of your account?
+                            {{ __('ui.log_out_confirm') }}
                         </p>
                     </div>
                     <div style="padding:0 1.5rem 1.75rem;display:grid;gap:.625rem;">
@@ -374,13 +414,13 @@
                                 style="width:100%;padding:.75rem 1.25rem;background:linear-gradient(135deg,#dc2626,#ef4444);border:none;border-radius:12px;color:#fff;font-weight:700;font-size:.9375rem;letter-spacing:.01em;cursor:pointer;box-shadow:0 4px 14px rgba(239,68,68,.3);transition:filter .15s,transform .15s;"
                                 onmouseover="this.style.filter='brightness(1.08)';this.style.transform='translateY(-1px)'"
                                 onmouseout="this.style.filter='';this.style.transform=''">
-                            <i class="bi bi-box-arrow-right me-2"></i>Yes, sign me out
+                            <i class="bi bi-box-arrow-right me-2"></i>{{ __('ui.yes_sign_out') }}
                         </button>
                         <button type="button" data-bs-dismiss="modal"
                                 style="width:100%;padding:.72rem 1.25rem;background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;color:#475569;font-weight:600;font-size:.9375rem;cursor:pointer;transition:background .15s,border-color .15s;"
                                 onmouseover="this.style.background='#f8fafc';this.style.borderColor='#cbd5e1'"
                                 onmouseout="this.style.background='#fff';this.style.borderColor='#e2e8f0'">
-                            Cancel
+                            {{ __('ui.cancel') }}
                         </button>
                     </div>
                 </div>

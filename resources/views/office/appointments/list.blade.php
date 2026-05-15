@@ -99,7 +99,7 @@
     {{-- Page header --}}
     <div class="mb-4">
         <div class="page-title">
-            <i class="bi bi-calendar-check me-2" style="color:#16a34a;"></i>Appointments
+            <i class="bi bi-calendar-check me-2" style="color:#16a34a;"></i>{{ __('ui.office_appt_list_title') }}
         </div>
         <p class="page-sub">{{ $office->name }}</p>
     </div>
@@ -109,20 +109,20 @@
         @if($appointments->isEmpty())
             <div class="empty-state">
                 <div class="empty-icon"><i class="bi bi-calendar-x"></i></div>
-                <h6>No appointments found</h6>
-                <p>Appointments will appear here once citizens book a time slot.</p>
+                <h6>{{ __('ui.office_appt_list_empty') }}</h6>
+                <p>{{ __('ui.office_appt_list_empty_desc') }}</p>
             </div>
         @else
             <div class="table-responsive">
                 <table class="appts-table">
                     <thead>
                         <tr>
-                            <th>Citizen</th>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Service Request</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th>{{ __('ui.office_appt_list_col_citizen') }}</th>
+                            <th>{{ __('ui.office_appt_list_col_date') }}</th>
+                            <th>{{ __('ui.office_appt_list_col_time') }}</th>
+                            <th>{{ __('ui.office_appt_list_col_request') }}</th>
+                            <th>{{ __('ui.office_appt_list_col_status') }}</th>
+                            <th>{{ __('ui.office_appt_list_col_actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -176,7 +176,7 @@
                                                 @csrf
                                                 @method('PATCH')
                                                 <button type="submit" class="btn-confirm">
-                                                    <i class="bi bi-check-lg"></i>Confirm
+                                                    <i class="bi bi-check-lg"></i>{{ __('ui.office_appt_list_confirm') }}
                                                 </button>
                                             </form>
                                             <button type="button"
@@ -184,7 +184,7 @@
                                                     data-bs-toggle="modal"
                                                     data-bs-target="#cancelModal"
                                                     data-action="{{ route('office.appointments.cancel', [$office, $appointment]) }}">
-                                                <i class="bi bi-x-lg"></i>Cancel
+                                                <i class="bi bi-x-lg"></i>{{ __('ui.office_appt_list_cancel') }}
                                             </button>
                                         </div>
                                     @else
@@ -214,27 +214,27 @@
             <div class="modal-content rounded-4 border-0 shadow">
                 <div class="modal-header border-0" style="background:#f0fdf4;border-radius:1rem 1rem 0 0;">
                     <h5 class="modal-title fw-bold" id="cancelModalLabel">
-                        <i class="bi bi-x-circle me-2 text-danger"></i>Cancel Appointment
+                        <i class="bi bi-x-circle me-2 text-danger"></i>{{ __('ui.office_appt_list_modal_title') }}
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <label for="cancellation_reason" class="form-label fw-semibold" style="font-size:.85rem;">
-                        Reason for Cancellation <span class="text-danger">*</span>
+                        {{ __('ui.office_appt_list_modal_reason') }} <span class="text-danger">*</span>
                     </label>
                     <textarea id="cancellation_reason"
                               name="cancellation_reason"
                               class="form-control"
                               rows="4"
                               maxlength="500"
-                              placeholder="Please provide a reason..."
+                              placeholder="{{ __('ui.office_appt_slots_modal_ph') }}"
                               required
                               style="border-color:#d1fae5;"></textarea>
                 </div>
                 <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{{ __('ui.office_appt_list_modal_close') }}</button>
                     <button type="submit" class="btn btn-danger btn-sm">
-                        <i class="bi bi-x-lg me-1"></i>Cancel Appointment
+                        <i class="bi bi-x-lg me-1"></i>{{ __('ui.office_appt_list_modal_confirm') }}
                     </button>
                 </div>
             </div>

@@ -1,6 +1,6 @@
 @extends('layouts.citizen')
 
-@section('title', 'My requests')
+@section('title', __('ui.citizen_requests_title'))
 
 @php
     $statusConfig = fn (string $status) => match ($status) {
@@ -172,11 +172,11 @@
     {{-- Header --}}
     <div class="page-header">
         <div>
-            <div class="page-title">My requests</div>
-            <p class="page-sub">Track and manage all your service submissions.</p>
+            <div class="page-title">{{ __('ui.citizen_requests_title') }}</div>
+            <p class="page-sub">{{ __('ui.citizen_requests_subtitle') }}</p>
         </div>
         <a href="{{ route('citizen.offices.index') }}" class="btn-new-request">
-            <i class="bi bi-plus-lg"></i> New request
+            <i class="bi bi-plus-lg"></i> {{ __('ui.citizen_requests_new') }}
         </a>
     </div>
 
@@ -187,15 +187,15 @@
         <div class="filter-bar">
             <a href="{{ route('citizen.requests.index') }}"
                class="filter-tab {{ $activeTab === 'all' ? 'active' : '' }}" style="text-decoration:none;">
-                All <span class="filter-count">{{ $totalAll }}</span>
+                {{ __('ui.citizen_requests_tab_all') }} <span class="filter-count">{{ $totalAll }}</span>
             </a>
             @foreach([
-                'pending'           => ['clock',        'Pending'],
-                'in_review'         => ['eye',          'In review'],
-                'missing_documents' => ['paperclip',    'Missing docs'],
-                'approved'          => ['check-circle', 'Approved'],
-                'completed'         => ['patch-check',  'Completed'],
-                'rejected'          => ['x-circle',     'Rejected'],
+                'pending'           => ['clock',        __('ui.citizen_requests_tab_pending')],
+                'in_review'         => ['eye',          __('ui.citizen_requests_tab_review')],
+                'missing_documents' => ['paperclip',    __('ui.citizen_requests_tab_missing')],
+                'approved'          => ['check-circle', __('ui.citizen_requests_tab_approved')],
+                'completed'         => ['patch-check',  __('ui.citizen_requests_tab_completed')],
+                'rejected'          => ['x-circle',     __('ui.citizen_requests_tab_rejected')],
             ] as $status => [$icon, $label])
                 @if(($statusCounts[$status] ?? 0) > 0 || $activeTab === $status)
                 <a href="{{ route('citizen.requests.index', ['tab' => $status]) }}"
@@ -211,16 +211,16 @@
             <div class="empty-state">
                 <div class="empty-icon"><i class="bi bi-folder2-open"></i></div>
                 @if($activeTab !== 'all')
-                    <h6>No {{ str($activeTab)->replace('_', ' ') }} requests</h6>
-                    <p>You have no requests with this status.</p>
+                    <h6>{{ __('ui.citizen_requests_none_found') }}</h6>
+                    <p>{{ __('ui.no_requests_desc') }}</p>
                     <a href="{{ route('citizen.requests.index') }}" class="btn-new-request" style="text-decoration:none;">
-                        <i class="bi bi-arrow-left"></i> View all requests
+                        <i class="bi bi-arrow-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }}"></i> {{ __('ui.view_all') }}
                     </a>
                 @else
-                    <h6>No requests yet</h6>
-                    <p>You haven't submitted any service requests. Browse offices to get started.</p>
+                    <h6>{{ __('ui.citizen_requests_empty') }}</h6>
+                    <p>{{ __('ui.no_requests_desc') }}</p>
                     <a href="{{ route('citizen.offices.index') }}" class="btn-new-request" style="text-decoration:none;">
-                        <i class="bi bi-grid"></i> Browse services
+                        <i class="bi bi-grid"></i> {{ __('ui.browse_services') }}
                     </a>
                 @endif
             </div>
@@ -229,11 +229,11 @@
                 <table class="req-table" id="reqTable">
                     <thead>
                         <tr>
-                            <th>Ref</th>
-                            <th>Service &amp; Office</th>
-                            <th>Status</th>
-                            <th>Submitted</th>
-                            <th>Actions</th>
+                            <th>{{ __('ui.citizen_requests_col_ref') }}</th>
+                            <th>{{ __('ui.citizen_requests_col_service') }}</th>
+                            <th>{{ __('ui.citizen_requests_col_status') }}</th>
+                            <th>{{ __('ui.citizen_requests_col_submitted') }}</th>
+                            <th>{{ __('ui.citizen_requests_col_actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -259,7 +259,7 @@
                                     @if((float)($req->service?->price ?? 0) > 0 && $req->submitted_at === null)
                                         <div>
                                             <span class="payment-due">
-                                                <i class="bi bi-cash-coin"></i> Payment due
+                                                <i class="bi bi-cash-coin"></i> {{ __('ui.citizen_requests_payment_due') }}
                                             </span>
                                         </div>
                                     @endif
@@ -275,19 +275,19 @@
                                     <div class="action-group">
                                         @if((float)($req->service?->price ?? 0) > 0 && $req->submitted_at === null)
                                             <a href="{{ route('citizen.requests.pay', $req) }}" class="act-btn act-btn-pay">
-                                                <i class="bi bi-credit-card"></i> Pay
+                                                <i class="bi bi-credit-card"></i> {{ __('ui.citizen_requests_btn_pay') }}
                                             </a>
                                         @endif
                                         <a href="{{ route('citizen.requests.show', $req) }}" class="act-btn act-btn-details">
-                                            <i class="bi bi-eye"></i> Details
+                                            <i class="bi bi-eye"></i> {{ __('ui.citizen_requests_btn_details') }}
                                         </a>
                                         <a href="{{ route('requests.track', ['token' => $req->qr_code]) }}"
                                            class="act-btn act-btn-qr" target="_blank" rel="noopener">
-                                            <i class="bi bi-qr-code"></i> QR
+                                            <i class="bi bi-qr-code"></i> {{ __('ui.citizen_requests_btn_qr') }}
                                         </a>
                                         @if($req->status === 'completed' && !$req->feedback)
                                             <a href="{{ route('citizen.feedback.request.create', $req) }}" class="act-btn act-btn-rate">
-                                                <i class="bi bi-star"></i> Rate
+                                                <i class="bi bi-star"></i> {{ __('ui.citizen_requests_btn_rate') }}
                                             </a>
                                         @endif
                                     </div>
@@ -305,4 +305,3 @@
     </div>
 
 @endsection
-

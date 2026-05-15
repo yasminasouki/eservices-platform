@@ -1,6 +1,6 @@
 @extends('layouts.citizen')
 
-@section('title', 'Notifications')
+@section('title', __('ui.citizen_notif_title'))
 
 @push('styles')
 <style>
@@ -155,16 +155,16 @@
         <div class="notifs-header">
             <div class="notifs-title">
                 <div class="title-icon"><i class="bi bi-bell-fill"></i></div>
-                Notifications
+                {{ __('ui.citizen_notif_title') }}
                 @if($unreadCount > 0)
-                    <span class="unread-badge">{{ $unreadCount }} unread</span>
+                    <span class="unread-badge">{{ $unreadCount }} {{ __('ui.citizen_notif_unread') }}</span>
                 @endif
             </div>
             @if($unreadCount > 0)
                 <form method="POST" action="{{ route('citizen.notifications.read-all') }}">
                     @csrf
                     <button type="submit" class="mark-all-btn">
-                        <i class="bi bi-check2-all"></i> Mark all as read
+                        <i class="bi bi-check2-all"></i> {{ __('ui.citizen_notif_mark_all') }}
                     </button>
                 </form>
             @endif
@@ -172,9 +172,9 @@
 
         {{-- Filter tabs --}}
         <div class="filter-tabs">
-            <button class="filter-tab active" onclick="filterNotifs('all', this)">All</button>
-            <button class="filter-tab" onclick="filterNotifs('unread', this)">Unread</button>
-            <button class="filter-tab" onclick="filterNotifs('read', this)">Read</button>
+            <button class="filter-tab active" onclick="filterNotifs('all', this)">{{ __('ui.citizen_notif_tab_all') }}</button>
+            <button class="filter-tab" onclick="filterNotifs('unread', this)">{{ __('ui.citizen_notif_tab_unread') }}</button>
+            <button class="filter-tab" onclick="filterNotifs('read', this)">{{ __('ui.citizen_notif_tab_read') }}</button>
         </div>
 
         {{-- Notifications list --}}
@@ -195,8 +195,8 @@
             @empty
                 <div class="empty-state">
                     <div class="empty-icon"><i class="bi bi-bell-slash"></i></div>
-                    <h6>You're all caught up!</h6>
-                    <p>No notifications yet. We'll let you know when something happens.</p>
+                    <h6>{{ __('ui.citizen_notif_empty_title') }}</h6>
+                    <p>{{ __('ui.citizen_notif_empty_desc') }}</p>
                 </div>
             @endforelse
         </div>

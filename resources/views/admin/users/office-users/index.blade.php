@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Municipality Users')
+@section('title', __('ui.admin_ou_title'))
 
 @push('styles')
 <style>
@@ -93,8 +93,8 @@
 
     <div class="page-header">
         <div>
-            <div class="page-title">Municipality Users</div>
-            <p class="page-sub">Create office users and activate/deactivate accounts.</p>
+            <div class="page-title">{{ __('ui.admin_ou_title') }}</div>
+            <p class="page-sub">{{ __('ui.admin_ou_subtitle') }}</p>
         </div>
     </div>
 
@@ -102,36 +102,36 @@
     <div class="form-panel">
         <div class="form-panel-header">
             <div class="form-panel-icon"><i class="bi bi-person-plus"></i></div>
-            <div class="form-panel-title">Create Municipality User</div>
+            <div class="form-panel-title">{{ __('ui.admin_ou_form_title') }}</div>
         </div>
         <div class="form-panel-body">
             <form method="POST" action="{{ route('admin.office-users.store') }}">
                 @csrf
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label">Name <span style="color:#ef4444;">*</span></label>
+                        <label class="form-label">{{ __('ui.admin_ou_lbl_name') }} <span style="color:#ef4444;">*</span></label>
                         <input type="text" name="name" class="form-control" value="{{ old('name') }}" required>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Email <span style="color:#ef4444;">*</span></label>
+                        <label class="form-label">{{ __('ui.admin_ou_lbl_email') }} <span style="color:#ef4444;">*</span></label>
                         <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Password <span style="color:#ef4444;">*</span></label>
+                        <label class="form-label">{{ __('ui.admin_ou_lbl_password') }} <span style="color:#ef4444;">*</span></label>
                         <input type="password" name="password" class="form-control" required>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Confirm Password <span style="color:#ef4444;">*</span></label>
+                        <label class="form-label">{{ __('ui.admin_ou_lbl_confirm_pw') }} <span style="color:#ef4444;">*</span></label>
                         <input type="password" name="password_confirmation" class="form-control" required>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Phone</label>
+                        <label class="form-label">{{ __('ui.admin_ou_lbl_phone') }}</label>
                         <input type="text" name="phone" class="form-control" value="{{ old('phone') }}">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Assign Office</label>
+                        <label class="form-label">{{ __('ui.admin_ou_lbl_assign_office') }}</label>
                         <select name="government_office_id" class="form-select">
-                            <option value="">— Unassigned —</option>
+                            <option value="">{{ __('ui.admin_ou_unassigned') }}</option>
                             @foreach($offices as $office)
                                 <option value="{{ $office->id }}" @selected((string) old('government_office_id') === (string) $office->id)>
                                     {{ $office->name }}
@@ -140,12 +140,12 @@
                         </select>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Role in Office</label>
-                        <input type="text" name="role_in_office" class="form-control" value="{{ old('role_in_office') }}" placeholder="manager / officer / clerk">
+                        <label class="form-label">{{ __('ui.admin_ou_lbl_role') }}</label>
+                        <input type="text" name="role_in_office" class="form-control" value="{{ old('role_in_office') }}" placeholder="{{ __('ui.admin_ou_role_ph') }}">
                     </div>
                     <div class="col-12">
                         <button type="submit" class="btn-create">
-                            <i class="bi bi-person-plus"></i> Create User
+                            <i class="bi bi-person-plus"></i> {{ __('ui.admin_ou_create_btn') }}
                         </button>
                     </div>
                 </div>
@@ -155,24 +155,24 @@
 
     {{-- Search --}}
     <form method="GET" class="search-bar">
-        <input type="text" name="q" class="search-input" value="{{ $search }}" placeholder="Search by name or email…">
-        <button type="submit" class="search-btn"><i class="bi bi-search"></i> Search</button>
+        <input type="text" name="q" class="search-input" value="{{ $search }}" placeholder="{{ __('ui.admin_ou_search_ph') }}">
+        <button type="submit" class="search-btn"><i class="bi bi-search"></i> {{ __('ui.admin_ou_search_btn') }}</button>
     </form>
 
     {{-- Users table --}}
     <div class="data-panel">
         <div class="data-panel-header">
-            <span class="data-panel-title">All municipality users</span>
-            <span class="count-badge">{{ $officeUsers->total() }} total</span>
+            <span class="data-panel-title">{{ __('ui.admin_ou_all') }}</span>
+            <span class="count-badge">{{ $officeUsers->total() }} {{ __('ui.admin_citizens_total') }}</span>
         </div>
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Assigned Offices</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+                    <th>{{ __('ui.admin_ou_col_name') }}</th>
+                    <th>{{ __('ui.admin_ou_col_email') }}</th>
+                    <th>{{ __('ui.admin_ou_col_offices') }}</th>
+                    <th>{{ __('ui.admin_ou_col_status') }}</th>
+                    <th>{{ __('ui.admin_ou_col_actions') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -187,7 +187,7 @@
                         <td><span class="user-email">{{ $user->email }}</span></td>
                         <td>
                             @if($user->governmentOffices->isEmpty())
-                                <span class="unassigned">Unassigned</span>
+                                <span class="unassigned">{{ __('ui.admin_ou_status_unassigned') }}</span>
                             @else
                                 @foreach($user->governmentOffices as $office)
                                     <span class="office-chip"><i class="bi bi-building" style="font-size:.65rem;"></i>{{ $office->name }}</span>
@@ -196,22 +196,22 @@
                         </td>
                         <td>
                             @if($user->is_active)
-                                <span class="status-active"><span class="status-dot" style="background:#22c55e;"></span>Active</span>
+                                <span class="status-active"><span class="status-dot" style="background:#22c55e;"></span>{{ __('ui.admin_ou_status_active') }}</span>
                             @else
-                                <span class="status-inactive"><span class="status-dot" style="background:#a1a1aa;"></span>Inactive</span>
+                                <span class="status-inactive"><span class="status-dot" style="background:#a1a1aa;"></span>{{ __('ui.admin_ou_status_inactive') }}</span>
                             @endif
                         </td>
                         <td>
                             <div class="action-group">
                                 <a href="{{ route('admin.office-users.edit', $user) }}" class="act-edit">
-                                    <i class="bi bi-pencil"></i> Edit
+                                    <i class="bi bi-pencil"></i> {{ __('ui.admin_ou_btn_edit') }}
                                 </a>
                                 <form method="POST" action="{{ route('admin.office-users.toggle-active', $user) }}" class="d-inline">
                                     @csrf @method('PATCH')
                                     @if($user->is_active)
-                                        <button type="submit" class="act-toggle-off">Deactivate</button>
+                                        <button type="submit" class="act-toggle-off">{{ __('ui.admin_ou_btn_deactivate') }}</button>
                                     @else
-                                        <button type="submit" class="act-toggle-on">Activate</button>
+                                        <button type="submit" class="act-toggle-on">{{ __('ui.admin_ou_btn_activate') }}</button>
                                     @endif
                                 </form>
                             </div>
@@ -221,7 +221,7 @@
                     <tr><td colspan="5">
                         <div class="empty-state">
                             <div class="empty-icon"><i class="bi bi-person-gear"></i></div>
-                            <p>No municipality users found{{ $search ? ' matching "'.e($search).'"' : '' }}.</p>
+                            <p>{{ __('ui.admin_ou_empty') }}{{ $search ? ' matching "'.e($search).'"' : '' }}.</p>
                         </div>
                     </td></tr>
                 @endforelse

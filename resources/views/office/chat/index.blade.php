@@ -94,26 +94,26 @@
 @section('content')
     <nav aria-label="breadcrumb" class="small mb-2">
         <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item"><a href="{{ route('office.dashboard') }}">Dashboard</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Live chat</li>
+            <li class="breadcrumb-item"><a href="{{ route('office.dashboard') }}">{{ __('ui.dashboard') }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ __('ui.office_chat_title') }}</li>
         </ol>
     </nav>
 
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
         <div>
-            <h2 class="fw-bold mb-1"><i class="bi bi-chat-dots me-2"></i>Live chat</h2>
+            <h2 class="fw-bold mb-1"><i class="bi bi-chat-dots me-2"></i>{{ __('ui.office_chat_title') }}</h2>
             <p class="text-muted small mb-0">{{ $office->name }}</p>
         </div>
         @php $totalUnread = collect($threads)->sum(fn($t) => (int)($t['unread_for_office'] ?? 0)); @endphp
         @if($totalUnread > 0)
-            <span class="badge bg-danger rounded-pill" style="font-size:.8rem;">{{ $totalUnread }} unread</span>
+            <span class="badge bg-danger rounded-pill" style="font-size:.8rem;">{{ $totalUnread }} {{ __('ui.office_chat_unread') }}</span>
         @endif
     </div>
 
     <div class="card card-soft overflow-hidden">
         <div class="card-header bg-white border-0 d-flex align-items-center justify-content-between py-3 px-4">
-            <span class="fw-semibold" style="font-size:.9rem;">Conversations</span>
-            <span class="text-muted small">{{ count($threads) }} {{ Str::plural('citizen', count($threads)) }}</span>
+            <span class="fw-semibold" style="font-size:.9rem;">{{ __('ui.office_chat_conversations') }}</span>
+            <span class="text-muted small">{{ __('ui.office_chat_citizens_count', ['count' => count($threads)]) }}</span>
         </div>
 
         @if(empty($threads))
@@ -121,8 +121,8 @@
                 <div class="chat-empty-icon-lg">
                     <i class="bi bi-chat-square-dots" style="font-size:1.6rem; color:#34d399;"></i>
                 </div>
-                <p class="fw-semibold mb-1" style="color:#065f46;">No conversations yet</p>
-                <p class="text-muted small mb-0">Citizens can start a chat from your office's public page.</p>
+                <p class="fw-semibold mb-1" style="color:#065f46;">{{ __('ui.office_chat_no_convos') }}</p>
+                <p class="text-muted small mb-0">{{ __('ui.office_chat_no_convos_desc') }}</p>
             </div>
         @else
             @php
@@ -156,7 +156,7 @@
                         @if($last)
                             <div class="conv-preview">{{ \Illuminate\Support\Str::limit($last->body, 80) }}</div>
                         @else
-                            <div class="conv-preview text-muted fst-italic">No messages yet</div>
+                            <div class="conv-preview text-muted fst-italic">{{ __('ui.office_chat_no_messages') }}</div>
                         @endif
                     </div>
 

@@ -7,6 +7,7 @@ use App\Models\Document;
 use App\Models\GovernmentOffice;
 use App\Models\ServiceRequest;
 use App\Models\ServiceRequestStatusLog;
+use App\Events\ServiceRequestStatusUpdated;
 use App\Notifications\MissingDocumentsRequestedNotification;
 use App\Notifications\OfficeAddedDocumentNotification;
 use App\Services\Payments\BlockchainVerificationService;
@@ -266,6 +267,7 @@ class OfficeServiceRequestController extends Controller
         $success = 'Request status updated.';
         if ($oldStatus !== $newStatus) {
             $serviceRequest->refresh();
+            broadcast(new ServiceRequestStatusUpdated($serviceRequest));
             app(ServiceRequestPdfAutomationService::class)->onStatusChanged(
                 $serviceRequest,
                 $oldStatus,

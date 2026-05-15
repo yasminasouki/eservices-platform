@@ -1,5 +1,5 @@
 @extends('layouts.citizen')
-@section('title', 'My Appointments')
+@section('title', __('ui.citizen_appts_title'))
 
 @push('styles')
 <style>
@@ -45,20 +45,20 @@
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h4 class="fw-800 mb-0" style="color:#1f1235;">My Appointments</h4>
-            <p class="text-muted small mb-0">All your scheduled visits with government offices.</p>
+            <h4 class="fw-800 mb-0" style="color:#1f1235;">{{ __('ui.citizen_appts_title') }}</h4>
+            <p class="text-muted small mb-0">{{ __('ui.citizen_appts_subtitle') }}</p>
         </div>
         <a href="{{ route('citizen.offices.index') }}" class="btn btn-primary btn-sm">
-            <i class="bi bi-plus-lg me-1"></i>Book new
+            <i class="bi bi-plus-lg me-1"></i>{{ __('ui.citizen_appts_book_new') }}
         </a>
     </div>
 
     @if($appointments->isEmpty())
         <div class="empty-state">
             <i class="bi bi-calendar-x"></i>
-            <p>You have no appointments yet.</p>
+            <p>{{ __('ui.citizen_appts_empty') }}</p>
             <a href="{{ route('citizen.offices.index') }}" class="btn btn-primary">
-                <i class="bi bi-building me-2"></i>Browse offices & book
+                <i class="bi bi-building me-2"></i>{{ __('ui.citizen_appts_browse') }}
             </a>
         </div>
     @else
@@ -112,15 +112,15 @@
                 <div class="d-flex flex-column gap-2 align-items-end" style="min-width:90px;">
                     <a href="{{ route('citizen.offices.show', $appt->government_office_id) }}"
                        class="btn btn-outline-primary btn-sm" style="font-size:.78rem;">
-                        <i class="bi bi-building me-1"></i>Office
+                        <i class="bi bi-building me-1"></i>{{ __('ui.citizen_appts_col_office') }}
                     </a>
                     @if(!in_array($status, ['cancelled', 'completed']) && $appt->governmentOffice)
                         <form method="POST"
                               action="{{ route('citizen.appointments.cancel', [$appt->governmentOffice, $appt]) }}"
-                              onsubmit="return confirm('Cancel this appointment?')">
+                              onsubmit="return confirm('{{ __('ui.citizen_appts_col_cancel') }}?')">
                             @csrf @method('DELETE')
                             <button class="btn btn-sm" style="font-size:.78rem;background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;">
-                                <i class="bi bi-x-circle me-1"></i>Cancel
+                                <i class="bi bi-x-circle me-1"></i>{{ __('ui.citizen_appts_col_cancel') }}
                             </button>
                         </form>
                     @endif

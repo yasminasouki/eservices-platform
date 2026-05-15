@@ -4,6 +4,7 @@ use App\Http\Middleware\EnsureOfficeStaffBelongsToOffice;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\RequireTwoFactor;
 use App\Http\Middleware\RoleMiddleware;
+use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -35,6 +36,8 @@ return Application::configure(basePath: dirname(__DIR__))
                 default => route('login'),
             };
         });
+
+        $middleware->web(append: [SetLocale::class]);
 
         $middleware->alias([
             'role' => RoleMiddleware::class,

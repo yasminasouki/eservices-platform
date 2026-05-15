@@ -48,6 +48,15 @@ Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handle'])
     ->middleware('throttle:120,1')
     ->name('webhooks.stripe');
 
+// ── Language switch ───────────────────────────────────────────────────────────
+Route::get('/language/{locale}', function (string $locale) {
+    if (! in_array($locale, ['en', 'ar'], true)) {
+        abort(404);
+    }
+    session(['locale' => $locale]);
+    return redirect()->back(fallback: url('/'));
+})->name('language.switch');
+
 // ── Guest-only routes ─────────────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {
 

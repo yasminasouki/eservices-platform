@@ -1,21 +1,21 @@
 @extends('layouts.auth')
 @section('title', 'Login — E-Services Platform')
 @section('auth_brand_icon', 'bi-person-fill')
-@section('auth_brand_title', 'Citizen Portal')
-@section('heading', 'Welcome back')
-@section('subtitle', 'Sign in with your email to access citizen services.')
+@section('auth_brand_title', __('ui.auth_citizen_portal'))
+@section('heading', __('ui.auth_login_heading'))
+@section('subtitle', __('ui.auth_login_subtitle'))
 
 @section('content')
     <form method="POST" action="{{ route('login') }}" autocomplete="off">
         @csrf
 
         <div class="mb-3">
-            <label for="email" class="form-label">Email Address</label>
+            <label for="email" class="form-label">{{ __('ui.auth_email') }}</label>
             <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-envelope"></i></span>
                 <input type="email" id="email" name="email"
                        class="form-control @error('email') is-invalid @enderror"
-                       value="{{ old('email') }}" placeholder="Enter your email" required autofocus
+                       value="{{ old('email') }}" placeholder="{{ __('ui.auth_email_placeholder') }}" required autofocus
                        autocomplete="off" readonly onfocus="this.removeAttribute('readonly')">
                 @error('email')
                     <div class="invalid-feedback">{{ $message }}</div>
@@ -24,12 +24,12 @@
         </div>
 
         <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
+            <label for="password" class="form-label">{{ __('ui.auth_password') }}</label>
             <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-lock"></i></span>
                 <input type="password" id="password" name="password"
                        class="form-control @error('password') is-invalid @enderror"
-                       placeholder="Enter your password" required
+                       placeholder="{{ __('ui.auth_password_placeholder') }}" required
                        autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly')">
                 <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                     <i class="bi bi-eye" id="eyeIcon"></i>
@@ -43,16 +43,16 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" name="remember" id="remember">
-                <label class="form-check-label small" for="remember">Remember me</label>
+                <label class="form-check-label small" for="remember">{{ __('ui.auth_remember_me') }}</label>
             </div>
-            <a href="{{ route('password.request') }}" class="text-decoration-none small text-primary">Forgot password?</a>
+            <a href="{{ route('password.request') }}" class="text-decoration-none small text-primary">{{ __('ui.auth_forgot_password') }}</a>
         </div>
 
         <button type="submit" class="btn btn-primary w-100 mb-3">
-            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+            <i class="bi bi-box-arrow-in-right me-2"></i>{{ __('ui.auth_sign_in') }}
         </button>
 
-        <div class="divider"><span>or continue with</span></div>
+        <div class="divider"><span>{{ __('ui.auth_or_continue_with') }}</span></div>
 
         <div class="row g-2 mb-3">
             <div class="col-6">
@@ -63,7 +63,7 @@
                         <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                         <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                     </svg>
-                    Google
+                    {{ __('ui.auth_google') }}
                 </a>
             </div>
             <div class="col-6">
@@ -78,14 +78,14 @@
 
         <div class="auth-links-stack text-center small text-muted pt-1">
             <p class="mb-0">
-                Don't have an account?
-                <a href="{{ route('register') }}" class="text-decoration-none fw-semibold text-primary">Create one</a>
+                {{ __('ui.auth_no_account') }}
+                <a href="{{ route('register') }}" class="text-decoration-none fw-semibold text-primary">{{ __('ui.auth_create_one') }}</a>
             </p>
             <p class="mt-2 mb-0">
-                <span class="text-secondary">Other portals:</span>
-                <a href="{{ route('admin.login') }}" class="text-decoration-none fw-semibold text-primary ms-1">Admin</a>
+                <span class="text-secondary">{{ __('ui.auth_other_portals') }}</span>
+                <a href="{{ route('admin.login') }}" class="text-decoration-none fw-semibold text-primary ms-1">{{ __('ui.auth_admin') }}</a>
                 <span class="text-secondary mx-1">·</span>
-                <a href="{{ route('municipality.login') }}" class="text-decoration-none fw-semibold text-primary">Municipality</a>
+                <a href="{{ route('municipality.login') }}" class="text-decoration-none fw-semibold text-primary">{{ __('ui.auth_municipality') }}</a>
             </p>
         </div>
     </form>

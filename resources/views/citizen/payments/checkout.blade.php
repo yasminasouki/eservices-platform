@@ -1,6 +1,6 @@
 @extends('layouts.citizen')
 
-@section('title', 'Pay for request #'.$request->id)
+@section('title', __('ui.citizen_pay_title').' #'.$request->id)
 
 @if(!empty($stripeElementsReady) && !empty($stripePaymentIntentClientSecret))
     @push('head')
@@ -29,23 +29,23 @@
 @section('content')
     <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb small mb-0">
-            <li class="breadcrumb-item"><a href="{{ route('citizen.requests.index') }}">My requests</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('citizen.requests.index') }}">{{ __('ui.my_requests') }}</a></li>
             <li class="breadcrumb-item"><a href="{{ route('citizen.requests.show', $request) }}">#{{ $request->id }}</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Payment</li>
+            <li class="breadcrumb-item active" aria-current="page">{{ __('ui.citizen_pay_breadcrumb') }}</li>
         </ol>
     </nav>
 
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <h2 class="fw-bold mb-2">Complete payment</h2>
+            <h2 class="fw-bold mb-2">{{ __('ui.citizen_pay_title') }}</h2>
             <p class="text-muted small mb-4">
-                Service: <strong>{{ $request->service?->name }}</strong> · Office: <strong>{{ $request->governmentOffice?->name }}</strong>
+                {{ __('ui.citizen_show_lbl_service') }}: <strong>{{ $request->service?->name }}</strong> · {{ __('ui.citizen_show_lbl_office') }}: <strong>{{ $request->governmentOffice?->name }}</strong>
             </p>
 
             <div class="card card-soft mb-4">
                 <div class="card-body">
                     <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2 mb-2">
-                        <span class="text-muted text-uppercase fw-semibold small">Amount due</span>
+                        <span class="text-muted text-uppercase fw-semibold small">{{ __('ui.citizen_pay_amount_due') }}</span>
                         <span class="fs-3 fw-bold text-success">${{ number_format((float) $payment->amount, 2) }} <span class="fs-6 text-muted fw-normal">USD</span></span>
                     </div>
                     @if($eurRate !== null && $eurAmount !== null)
@@ -62,10 +62,10 @@
 
             <ul class="nav nav-tabs mb-3" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link {{ $openCrypto ? '' : 'active' }}" id="tab-card" data-bs-toggle="tab" data-bs-target="#pane-card" type="button" role="tab">Card</button>
+                    <button class="nav-link {{ $openCrypto ? '' : 'active' }}" id="tab-card" data-bs-toggle="tab" data-bs-target="#pane-card" type="button" role="tab">{{ __('ui.citizen_pay_tab_card') }}</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link {{ $openCrypto ? 'active' : '' }}" id="tab-crypto" data-bs-toggle="tab" data-bs-target="#pane-crypto" type="button" role="tab">Cryptocurrency</button>
+                    <button class="nav-link {{ $openCrypto ? 'active' : '' }}" id="tab-crypto" data-bs-toggle="tab" data-bs-target="#pane-crypto" type="button" role="tab">{{ __('ui.citizen_pay_tab_crypto') }}</button>
                 </li>
             </ul>
 
@@ -78,26 +78,26 @@
                                     Card details are collected securely by <strong>Stripe</strong> (PCI-compliant fields). Use Stripe <a href="https://stripe.com/docs/testing" target="_blank" rel="noopener noreferrer">test cards</a> in test mode (e.g. <span class="font-monospace">4242&nbsp;4242&nbsp;4242&nbsp;4242</span>).
                                 </p>
                                 <div class="mb-3">
-                                    <label class="form-label small">Name on card <span class="text-muted">(optional)</span></label>
-                                    <input type="text" id="stripe-billing-name" class="form-control form-control-sm" maxlength="120" autocomplete="cc-name" placeholder="As shown on card">
+                                    <label class="form-label small">{{ __('ui.citizen_pay_name_on_card') }} <span class="text-muted">({{ __('ui.citizen_feedback_optional') }})</span></label>
+                                    <input type="text" id="stripe-billing-name" class="form-control form-control-sm" maxlength="120" autocomplete="cc-name" placeholder="{{ __('ui.citizen_pay_name_on_card') }}">
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label small">Card number</label>
+                                    <label class="form-label small">{{ __('ui.citizen_pay_card_number') }}</label>
                                     <div id="stripe-card-number" class="stripe-el-wrap"></div>
                                 </div>
                                 <div class="row g-2 mb-3">
                                     <div class="col-md-6">
-                                        <label class="form-label small">Expiry</label>
+                                        <label class="form-label small">{{ __('ui.citizen_pay_expiry') }}</label>
                                         <div id="stripe-card-expiry" class="stripe-el-wrap"></div>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label small">CVC</label>
+                                        <label class="form-label small">{{ __('ui.citizen_pay_cvc') }}</label>
                                         <div id="stripe-card-cvc" class="stripe-el-wrap"></div>
                                     </div>
                                 </div>
                                 <div id="stripe-card-errors" class="text-danger small mb-2" role="alert"></div>
                                 <button type="button" id="stripe-pay-btn" class="btn btn-primary">
-                                    <i class="bi bi-credit-card me-1"></i>Pay ${{ number_format((float) $payment->amount, 2) }} USD
+                                    <i class="bi bi-credit-card me-1"></i>{{ __('ui.citizen_pay_btn', ['amount' => '$'.number_format((float) $payment->amount, 2)]) }}
                                 </button>
                             @elseif(!empty($stripeElementsError))
                                 <div class="alert alert-warning mb-0 small">{{ $stripeElementsError }}</div>
@@ -127,12 +127,12 @@
                     <div class="card card-soft mb-3">
                         <div class="card-body">
                             <p class="small text-muted mb-3">
-                                Choose a cryptocurrency and click <strong>Get quote</strong> to see the exact amount to send. Rates are fetched live from CoinGecko.
+                                {{ __('ui.citizen_pay_tab_crypto') }} — <strong>{{ __('ui.citizen_pay_crypto_get_quote') }}</strong>
                             </p>
                             <form method="POST" action="{{ route('citizen.requests.pay.crypto-quote', $request) }}" class="row g-2 align-items-end">
                                 @csrf
                                 <div class="col-md-6">
-                                    <label class="form-label small">Cryptocurrency</label>
+                                    <label class="form-label small">{{ __('ui.citizen_pay_crypto_title') }}</label>
                                     <select name="asset" class="form-select form-select-sm" required>
                                         <option value="btc" @selected($activeAsset === 'btc')>Bitcoin (BTC)</option>
                                         <option value="eth" @selected($activeAsset === 'eth')>Ethereum (ETH)</option>
@@ -141,7 +141,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <button type="submit" class="btn btn-outline-primary btn-sm w-100 w-md-auto">
-                                        <i class="bi bi-arrow-repeat me-1"></i>Get quote
+                                        <i class="bi bi-arrow-repeat me-1"></i>{{ __('ui.citizen_pay_crypto_get_quote') }}
                                     </button>
                                 </div>
                             </form>
@@ -178,11 +178,11 @@
                                     </p>
                                 @endif
                                 <dl class="row mb-3">
-                                    <dt class="col-sm-4 text-muted">Amount to send</dt>
+                                    <dt class="col-sm-4 text-muted">{{ __('ui.citizen_pay_crypto_amount') }}</dt>
                                     <dd class="col-sm-8 mb-2 font-monospace fw-bold">{{ $cryptoQuote['crypto_amount'] }}</dd>
-                                    <dt class="col-sm-4 text-muted">Rate</dt>
+                                    <dt class="col-sm-4 text-muted">{{ __('ui.citizen_pay_crypto_rate') }}</dt>
                                     <dd class="col-sm-8 mb-2">1 unit = ${{ number_format($cryptoQuote['usd_per_unit'], 2) }} USD <span class="text-muted">({{ $cryptoQuote['rate_source'] }})</span></dd>
-                                    <dt class="col-sm-4 text-muted">To address</dt>
+                                    <dt class="col-sm-4 text-muted">{{ __('ui.citizen_pay_crypto_address') }}</dt>
                                     <dd class="col-sm-8 mb-0">
                                         <div class="d-flex align-items-start gap-2 flex-wrap">
                                             <span class="font-monospace text-break" id="crypto-wallet-addr" style="word-break:break-all;">{{ $cryptoQuote['wallet'] }}</span>
@@ -204,11 +204,11 @@
                                     @csrf
                                     <div class="mb-2">
                                         <label class="form-label small">
-                                            Transaction ID / hash
+                                            {{ __('ui.citizen_pay_crypto_tx_id') }}
                                             @if($txRequired)
                                                 <span class="text-danger">*</span>
                                             @else
-                                                <span class="text-muted">(optional)</span>
+                                                <span class="text-muted">({{ __('ui.citizen_feedback_optional') }})</span>
                                             @endif
                                         </label>
                                         <input type="text" name="tx_reference"
@@ -227,7 +227,7 @@
                                         @enderror
                                     </div>
                                     <button type="submit" class="btn btn-success btn-sm">
-                                        <i class="bi bi-check2-circle me-1"></i>I have sent the payment
+                                        <i class="bi bi-check2-circle me-1"></i>{{ __('ui.citizen_pay_crypto_confirm') }}
                                     </button>
                                 </form>
                                 @if(config('payments.crypto.auto_complete_after_citizen_submit'))
@@ -246,7 +246,9 @@
             </div>
 
             <p class="small text-muted mt-4 mb-0">
-                <a href="{{ route('citizen.requests.show', $request) }}">← Back to request</a>
+                <a href="{{ route('citizen.requests.show', $request) }}">
+                    <i class="bi bi-arrow-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }} me-1"></i>{{ __('ui.citizen_pay_back') }}
+                </a>
             </p>
         </div>
     </div>

@@ -1,6 +1,6 @@
 @extends('layouts.citizen')
 
-@section('title', 'Identity Verification')
+@section('title', __('ui.citizen_id_title'))
 
 @push('styles')
 <style>
@@ -227,11 +227,10 @@
                     <div style="width:38px;height:38px;background:#ddd6fe;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#7c3aed;font-size:1.1rem;">
                         <i class="bi bi-person-vcard"></i>
                     </div>
-                    <h5 class="fw-bold mb-0" style="color:#1f1235;">Identity Verification</h5>
+                    <h5 class="fw-bold mb-0" style="color:#1f1235;">{{ __('ui.citizen_id_title') }}</h5>
                 </div>
                 <p class="text-muted small mb-0" style="padding-left:50px;">
-                    Upload a clear photo or scan of <strong>both sides</strong> of your Lebanese national ID.
-                    Information will be extracted automatically.
+                    {{ __('ui.citizen_id_subtitle') }}
                 </p>
             </div>
 
@@ -243,13 +242,13 @@
                         {{-- Front side --}}
                         <div class="col-md-6">
                             <p class="section-label">
-                                <i class="bi bi-credit-card"></i> Front Side — الوجه الأمامي
+                                <i class="bi bi-credit-card"></i> {{ __('ui.citizen_id_front') }}
                             </p>
                             <div class="drop-zone" id="dropZoneFront"
                                  onclick="document.getElementById('id_document_front').click()">
                                 <div class="dz-icon"><i class="bi bi-cloud-arrow-up"></i></div>
-                                <div class="dz-title">Click or drag to upload</div>
-                                <div class="dz-hint">JPG, PNG, PDF — max 5 MB</div>
+                                <div class="dz-title">{{ __('ui.citizen_id_click_upload') }}</div>
+                                <div class="dz-hint">{{ __('ui.citizen_id_file_hint') }}</div>
                             </div>
                             <input type="file" id="id_document_front" name="id_document_front"
                                    accept=".jpg,.jpeg,.png,.pdf"
@@ -274,13 +273,13 @@
                         {{-- Back side --}}
                         <div class="col-md-6">
                             <p class="section-label">
-                                <i class="bi bi-credit-card-2-back"></i> Back Side — الوجه الخلفي
+                                <i class="bi bi-credit-card-2-back"></i> {{ __('ui.citizen_id_back') }}
                             </p>
                             <div class="drop-zone" id="dropZoneBack"
                                  onclick="document.getElementById('id_document_back').click()">
                                 <div class="dz-icon"><i class="bi bi-cloud-arrow-up"></i></div>
-                                <div class="dz-title">Click or drag to upload</div>
-                                <div class="dz-hint">JPG, PNG, PDF — max 5 MB</div>
+                                <div class="dz-title">{{ __('ui.citizen_id_click_upload') }}</div>
+                                <div class="dz-hint">{{ __('ui.citizen_id_file_hint') }}</div>
                             </div>
                             <input type="file" id="id_document_back" name="id_document_back"
                                    accept=".jpg,.jpeg,.png,.pdf"
@@ -311,7 +310,7 @@
                     </div>
 
                     <button type="submit" class="submit-btn" id="submitBtn">
-                        <i class="bi bi-cpu"></i> Upload &amp; Extract
+                        <i class="bi bi-cpu"></i> {{ __('ui.citizen_id_upload_btn') }}
                     </button>
                 </form>
             </div>
@@ -321,7 +320,7 @@
         @if($verification)
             <div class="extracted-section">
                 <div class="extracted-header">
-                    <div class="extracted-title">Extracted Information</div>
+                    <div class="extracted-title">{{ __('ui.citizen_id_extracted') }}</div>
                     @php
                         $statusMap = [
                             'pending'  => ['pending',  'clock-history', 'Pending Review'],
@@ -349,79 +348,79 @@
                 <form method="POST" action="{{ route('citizen.id.save') }}">
                     @csrf
 
-                    <p class="section-label"><i class="bi bi-credit-card"></i> Front Side — Personal Info</p>
+                    <p class="section-label"><i class="bi bi-credit-card"></i> {{ __('ui.citizen_id_front') }}</p>
                     <div class="row g-3 mb-4">
                         <div class="col-sm-6">
-                            <label class="form-label">First Name — الاسم</label>
+                            <label class="form-label">{{ __('ui.citizen_id_first_name') }}</label>
                             <input type="text" name="first_name" class="form-control" value="{{ $firstName }}">
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label">Last Name — الشهرة</label>
+                            <label class="form-label">{{ __('ui.citizen_id_last_name') }}</label>
                             <input type="text" name="last_name" class="form-control" value="{{ $lastName }}">
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label">Father's Name — اسم الأب</label>
+                            <label class="form-label">{{ __('ui.citizen_id_father_name') }}</label>
                             <input type="text" name="father_name" class="form-control" value="{{ $verification->extracted_father_name }}">
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label">Mother's Name — اسم الأم</label>
+                            <label class="form-label">{{ __('ui.citizen_id_mother_name') }}</label>
                             <input type="text" name="mother_name" class="form-control" value="{{ $verification->extracted_mother_name }}">
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label">Date of Birth — تاريخ الولادة</label>
+                            <label class="form-label">{{ __('ui.citizen_id_dob') }}</label>
                             <input type="text" name="dob" class="form-control" value="{{ $dob }}">
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label">Place of Birth — مكان الولادة</label>
+                            <label class="form-label">{{ __('ui.citizen_id_pob') }}</label>
                             <input type="text" name="place_of_birth" class="form-control" value="{{ $verification->extracted_place_of_birth }}">
                         </div>
                         <div class="col-sm-4">
-                            <label class="form-label">Gender — الجنس</label>
+                            <label class="form-label">{{ __('ui.citizen_id_gender') }}</label>
                             <input type="text" name="gender" class="form-control" value="{{ $verification->extracted_gender }}">
                         </div>
                         <div class="col-sm-4">
-                            <label class="form-label">Blood Type — فصيلة الدم</label>
+                            <label class="form-label">{{ __('ui.citizen_id_blood_type') }}</label>
                             <input type="text" name="blood_type" class="form-control" value="{{ $verification->extracted_blood_type }}">
                         </div>
                         <div class="col-sm-4">
-                            <label class="form-label">Marital Status — الحالة الاجتماعية</label>
+                            <label class="form-label">{{ __('ui.citizen_id_marital_status') }}</label>
                             <input type="text" name="marital_status" class="form-control" value="{{ $verification->extracted_marital_status }}">
                         </div>
                     </div>
 
-                    <p class="section-label"><i class="bi bi-credit-card-2-back"></i> Back Side — Document Info</p>
+                    <p class="section-label"><i class="bi bi-credit-card-2-back"></i> {{ __('ui.citizen_id_back') }}</p>
                     <div class="row g-3">
                         <div class="col-sm-6">
-                            <label class="form-label">ID Number — الرقم</label>
+                            <label class="form-label">{{ __('ui.citizen_id_number') }}</label>
                             <input type="text" name="id_number" class="form-control" value="{{ $verification->extracted_id_number }}">
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label">Registry Number — رقم السجل</label>
+                            <label class="form-label">{{ __('ui.citizen_id_registry_number') }}</label>
                             <input type="text" name="registry_number" class="form-control" value="{{ $verification->extracted_registry_number }}">
                         </div>
                         <div class="col-sm-4">
-                            <label class="form-label">Locality — البلدة</label>
+                            <label class="form-label">{{ __('ui.citizen_id_locality') }}</label>
                             <input type="text" name="locality" class="form-control" value="{{ $verification->extracted_locality }}">
                         </div>
                         <div class="col-sm-4">
-                            <label class="form-label">District — القضاء</label>
+                            <label class="form-label">{{ __('ui.citizen_id_district') }}</label>
                             <input type="text" name="district" class="form-control" value="{{ $verification->extracted_district }}">
                         </div>
                         <div class="col-sm-4">
-                            <label class="form-label">Governorate — المحافظة</label>
+                            <label class="form-label">{{ __('ui.citizen_id_governorate') }}</label>
                             <input type="text" name="governorate" class="form-control" value="{{ $verification->extracted_governorate }}">
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label">Issue Date — تاريخ الإصدار</label>
+                            <label class="form-label">{{ __('ui.citizen_id_issue_date') }}</label>
                             <input type="text" name="issue_date" class="form-control" value="{{ $issueDate }}">
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label">Expiry Date — تاريخ الانتهاء</label>
+                            <label class="form-label">{{ __('ui.citizen_id_expiry_date') }}</label>
                             <input type="text" name="expiry_date" class="form-control" value="{{ $expiryDate }}">
                         </div>
                         <div class="col-12 mt-2">
                             <button type="submit" class="submit-btn">
-                                <i class="bi bi-check-circle"></i> Save &amp; Confirm
+                                <i class="bi bi-check-circle"></i> {{ __('ui.citizen_id_save_btn') }}
                             </button>
                         </div>
                     </div>
@@ -430,12 +429,12 @@
                 @if($verification->status === 'rejected')
                     <div class="alert alert-danger d-flex align-items-center gap-2 mt-4 mb-0">
                         <i class="bi bi-exclamation-triangle-fill"></i>
-                        <span class="small">Your document was rejected. Please upload clearer images and try again.</span>
+                        <span class="small">{{ __('ui.citizen_id_rejected_alert') }}</span>
                     </div>
                 @elseif($verification->status === 'pending')
                     <div class="alert alert-info d-flex align-items-center gap-2 mt-4 mb-0">
                         <i class="bi bi-info-circle-fill"></i>
-                        <span class="small">Your documents are awaiting admin review. You will be notified once they are processed.</span>
+                        <span class="small">{{ __('ui.citizen_id_pending_alert') }}</span>
                     </div>
                 @endif
             </div>

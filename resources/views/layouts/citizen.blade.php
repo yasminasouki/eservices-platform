@@ -1,11 +1,17 @@
+@php $isRtl = app()->getLocale() === 'ar'; @endphp
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ $isRtl ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Citizen') — E-Services Platform</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>@yield('title', __('ui.dashboard')) — {{ __('ui.brand_name') }}</title>
+    @if($isRtl)
+        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    @else
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    @endif
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
         :root {
@@ -359,6 +365,74 @@
             color: #3b0764;
             box-shadow: none;
         }
+
+        /* ══════════════════════════════
+           RTL OVERRIDES
+        ══════════════════════════════ */
+        [dir="rtl"] body {
+            font-family: 'Cairo', 'Segoe UI', system-ui, sans-serif;
+        }
+        [dir="rtl"] .sidebar {
+            left: auto;
+            right: 0;
+            border-right: none;
+            border-left: 1px solid var(--sidebar-border);
+        }
+        [dir="rtl"] .topbar {
+            left: 0;
+            right: var(--sidebar-width);
+        }
+        [dir="rtl"] .main-wrap {
+            margin-left: 0;
+            margin-right: var(--sidebar-width);
+        }
+        [dir="rtl"] .sidebar-toggle {
+            margin-right: 0;
+            margin-left: .5rem;
+        }
+        [dir="rtl"] .user-popup {
+            left: 0;
+            right: 0;
+        }
+        [dir="rtl"] .popup-action {
+            text-align: right;
+        }
+        @media (max-width: 767px) {
+            [dir="rtl"] .sidebar {
+                transform: translateX(var(--sidebar-width));
+            }
+            [dir="rtl"] .sidebar.open {
+                transform: translateX(0);
+            }
+            [dir="rtl"] .topbar {
+                right: 0;
+            }
+            [dir="rtl"] .main-wrap {
+                margin-right: 0 !important;
+            }
+        }
+
+        /* Language toggle button */
+        .lang-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            padding: .3rem .65rem;
+            border-radius: 8px;
+            border: 1px solid #ddd6fe;
+            background: #ede9fe;
+            color: var(--accent);
+            font-size: .78rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: background .15s, border-color .15s;
+            white-space: nowrap;
+        }
+        .lang-btn:hover {
+            background: #ddd6fe;
+            border-color: #c4b5fd;
+            color: #4c1d95;
+        }
     </style>
     @stack('styles')
     @stack('head')
@@ -372,53 +446,53 @@
         <a class="sidebar-brand" href="{{ route('citizen.dashboard') }}">
             <div class="sidebar-brand-icon"><i class="bi bi-building-fill-gear"></i></div>
             <div>
-                <div class="sidebar-brand-text">E-Services</div>
-                <div class="sidebar-brand-sub">Platform</div>
+                <div class="sidebar-brand-text">{{ __('ui.brand_name') }}</div>
+                <div class="sidebar-brand-sub">{{ __('ui.brand_sub') }}</div>
             </div>
         </a>
 
         {{-- Nav --}}
         <nav class="sidebar-nav">
-            <div class="sidebar-label">Menu</div>
+            <div class="sidebar-label">{{ __('ui.menu') }}</div>
 
             <a href="{{ route('citizen.dashboard') }}"
                class="sidebar-link {{ request()->routeIs('citizen.dashboard') ? 'active' : '' }}">
                 <span class="link-icon"><i class="bi bi-house"></i></span>
-                Dashboard
+                {{ __('ui.dashboard') }}
             </a>
 
             <a href="{{ route('citizen.offices.index') }}"
                class="sidebar-link {{ request()->routeIs('citizen.offices.*') ? 'active' : '' }}">
                 <span class="link-icon"><i class="bi bi-building"></i></span>
-                Available offices
+                {{ __('ui.available_offices') }}
             </a>
 
             <a href="{{ route('citizen.requests.index') }}"
                class="sidebar-link {{ request()->routeIs('citizen.requests.*') ? 'active' : '' }}">
                 <span class="link-icon"><i class="bi bi-folder2-open"></i></span>
-                My requests
+                {{ __('ui.my_requests') }}
             </a>
 
             <a href="{{ route('citizen.appointments.index') }}"
                class="sidebar-link {{ request()->routeIs('citizen.appointments.*') ? 'active' : '' }}">
                 <span class="link-icon"><i class="bi bi-calendar-check"></i></span>
-                My appointments
+                {{ __('ui.my_appointments') }}
             </a>
 
             <div class="sidebar-divider"></div>
-            <div class="sidebar-label">Account</div>
+            <div class="sidebar-label">{{ __('ui.account') }}</div>
 
             <a href="{{ route('citizen.id.verify') }}"
                class="sidebar-link {{ request()->routeIs('citizen.id.*') ? 'active' : '' }}">
                 <span class="link-icon"><i class="bi bi-person-vcard"></i></span>
-                ID Verification
+                {{ __('ui.id_verification') }}
                 @php $idStatus = auth()->user()->id_document_status ?? 'not uploaded'; @endphp
                 @if($idStatus === 'pending')
-                    <span class="badge bg-warning text-dark ms-auto" style="font-size:.62rem;">Pending</span>
+                    <span class="badge bg-warning text-dark ms-auto" style="font-size:.62rem;">{{ __('ui.pending') }}</span>
                 @elseif($idStatus === 'verified')
-                    <span class="badge ms-auto" style="font-size:.62rem; background:#d1fae5; color:#065f46;">Verified</span>
+                    <span class="badge ms-auto" style="font-size:.62rem; background:#d1fae5; color:#065f46;">{{ __('ui.verified') }}</span>
                 @elseif($idStatus === 'rejected')
-                    <span class="badge bg-danger ms-auto" style="font-size:.62rem;">Rejected</span>
+                    <span class="badge bg-danger ms-auto" style="font-size:.62rem;">{{ __('ui.rejected') }}</span>
                 @endif
             </a>
         </nav>
@@ -448,22 +522,25 @@
                     <div class="user-popup-header">
                         <div class="p-name">{{ auth()->user()->name }}</div>
                         <div class="p-email">{{ auth()->user()->email }}</div>
-                        <span class="badge {{ $idBadge }} mt-1" style="font-size:.65rem;">ID {{ ucfirst($idStatus) }}</span>
+                        @php $idStatusKey = str_replace(' ', '_', $idStatus); @endphp
+                        <span class="badge {{ $idBadge }} mt-1" style="font-size:.65rem;">
+                            ID {{ __('ui.'.$idStatusKey, [], app()->getLocale()) ?: ucfirst($idStatus) }}
+                        </span>
                     </div>
 
                     @if($verification)
                         <div class="id-info-block">
-                            <div class="id-info-label">ID Information</div>
+                            <div class="id-info-label">{{ __('ui.id_information') }}</div>
                             <div class="id-info-row">
-                                <span class="lbl">Name</span>
+                                <span class="lbl">{{ __('ui.name') }}</span>
                                 <span>{{ $verification->extracted_name ?? '—' }}</span>
                             </div>
                             <div class="id-info-row">
-                                <span class="lbl">Date of birth</span>
+                                <span class="lbl">{{ __('ui.date_of_birth') }}</span>
                                 <span>{{ $verification->extracted_dob?->format('Y-m-d') ?? '—' }}</span>
                             </div>
                             <div class="id-info-row">
-                                <span class="lbl">ID Number</span>
+                                <span class="lbl">{{ __('ui.id_number') }}</span>
                                 <span>{{ $verification->extracted_id_number ?? '—' }}</span>
                             </div>
                         </div>
@@ -472,12 +549,12 @@
                     <div class="user-popup-actions">
                         <a href="{{ route('citizen.id.verify') }}" class="popup-action">
                             <i class="bi bi-person-vcard"></i>
-                            {{ $verification ? 'View ID verification' : 'Upload your ID' }}
+                            {{ $verification ? __('ui.view_id_verification') : __('ui.upload_your_id') }}
                         </a>
                         <div style="height:1px;background:#f3f0ff;margin:.1rem 0;"></div>
                         <button type="button" class="popup-action danger"
                                 data-bs-toggle="modal" data-bs-target="#logoutModal">
-                            <i class="bi bi-box-arrow-right"></i> Log out
+                            <i class="bi bi-box-arrow-right"></i> {{ __('ui.log_out') }}
                         </button>
                     </div>
                 </div>
@@ -495,6 +572,15 @@
         </button>
         <div class="topbar-title">@yield('title', 'Dashboard')</div>
         <div class="topbar-right">
+            @if($isRtl)
+                <a href="{{ route('language.switch', 'en') }}" class="lang-btn">
+                    <i class="bi bi-translate"></i> English
+                </a>
+            @else
+                <a href="{{ route('language.switch', 'ar') }}" class="lang-btn">
+                    <i class="bi bi-translate"></i> عربي
+                </a>
+            @endif
             @include('partials.notification-bell', [
                 'notificationIndexUrl'       => route('citizen.notifications.index'),
                 'notificationReadAllUrl'     => route('citizen.notifications.read-all'),
@@ -546,9 +632,9 @@
                              style="width:64px;height:64px;border-radius:18px;background:rgba(239,68,68,.1);">
                             <i class="bi bi-box-arrow-right" style="font-size:1.6rem;color:#ef4444;"></i>
                         </div>
-                        <h5 class="fw-800 mb-2" style="font-size:1.15rem;letter-spacing:-.02em;color:#0f172a;">Log out?</h5>
+                        <h5 class="fw-800 mb-2" style="font-size:1.15rem;letter-spacing:-.02em;color:#0f172a;">{{ __('ui.log_out_title') }}</h5>
                         <p style="font-size:.875rem;color:#64748b;line-height:1.6;margin:0;">
-                            Are you sure you want to log out of your account?
+                            {{ __('ui.log_out_confirm') }}
                         </p>
                     </div>
                     <div style="padding:0 1.5rem 1.75rem;display:grid;gap:.625rem;">
@@ -557,13 +643,13 @@
                                 style="width:100%;padding:.75rem 1.25rem;background:linear-gradient(135deg,#dc2626,#ef4444);border:none;border-radius:12px;color:#fff;font-weight:700;font-size:.9375rem;letter-spacing:.01em;cursor:pointer;box-shadow:0 4px 14px rgba(239,68,68,.3);transition:filter .15s,transform .15s;"
                                 onmouseover="this.style.filter='brightness(1.08)';this.style.transform='translateY(-1px)'"
                                 onmouseout="this.style.filter='';this.style.transform=''">
-                            <i class="bi bi-box-arrow-right me-2"></i>Yes, sign me out
+                            <i class="bi bi-box-arrow-right me-2"></i>{{ __('ui.yes_sign_out') }}
                         </button>
                         <button type="button" data-bs-dismiss="modal"
                                 style="width:100%;padding:.72rem 1.25rem;background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;color:#475569;font-weight:600;font-size:.9375rem;cursor:pointer;transition:background .15s,border-color .15s;"
                                 onmouseover="this.style.background='#f8fafc';this.style.borderColor='#cbd5e1'"
                                 onmouseout="this.style.background='#fff';this.style.borderColor='#e2e8f0'">
-                            Cancel
+                            {{ __('ui.cancel') }}
                         </button>
                     </div>
                 </div>

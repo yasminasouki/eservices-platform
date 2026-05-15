@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Dashboard')
+@section('title', __('ui.admin_dash_title'))
 
 @push('styles')
 <style>
@@ -148,12 +148,12 @@
     {{-- Hero --}}
     <div class="dash-hero">
         <div style="position:relative;z-index:1;">
-            <div class="dash-hero-eyebrow">Admin Panel</div>
-            <div class="dash-hero-title">Dashboard</div>
-            <p class="dash-hero-sub">System overview, live request activity, and top offices by volume and revenue.</p>
+            <div class="dash-hero-eyebrow">{{ __('ui.admin_panel') }}</div>
+            <div class="dash-hero-title">{{ __('ui.admin_dash_title') }}</div>
+            <p class="dash-hero-sub">{{ __('ui.admin_dash_subtitle') }}</p>
         </div>
         <a href="{{ route('admin.reports.index') }}" class="btn-reports">
-            <i class="bi bi-graph-up-arrow"></i> Reports &amp; analytics
+            <i class="bi bi-graph-up-arrow"></i> {{ __('ui.admin_dash_reports') }}
         </a>
     </div>
 
@@ -161,7 +161,7 @@
     <div class="stat-cards-row">
         <div class="stat-card">
             <div>
-                <div class="stat-label">Gov. Offices</div>
+                <div class="stat-label">{{ __('ui.admin_dash_stat_offices') }}</div>
                 <div class="stat-value">{{ $stats['offices'] }}</div>
             </div>
             <div class="stat-icon-wrap" style="background:#f0f9ff;">
@@ -170,7 +170,7 @@
         </div>
         <div class="stat-card">
             <div>
-                <div class="stat-label">Mun. Users</div>
+                <div class="stat-label">{{ __('ui.admin_dash_stat_muni_users') }}</div>
                 <div class="stat-value">{{ $stats['municipality_users'] }}</div>
             </div>
             <div class="stat-icon-wrap" style="background:#e0f2fe;">
@@ -179,7 +179,7 @@
         </div>
         <div class="stat-card">
             <div>
-                <div class="stat-label">Citizens</div>
+                <div class="stat-label">{{ __('ui.admin_dash_stat_citizens') }}</div>
                 <div class="stat-value">{{ $stats['citizens'] }}</div>
             </div>
             <div class="stat-icon-wrap" style="background:#f0f9ff;">
@@ -188,7 +188,7 @@
         </div>
         <div class="stat-card">
             <div>
-                <div class="stat-label">Requests</div>
+                <div class="stat-label">{{ __('ui.admin_dash_stat_requests') }}</div>
                 <div class="stat-value">{{ $stats['requests'] }}</div>
             </div>
             <div class="stat-icon-wrap" style="background:#bae6fd;">
@@ -200,24 +200,23 @@
     {{-- Mid row --}}
     <div class="mid-row">
         <div class="panel">
-            <div class="panel-label">Total Revenue</div>
+            <div class="panel-label">{{ __('ui.admin_dash_stat_revenue') }}</div>
             <div class="revenue-amount">$<span class="revenue-highlight">{{ number_format($stats['revenue'], 2) }}</span></div>
-            <p class="revenue-sub mt-2 mb-0">All-time sum where <code>payments.status</code> is completed.</p>
         </div>
         <div class="panel">
-            <div class="panel-label">Top offices by requests <span class="panel-badge">Top 10</span></div>
+            <div class="panel-label">{{ __('ui.admin_dash_top_requests') }} <span class="panel-badge">{{ __('ui.admin_dash_top_10') }}</span></div>
             @if(!empty($volumeLabels) && count($volumeLabels) > 0)
                 <div style="height:200px;"><canvas id="chartVolume"></canvas></div>
             @else
-                <div style="height:200px;display:flex;align-items:center;justify-content:center;color:#a1a1aa;font-size:.83rem;">No data yet.</div>
+                <div style="height:200px;display:flex;align-items:center;justify-content:center;color:#a1a1aa;font-size:.83rem;">{{ __('ui.admin_dash_no_data') }}</div>
             @endif
         </div>
         <div class="panel">
-            <div class="panel-label">Top offices by revenue <span class="panel-badge">Top 10</span></div>
+            <div class="panel-label">{{ __('ui.admin_dash_top_revenue') }} <span class="panel-badge">{{ __('ui.admin_dash_top_10') }}</span></div>
             @if(!empty($revenueLabels) && count($revenueLabels) > 0)
                 <div style="height:200px;"><canvas id="chartRevenue"></canvas></div>
             @else
-                <div style="height:200px;display:flex;align-items:center;justify-content:center;color:#a1a1aa;font-size:.83rem;">No data yet.</div>
+                <div style="height:200px;display:flex;align-items:center;justify-content:center;color:#a1a1aa;font-size:.83rem;">{{ __('ui.admin_dash_no_data') }}</div>
             @endif
         </div>
     </div>
@@ -227,15 +226,15 @@
         <div class="requests-panel-header">
             <div class="requests-panel-title">
                 <div class="t-icon"><i class="bi bi-clock-history"></i></div>
-                Latest Incoming Requests
+                {{ __('ui.admin_dash_latest') }}
             </div>
             <a href="{{ route('admin.service-requests.index') }}" class="panel-view-all">
-                View all <i class="bi bi-arrow-right"></i>
+                {{ __('ui.view_all') }} <i class="bi bi-arrow-{{ app()->getLocale() === 'ar' ? 'left' : 'right' }}"></i>
             </a>
         </div>
         <table class="req-table">
             <thead>
-                <tr><th>Ref</th><th>Citizen</th><th>Office</th><th>Status</th><th>Date</th></tr>
+                <tr><th>{{ __('ui.admin_dash_col_ref') }}</th><th>{{ __('ui.admin_dash_col_citizen') }}</th><th>{{ __('ui.admin_dash_col_office') }}</th><th>{{ __('ui.admin_dash_col_status') }}</th><th>{{ __('ui.admin_dash_col_date') }}</th></tr>
             </thead>
             <tbody>
                 @forelse($latestRequests as $req)
@@ -276,7 +275,7 @@
                     <tr class="empty-row">
                         <td colspan="5">
                             <i class="bi bi-inbox" style="font-size:1.6rem;display:block;margin-bottom:.5rem;color:#d4d4d8;"></i>
-                            No requests yet.
+                            {{ __('ui.admin_dash_empty') }}
                         </td>
                     </tr>
                 @endforelse
