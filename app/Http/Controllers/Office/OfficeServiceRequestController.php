@@ -9,8 +9,11 @@ use App\Models\ServiceRequest;
 use App\Models\ServiceRequestStatusLog;
 use App\Notifications\MissingDocumentsRequestedNotification;
 use App\Notifications\OfficeAddedDocumentNotification;
+use App\Services\Payments\BlockchainVerificationService;
+use App\Services\Payments\CompleteServiceRequestPaymentService;
 use App\Services\ServiceRequestPdfAutomationService;
 use App\Support\QrCodeDataUri;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -104,6 +107,7 @@ class OfficeServiceRequestController extends Controller
             'governmentOffice:id,name',
             'documents.uploader:id,name',
             'statusLogs' => fn ($q) => $q->orderByDesc('created_at')->with('changedBy:id,name'),
+            'payment',
         ]);
 
         $trackingUrl = route('requests.track', ['token' => $serviceRequest->qr_code]);
@@ -115,6 +119,65 @@ class OfficeServiceRequestController extends Controller
             'trackingUrl' => $trackingUrl,
             'trackingQrDataUri' => $trackingQrDataUri,
         ]);
+    }
+
+    public function checkCryptoPayment(Request $request, GovernmentOffice $office, ServiceRequest $serviceRequest): JsonResponse
+    {
+        $this->assertRequestBelongsToOffice($office, $serviceRequest);
+
+        $serviceRequest->loadMissing('payment');
+        $payment = $serviceRequest->payment;
+
+        if (! $payment || $payment->method !== 'cryptocurrency') {
+            return response()->json(['error' => 'No cryptocurrency payment found for this request.'], 422);
+        }
+
+        $txHash = trim((string) ($request->query('tx_hash', '') ?: ($payment->gateway_response['crypto_tx_reference'] ?? '')));
+        $asset = strtolower((string) ($payment->gateway_response['crypto_quote']['asset'] ?? 'eth'));
+
+        if ($txHash === '') {
+            return response()->json(['error' => 'No transaction hash available. Ask the citizen to submit their tx reference first.'], 422);
+        }
+
+        $result = app(BlockchainVerificationService::class)->verify($asset, $txHash);
+
+        return response()->json(array_merge($result, [
+            'asset' => $asset,
+            'tx_hash' => $txHash,
+            'expected_wallet' => $payment->crypto_wallet_address,
+            'expected_amount_usd' => (float) $payment->amount,
+            'expected_crypto_amount' => $payment->gateway_response['crypto_quote']['crypto_amount'] ?? null,
+        ]));
+    }
+
+    public function approveCryptoPayment(Request $request, GovernmentOffice $office, ServiceRequest $serviceRequest): RedirectResponse
+    {
+        $this->assertRequestBelongsToOffice($office, $serviceRequest);
+
+        $serviceRequest->loadMissing('payment');
+        $payment = $serviceRequest->payment;
+
+        if (! $payment || $payment->method !== 'cryptocurrency') {
+            return back()->withErrors(['crypto' => 'No cryptocurrency payment found for this request.']);
+        }
+
+        if ($payment->status === 'completed') {
+            return back()->with('info', 'This payment is already marked as completed.');
+        }
+
+        $txRef = $payment->gateway_response['crypto_tx_reference'] ?? null;
+
+        app(CompleteServiceRequestPaymentService::class)->complete($payment, [
+            'gateway_response' => [
+                'crypto_approved_by' => auth()->id(),
+                'crypto_approved_at' => now()->toIso8601String(),
+                'crypto_tx_reference' => $txRef,
+            ],
+        ]);
+
+        return redirect()
+            ->route('office.requests.show', [$office, $serviceRequest])
+            ->with('success', 'Crypto payment approved. The request is now active in the office queue.');
     }
 
     public function updateStatus(Request $request, GovernmentOffice $office, ServiceRequest $serviceRequest): RedirectResponse

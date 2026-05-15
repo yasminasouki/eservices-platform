@@ -9,179 +9,604 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
         :root {
-            --accent:       #4c1d95;
-            --accent-mid:   #6d28d9;
-            --accent-light: #a78bfa;
-            --accent-subtle: rgba(109, 40, 217, 0.1);
+            --accent:         #7c3aed;
+            --accent-mid:     #8b5cf6;
+            --accent-light:   #c4b5fd;
+            --accent-subtle:  rgba(139, 92, 246, 0.1);
+            --sidebar-width:  240px;
+            --topbar-height:  60px;
+            --sidebar-bg:     #f3f0ff;
+            --sidebar-border: #e0d9ff;
+            --active-bg:      #ddd6fe;
+            --active-color:   #4c1d95;
+            --link-color:     #6d5b8e;
+            --link-hover-bg:  #ede9fe;
         }
-        body { background: #f0f4f8; }
-        .navbar-brand { font-weight: 700; letter-spacing: .4px; }
-        .navbar { background: linear-gradient(135deg, var(--accent), var(--accent-mid)) !important; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
-        .card-soft { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.07); }
-        .stat-card { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.07); transition: transform .2s; }
-        .stat-card:hover { transform: translateY(-2px); }
-        .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-mid)); border: none; font-weight: 600; }
-        .btn-primary:hover, .btn-primary:focus { background: linear-gradient(135deg, #2e1065, #5b21b6); border: none; }
-        .form-control:focus, .form-select:focus { border-color: var(--accent-mid); box-shadow: 0 0 0 0.2rem var(--accent-subtle); }
+
+        /* ── Reset ── */
+        *, *::before, *::after { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: #f8f7ff;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+        }
+
+        /* ══════════════════════════════
+           SIDEBAR
+        ══════════════════════════════ */
+        .sidebar {
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--sidebar-border);
+            display: flex;
+            flex-direction: column;
+            z-index: 1040;
+            transition: transform .25s ease;
+        }
+
+        /* Brand */
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: .65rem;
+            padding: 1.1rem 1.25rem 1rem;
+            border-bottom: 1px solid var(--sidebar-border);
+            text-decoration: none;
+        }
+        .sidebar-brand-icon {
+            width: 36px; height: 36px;
+            background: #ddd6fe;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--accent);
+            font-size: 1.05rem;
+            flex-shrink: 0;
+        }
+        .sidebar-brand-text {
+            font-weight: 800;
+            font-size: .95rem;
+            color: #3b0764;
+            letter-spacing: .2px;
+            line-height: 1.2;
+        }
+        .sidebar-brand-sub {
+            font-size: .68rem;
+            color: #9d7ecf;
+            font-weight: 500;
+            letter-spacing: .3px;
+            text-transform: uppercase;
+        }
+
+        /* Nav section label */
+        .sidebar-label {
+            font-size: .68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: #b4a0d4;
+            padding: 1.2rem 1.25rem .4rem;
+        }
+
+        /* Nav links */
+        .sidebar-nav { flex: 1; overflow-y: auto; padding: .5rem .75rem; }
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: .65rem;
+            padding: .6rem .85rem;
+            border-radius: 10px;
+            color: var(--link-color);
+            text-decoration: none;
+            font-size: .875rem;
+            font-weight: 500;
+            margin-bottom: .15rem;
+            transition: background .15s, color .15s;
+            white-space: nowrap;
+        }
+        .sidebar-link:hover {
+            background: var(--link-hover-bg);
+            color: var(--accent);
+        }
+        .sidebar-link.active {
+            background: var(--active-bg);
+            color: var(--active-color);
+            font-weight: 700;
+        }
+        .sidebar-link .link-icon {
+            width: 30px; height: 30px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: .95rem;
+            flex-shrink: 0;
+            background: transparent;
+            transition: background .15s;
+        }
+        .sidebar-link:hover .link-icon { background: #e9d5ff; }
+        .sidebar-link.active .link-icon { background: #c4b5fd; }
+
+        /* Divider */
+        .sidebar-divider {
+            height: 1px;
+            background: var(--sidebar-border);
+            margin: .5rem .75rem;
+        }
+
+        /* User card at bottom */
+        .sidebar-user {
+            border-top: 1px solid var(--sidebar-border);
+            padding: .85rem 1rem;
+        }
+        .sidebar-user-card {
+            display: flex;
+            align-items: center;
+            gap: .65rem;
+            border-radius: 10px;
+            padding: .5rem .6rem;
+            cursor: pointer;
+            transition: background .15s;
+            position: relative;
+        }
+        .sidebar-user-card:hover { background: var(--link-hover-bg); }
+        .user-avatar {
+            width: 34px; height: 34px;
+            background: #c4b5fd;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800;
+            font-size: .85rem;
+            color: #4c1d95;
+            flex-shrink: 0;
+        }
+        .user-info { min-width: 0; flex: 1; }
+        .user-name  { font-size: .82rem; font-weight: 700; color: #3b0764; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-email { font-size: .71rem; color: #9d7ecf; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* User popup (opens upward) */
+        .user-popup {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 6px);
+            left: 0; right: 0;
+            background: #fff;
+            border: 1px solid #ede9fe;
+            border-radius: 12px;
+            box-shadow: 0 8px 28px rgba(124, 58, 237, 0.14);
+            overflow: hidden;
+            z-index: 200;
+        }
+        .user-popup.open { display: block; }
+        .user-popup-header {
+            background: linear-gradient(135deg, #ede9fe, #f3f0ff);
+            border-bottom: 1px solid #e0d9ff;
+            padding: .85rem 1rem;
+        }
+        .user-popup-header .p-name  { font-weight: 700; font-size: .88rem; color: #3b0764; }
+        .user-popup-header .p-email { font-size: .76rem; color: #9d7ecf; }
+        .id-info-block {
+            background: #f8f5ff;
+            border: 1px solid #ede9fe;
+            border-radius: 8px;
+            padding: .55rem .75rem;
+            margin: .5rem .6rem;
+            font-size: .78rem;
+        }
+        .id-info-label { color: #b4a0d4; font-weight: 700; font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; margin-bottom: .3rem; }
+        .id-info-row { display: flex; justify-content: space-between; color: #374151; margin-bottom: .12rem; }
+        .id-info-row:last-child { margin-bottom: 0; }
+        .id-info-row .lbl { color: #b4a0d4; }
+        .user-popup-actions { padding: .4rem .6rem .6rem; display: flex; flex-direction: column; gap: .15rem; }
+        .popup-action {
+            display: flex; align-items: center; gap: .55rem;
+            padding: .45rem .65rem;
+            border-radius: 8px;
+            font-size: .82rem;
+            color: #374151;
+            text-decoration: none;
+            transition: background .12s;
+            border: none; background: transparent; width: 100%; text-align: left; cursor: pointer;
+        }
+        .popup-action:hover { background: #f3f0ff; color: var(--accent); }
+        .popup-action i { color: var(--accent-mid); font-size: .95rem; }
+        .popup-action.danger { color: #dc2626; }
+        .popup-action.danger i { color: #dc2626; }
+        .popup-action.danger:hover { background: #fef2f2; }
+
+        /* ══════════════════════════════
+           TOPBAR
+        ══════════════════════════════ */
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: var(--sidebar-width);
+            right: 0;
+            height: var(--topbar-height);
+            background: #fff;
+            border-bottom: 1px solid #ede9fe;
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            z-index: 1030;
+            box-shadow: 0 1px 8px rgba(124, 58, 237, 0.05);
+        }
+        .topbar-title {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #1f1235;
+            flex: 1;
+        }
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: .65rem;
+        }
+
+        /* Mobile hamburger */
+        .sidebar-toggle {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 34px; height: 34px;
+            background: #ede9fe;
+            border: 1px solid #ddd6fe;
+            border-radius: 9px;
+            color: var(--accent);
+            font-size: 1.05rem;
+            cursor: pointer;
+            margin-right: .5rem;
+        }
+
+        /* Sidebar overlay (mobile) */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 1039;
+        }
+        .sidebar-overlay.open { display: block; }
+
+        @media (max-width: 767px) {
+            .sidebar { transform: translateX(calc(-1 * var(--sidebar-width))); }
+            .sidebar.open { transform: translateX(0); }
+            .topbar { left: 0; }
+            .main-wrap { margin-left: 0 !important; }
+            .sidebar-toggle { display: flex; }
+        }
+
+        /* ══════════════════════════════
+           MAIN CONTENT
+        ══════════════════════════════ */
+        .main-wrap {
+            margin-left: var(--sidebar-width);
+            padding-top: var(--topbar-height);
+            min-height: 100vh;
+        }
+        .main-content { padding: 1.75rem 1.5rem; }
+
+        /* ══════════════════════════════
+           SHARED COMPONENT STYLES
+        ══════════════════════════════ */
+        .card-soft {
+            border: none;
+            border-radius: 14px;
+            box-shadow: 0 2px 14px rgba(0,0,0,.06);
+            background: #fff;
+        }
+        .stat-card {
+            border: none; border-radius: 14px;
+            box-shadow: 0 2px 14px rgba(0,0,0,.06);
+            background: #fff;
+            transition: transform .2s, box-shadow .2s;
+        }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 6px 24px rgba(0,0,0,.1); }
+
+        /* Buttons */
+        .btn-primary {
+            background: #c4b5fd;
+            border: none;
+            color: #3b0764;
+            font-weight: 700;
+            border-radius: 8px;
+        }
+        .btn-primary:hover, .btn-primary:focus {
+            background: #a78bfa;
+            border: none;
+            color: #3b0764;
+        }
+        .btn-outline-primary {
+            border-color: #c4b5fd;
+            color: var(--accent);
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .btn-outline-primary:hover {
+            background: #ede9fe;
+            border-color: #c4b5fd;
+            color: var(--accent);
+        }
+
+        /* Forms */
+        .form-control:focus, .form-select:focus {
+            border-color: var(--accent-light);
+            box-shadow: 0 0 0 0.2rem var(--accent-subtle);
+        }
+
+        /* Alerts */
+        .alert { border-radius: 12px; border: none; }
+        .alert-success { background: #f0fdf4; color: #166534; }
+        .alert-info    { background: #f0f7ff; color: #1e3a8a; }
+        .alert-warning { background: #fffbeb; color: #92400e; }
+        .alert-danger  { background: #fef2f2; color: #991b1b; }
+
+        /* Notification bell override */
+        #notif-dropdown .btn-outline-light {
+            background: #ede9fe;
+            border: 1px solid #ddd6fe;
+            border-radius: 9px;
+            color: var(--accent);
+            width: 36px; height: 36px;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0;
+            font-size: 1rem;
+        }
+        #notif-dropdown .btn-outline-light:hover,
+        #notif-dropdown .btn-outline-light:focus {
+            background: #ddd6fe;
+            border-color: #c4b5fd;
+            color: #3b0764;
+            box-shadow: none;
+        }
     </style>
     @stack('styles')
     @stack('head')
 </head>
-<body class="bg-light">
-    <nav class="navbar navbar-dark px-3" style="background: linear-gradient(135deg, #4a148c, #6a1b9a);">
-        <a class="navbar-brand text-decoration-none text-white" href="{{ route('citizen.dashboard') }}">
-            <i class="bi bi-building-fill-gear me-2"></i>E-Services Platform
+<body>
+
+    {{-- ════════════ SIDEBAR ════════════ --}}
+    <aside class="sidebar" id="sidebar">
+
+        {{-- Brand --}}
+        <a class="sidebar-brand" href="{{ route('citizen.dashboard') }}">
+            <div class="sidebar-brand-icon"><i class="bi bi-building-fill-gear"></i></div>
+            <div>
+                <div class="sidebar-brand-text">E-Services</div>
+                <div class="sidebar-brand-sub">Platform</div>
+            </div>
         </a>
-        <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
-            <a href="{{ route('citizen.offices.index') }}"
-               class="d-none d-sm-flex align-items-center gap-1 text-white text-decoration-none px-3 py-1 rounded-pill"
-               style="background:rgba(255,255,255,0.15);font-size:0.85rem;"
-               onmouseover="this.style.background='rgba(255,255,255,0.25)'"
-               onmouseout="this.style.background='rgba(255,255,255,0.15)'">
-                <i class="bi bi-grid"></i> Browse services
+
+        {{-- Nav --}}
+        <nav class="sidebar-nav">
+            <div class="sidebar-label">Menu</div>
+
+            <a href="{{ route('citizen.dashboard') }}"
+               class="sidebar-link {{ request()->routeIs('citizen.dashboard') ? 'active' : '' }}">
+                <span class="link-icon"><i class="bi bi-house"></i></span>
+                Dashboard
             </a>
+
+            <a href="{{ route('citizen.offices.index') }}"
+               class="sidebar-link {{ request()->routeIs('citizen.offices.*') ? 'active' : '' }}">
+                <span class="link-icon"><i class="bi bi-building"></i></span>
+                Available offices
+            </a>
+
             <a href="{{ route('citizen.requests.index') }}"
-               class="d-none d-sm-flex align-items-center gap-1 text-white text-decoration-none px-3 py-1 rounded-pill"
-               style="background:rgba(255,255,255,0.15);font-size:0.85rem;"
-               onmouseover="this.style.background='rgba(255,255,255,0.25)'"
-               onmouseout="this.style.background='rgba(255,255,255,0.15)'">
-                <i class="bi bi-folder2-open"></i> My requests
+               class="sidebar-link {{ request()->routeIs('citizen.requests.*') ? 'active' : '' }}">
+                <span class="link-icon"><i class="bi bi-folder2-open"></i></span>
+                My requests
             </a>
-            <a href="{{ route('citizen.offices.index') }}"
-               class="d-none d-md-flex align-items-center gap-1 text-white text-decoration-none px-3 py-1 rounded-pill"
-               style="background:rgba(255,255,255,0.15);font-size:0.85rem;"
-               title="Pick an office, then open Live chat"
-               onmouseover="this.style.background='rgba(255,255,255,0.25)'"
-               onmouseout="this.style.background='rgba(255,255,255,0.15)'">
-                <i class="bi bi-chat-dots"></i> Message an office
+
+            <a href="{{ route('citizen.appointments.index') }}"
+               class="sidebar-link {{ request()->routeIs('citizen.appointments.*') ? 'active' : '' }}">
+                <span class="link-icon"><i class="bi bi-calendar-check"></i></span>
+                My appointments
             </a>
-            <div class="dropdown d-none d-sm-flex">
-                <button class="btn btn-sm d-flex align-items-center gap-2 text-white border-0 dropdown-toggle"
-                        style="background:rgba(255,255,255,0.15);border-radius:8px;padding:6px 12px;"
-                        type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <div class="d-flex align-items-center justify-content-center rounded-circle bg-white bg-opacity-25 text-white fw-bold"
-                         style="width:28px;height:28px;font-size:0.8rem;">
-                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+
+            <div class="sidebar-divider"></div>
+            <div class="sidebar-label">Account</div>
+
+            <a href="{{ route('citizen.id.verify') }}"
+               class="sidebar-link {{ request()->routeIs('citizen.id.*') ? 'active' : '' }}">
+                <span class="link-icon"><i class="bi bi-person-vcard"></i></span>
+                ID Verification
+                @php $idStatus = auth()->user()->id_document_status ?? 'not uploaded'; @endphp
+                @if($idStatus === 'pending')
+                    <span class="badge bg-warning text-dark ms-auto" style="font-size:.62rem;">Pending</span>
+                @elseif($idStatus === 'verified')
+                    <span class="badge ms-auto" style="font-size:.62rem; background:#d1fae5; color:#065f46;">Verified</span>
+                @elseif($idStatus === 'rejected')
+                    <span class="badge bg-danger ms-auto" style="font-size:.62rem;">Rejected</span>
+                @endif
+            </a>
+        </nav>
+
+        {{-- User card --}}
+        @php
+            $idBadge = match($idStatus) {
+                'verified' => 'bg-success',
+                'rejected' => 'bg-danger',
+                'pending'  => 'bg-warning text-dark',
+                default    => 'bg-secondary',
+            };
+            $verification = \App\Models\IdVerificationRequest::where('user_id', auth()->id())
+                ->latest()->first();
+        @endphp
+        <div class="sidebar-user">
+            <div class="sidebar-user-card" id="userCardToggle">
+                <div class="user-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</div>
+                <div class="user-info">
+                    <div class="user-name">{{ auth()->user()->name }}</div>
+                    <div class="user-email">{{ auth()->user()->email }}</div>
+                </div>
+                <i class="bi bi-chevron-up" style="font-size:.75rem; color:#b4a0d4;" id="userChevron"></i>
+
+                {{-- Popup --}}
+                <div class="user-popup" id="userPopup">
+                    <div class="user-popup-header">
+                        <div class="p-name">{{ auth()->user()->name }}</div>
+                        <div class="p-email">{{ auth()->user()->email }}</div>
+                        <span class="badge {{ $idBadge }} mt-1" style="font-size:.65rem;">ID {{ ucfirst($idStatus) }}</span>
                     </div>
-                    <span style="font-size:0.85rem;">{{ auth()->user()->name }}</span>
-                </button>
-                <div class="dropdown-menu dropdown-menu-end shadow p-0" style="min-width:280px;">
-                    <div class="px-3 py-3 border-bottom bg-light rounded-top">
-                        <div class="fw-semibold">{{ auth()->user()->name }}</div>
-                        <div class="small text-muted">{{ auth()->user()->email }}</div>
-                        @php
-                            $idStatus = auth()->user()->id_document_status ?? 'not uploaded';
-                            $idBadge = match($idStatus) {
-                                'verified' => 'bg-success',
-                                'rejected' => 'bg-danger',
-                                'pending'  => 'bg-warning text-dark',
-                                default    => 'bg-secondary',
-                            };
-                        @endphp
-                        <div class="mt-1">
-                            <span class="badge {{ $idBadge }} small">
-                                ID: {{ ucfirst($idStatus) }}
-                            </span>
-                        </div>
-                    </div>
-                    @php
-                        $verification = \App\Models\IdVerificationRequest::where('user_id', auth()->id())
-                            ->latest()->first();
-                    @endphp
+
                     @if($verification)
-                        <div class="px-3 py-2 small border-bottom">
-                            <div class="text-muted mb-1 fw-semibold">ID Information</div>
-                            <div class="d-flex justify-content-between">
-                                <span class="text-muted">Name</span>
+                        <div class="id-info-block">
+                            <div class="id-info-label">ID Information</div>
+                            <div class="id-info-row">
+                                <span class="lbl">Name</span>
                                 <span>{{ $verification->extracted_name ?? '—' }}</span>
                             </div>
-                            <div class="d-flex justify-content-between">
-                                <span class="text-muted">DOB</span>
+                            <div class="id-info-row">
+                                <span class="lbl">Date of birth</span>
                                 <span>{{ $verification->extracted_dob?->format('Y-m-d') ?? '—' }}</span>
                             </div>
-                            <div class="d-flex justify-content-between">
-                                <span class="text-muted">ID Number</span>
+                            <div class="id-info-row">
+                                <span class="lbl">ID Number</span>
                                 <span>{{ $verification->extracted_id_number ?? '—' }}</span>
                             </div>
                         </div>
                     @endif
-                    <div class="px-3 py-2">
-                        <a href="{{ route('citizen.id.verify') }}" class="dropdown-item rounded px-2 py-1 small">
-                            <i class="bi bi-person-vcard me-2"></i>
+
+                    <div class="user-popup-actions">
+                        <a href="{{ route('citizen.id.verify') }}" class="popup-action">
+                            <i class="bi bi-person-vcard"></i>
                             {{ $verification ? 'View ID verification' : 'Upload your ID' }}
                         </a>
+                        <div style="height:1px;background:#f3f0ff;margin:.1rem 0;"></div>
+                        <button type="button" class="popup-action danger"
+                                data-bs-toggle="modal" data-bs-target="#logoutModal">
+                            <i class="bi bi-box-arrow-right"></i> Log out
+                        </button>
                     </div>
                 </div>
             </div>
+        </div>
+    </aside>
+
+    {{-- Mobile overlay --}}
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    {{-- ════════════ TOPBAR ════════════ --}}
+    <header class="topbar">
+        <button class="sidebar-toggle border-0" id="sidebarToggle" aria-label="Menu">
+            <i class="bi bi-list"></i>
+        </button>
+        <div class="topbar-title">@yield('title', 'Dashboard')</div>
+        <div class="topbar-right">
             @include('partials.notification-bell', [
-                'notificationIndexUrl' => route('citizen.notifications.index'),
-                'notificationReadAllUrl' => route('citizen.notifications.read-all'),
+                'notificationIndexUrl'       => route('citizen.notifications.index'),
+                'notificationReadAllUrl'     => route('citizen.notifications.read-all'),
                 'notificationReadOneBaseUrl' => url('/citizen/notifications'),
             ])
-            <form method="POST" action="{{ route('logout') }}" class="mb-0" id="logout-form">
-                @csrf
-                <button type="button" class="btn btn-sm d-flex align-items-center gap-1 text-white border-0"
-                        style="background:rgba(255,255,255,0.15);border-radius:8px;padding:6px 12px;"
-                        onmouseover="this.style.background='rgba(255,255,255,0.25)'"
-                        onmouseout="this.style.background='rgba(255,255,255,0.15)'"
-                        data-bs-toggle="modal" data-bs-target="#logoutModal">
-                    <i class="bi bi-box-arrow-right"></i>
-                    <span class="d-none d-md-inline">Logout</span>
-                </button>
-            </form>
         </div>
-    </nav>
+    </header>
 
-    <div class="container py-4">
-        @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show">
-                <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
-        @if(session('info'))
-            <div class="alert alert-info alert-dismissible fade show">
-                {{ session('info') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
+    {{-- ════════════ MAIN CONTENT ════════════ --}}
+    <div class="main-wrap">
+        <div class="main-content">
 
-        @if($errors->any())
-            <div class="alert alert-danger alert-dismissible fade show">
-                <ul class="mb-0 ps-3">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
+            @if(session('success'))
+                <div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2">
+                    <i class="bi bi-check-circle-fill fs-5"></i>
+                    <span>{{ session('success') }}</span>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                </div>
+            @endif
+            @if(session('info'))
+                <div class="alert alert-info alert-dismissible fade show d-flex align-items-center gap-2">
+                    <i class="bi bi-info-circle-fill fs-5"></i>
+                    <span>{{ session('info') }}</span>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                </div>
+            @endif
+            @if($errors->any())
+                <div class="alert alert-danger alert-dismissible fade show">
+                    <ul class="mb-0 ps-3">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            @endif
 
-        @yield('content')
-      </div>
+            @yield('content')
+        </div>
+    </div>
 
-    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-sm">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-body text-center px-4 pt-4 pb-3">
-                    <div class="mb-3">
-                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger bg-opacity-10" style="width:56px;height:56px;">
-                            <i class="bi bi-box-arrow-right text-danger fs-4"></i>
-                        </span>
+    {{-- ════════════ LOGOUT MODAL ════════════ --}}
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:380px;">
+            <div class="modal-content border-0" style="border-radius:20px;overflow:hidden;box-shadow:0 24px 60px rgba(15,23,42,.18);">
+                <div class="modal-body text-center p-0">
+                    <div style="padding:2rem 2rem 1.5rem;">
+                        <div class="mx-auto mb-4 d-flex align-items-center justify-content-center"
+                             style="width:64px;height:64px;border-radius:18px;background:rgba(239,68,68,.1);">
+                            <i class="bi bi-box-arrow-right" style="font-size:1.6rem;color:#ef4444;"></i>
+                        </div>
+                        <h5 class="fw-800 mb-2" style="font-size:1.15rem;letter-spacing:-.02em;color:#0f172a;">Log out?</h5>
+                        <p style="font-size:.875rem;color:#64748b;line-height:1.6;margin:0;">
+                            Are you sure you want to log out of your account?
+                        </p>
                     </div>
-                    <h6 class="fw-bold mb-1">Log out?</h6>
-                    <p class="text-muted small mb-4">Are you sure you want to log out of your account?</p>
-                    <div class="d-grid gap-2">
-                        <button type="button" class="btn btn-danger" onclick="document.getElementById('logout-form').submit()">Yes, log me out</button>
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <div style="padding:0 1.5rem 1.75rem;display:grid;gap:.625rem;">
+                        <button type="button"
+                                onclick="document.getElementById('logout-form').submit()"
+                                style="width:100%;padding:.75rem 1.25rem;background:linear-gradient(135deg,#dc2626,#ef4444);border:none;border-radius:12px;color:#fff;font-weight:700;font-size:.9375rem;letter-spacing:.01em;cursor:pointer;box-shadow:0 4px 14px rgba(239,68,68,.3);transition:filter .15s,transform .15s;"
+                                onmouseover="this.style.filter='brightness(1.08)';this.style.transform='translateY(-1px)'"
+                                onmouseout="this.style.filter='';this.style.transform=''">
+                            <i class="bi bi-box-arrow-right me-2"></i>Yes, sign me out
+                        </button>
+                        <button type="button" data-bs-dismiss="modal"
+                                style="width:100%;padding:.72rem 1.25rem;background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;color:#475569;font-weight:600;font-size:.9375rem;cursor:pointer;transition:background .15s,border-color .15s;"
+                                onmouseover="this.style.background='#f8fafc';this.style.borderColor='#cbd5e1'"
+                                onmouseout="this.style.background='#fff';this.style.borderColor='#e2e8f0'">
+                            Cancel
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <form method="POST" action="{{ route('logout') }}" class="d-none" id="logout-form">@csrf</form>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     @vite(['resources/js/app.js'])
+    <script>
+        // ── Sidebar mobile toggle ──
+        const sidebar  = document.getElementById('sidebar');
+        const overlay  = document.getElementById('sidebarOverlay');
+        const toggler  = document.getElementById('sidebarToggle');
+
+        function openSidebar()  { sidebar.classList.add('open');  overlay.classList.add('open'); }
+        function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('open'); }
+
+        toggler.addEventListener('click', () => sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
+        overlay.addEventListener('click', closeSidebar);
+
+        // ── User card popup ──
+        const userCard    = document.getElementById('userCardToggle');
+        const userPopup   = document.getElementById('userPopup');
+        const userChevron = document.getElementById('userChevron');
+
+        userCard.addEventListener('click', e => {
+            const open = userPopup.classList.toggle('open');
+            userChevron.className = open ? 'bi bi-chevron-down' : 'bi bi-chevron-up';
+            userChevron.style.fontSize = '.75rem';
+            userChevron.style.color = '#b4a0d4';
+            e.stopPropagation();
+        });
+
+        document.addEventListener('click', e => {
+            if (!userCard.contains(e.target)) {
+                userPopup.classList.remove('open');
+                userChevron.className = 'bi bi-chevron-up';
+            }
+        });
+    </script>
     @stack('scripts')
 </body>
 </html>

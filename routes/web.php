@@ -18,6 +18,8 @@ use App\Http\Controllers\Citizen\CitizenOfficeDirectoryController;
 use App\Http\Controllers\Citizen\CitizenPaymentController;
 use App\Http\Controllers\Citizen\CitizenServiceRequestController;
 use App\Http\Controllers\Citizen\IdVerificationController;
+use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
+use App\Http\Controllers\Citizen\NotificationController as CitizenNotificationController;
 use App\Http\Controllers\Office\NotificationController;
 use App\Http\Controllers\Office\OfficeAppointmentController;
 use App\Http\Controllers\Office\OfficeContextController;
@@ -130,34 +132,9 @@ Route::middleware(['auth', 'active'])->group(function () {
             Route::get('/admin/reports', [AdminReportsController::class, 'index'])
                 ->name('admin.reports.index');
 
-            Route::get('/admin/notifications', function () {
-                $notifications = auth()->user()
-                    ->unreadNotifications()
-                    ->latest()
-                    ->take(20)
-                    ->get()
-                    ->map(fn($n) => [
-                        'id'         => $n->id,
-                        'message'    => $n->data['message'] ?? '',
-                        'url'        => $n->data['url'] ?? '#',
-                        'created_at' => $n->created_at->diffForHumans(),
-                    ]);
-
-                return response()->json([
-                    'count'         => auth()->user()->unreadNotifications()->count(),
-                    'notifications' => $notifications,
-                ]);
-            })->name('admin.notifications.index');
-
-            Route::post('/admin/notifications/read-all', function () {
-                auth()->user()->unreadNotifications()->markAsRead();
-                return response()->json(['ok' => true]);
-            })->name('admin.notifications.read-all');
-
-            Route::post('/admin/notifications/{id}/read', function (string $id) {
-                auth()->user()->notifications()->where('id', $id)->update(['read_at' => now()]);
-                return response()->json(['ok' => true]);
-            })->name('admin.notifications.read-one');
+            Route::get('/admin/notifications',              [AdminNotificationController::class, 'index'])->name('admin.notifications.index');
+            Route::post('/admin/notifications/read-all',   [AdminNotificationController::class, 'markAllRead'])->name('admin.notifications.read-all');
+            Route::post('/admin/notifications/{id}/read',  [AdminNotificationController::class, 'markOneRead'])->name('admin.notifications.read-one');
 
             Route::get('/admin/id-documents/{path}', function (string $path) {
                 $fullPath = storage_path('app/' . $path);
@@ -189,6 +166,10 @@ Route::middleware(['auth', 'active'])->group(function () {
                     ->name('office.requests.status');
                 Route::post('/office/{office}/requests/{serviceRequest}/documents', [OfficeServiceRequestController::class, 'storeDocument'])
                     ->name('office.requests.documents.store');
+                Route::get('/office/{office}/requests/{serviceRequest}/crypto-payment/check', [OfficeServiceRequestController::class, 'checkCryptoPayment'])
+                    ->name('office.requests.crypto.check');
+                Route::post('/office/{office}/requests/{serviceRequest}/crypto-payment/approve', [OfficeServiceRequestController::class, 'approveCryptoPayment'])
+                    ->name('office.requests.crypto.approve');
 
                 Route::get('/office/{office}/chat', [OfficeOfficeChatController::class, 'index'])
                     ->name('office.chat.index');
@@ -279,6 +260,7 @@ Route::middleware(['auth', 'active'])->group(function () {
             Route::post('/citizen/offices/{office}/feedback', [CitizenFeedbackController::class, 'storeForOffice'])
                 ->name('citizen.feedback.office.store');
 
+            Route::get('/citizen/appointments', [CitizenAppointmentController::class, 'myAppointments'])->name('citizen.appointments.index');
             Route::get('/citizen/offices/{office}/appointments', [CitizenAppointmentController::class, 'book'])->name('citizen.appointments.book');
             Route::post('/citizen/offices/{office}/appointments/{slot}', [CitizenAppointmentController::class, 'store'])->name('citizen.appointments.store');
             Route::patch('/citizen/offices/{office}/appointments/{appointment}/cancel', [CitizenAppointmentController::class, 'cancel'])
@@ -288,9 +270,9 @@ Route::middleware(['auth', 'active'])->group(function () {
             Route::post('/citizen/id-verify', [IdVerificationController::class, 'upload'])->name('citizen.id.upload');
             Route::post('/citizen/id-save', [IdVerificationController::class, 'save'])->name('citizen.id.save');
 
-            Route::get('/citizen/notifications', [NotificationController::class, 'index'])->name('citizen.notifications.index');
-            Route::post('/citizen/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('citizen.notifications.read');
-            Route::post('/citizen/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('citizen.notifications.read-all');
+            Route::get('/citizen/notifications', [CitizenNotificationController::class, 'index'])->name('citizen.notifications.index');
+            Route::post('/citizen/notifications/{id}/read', [CitizenNotificationController::class, 'markAsRead'])->name('citizen.notifications.read');
+            Route::post('/citizen/notifications/read-all', [CitizenNotificationController::class, 'markAllRead'])->name('citizen.notifications.read-all');
         });
     });
 });

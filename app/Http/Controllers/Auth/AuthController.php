@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Support\QrCodeDataUri;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
@@ -122,8 +123,13 @@ class AuthController extends Controller
                 ->withInput($request->only('email'));
         }
 
-        Auth::login($user, $request->boolean('remember'));
+        $remember = $request->boolean('remember');
+        Auth::login($user, $remember);
         $request->session()->regenerate();
+        $request->session()->forget('url.intended');
+        if ($remember) {
+            session(['2fa_remember' => true]);
+        }
         $user->update(['last_login_at' => now()]);
 
         // If 2FA is confirmed, require verification this session
@@ -155,6 +161,7 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $role = $request->user()?->role;
+        $userId = $request->user()?->id;
 
         Auth::logout();
         $request->session()->invalidate();
@@ -166,9 +173,15 @@ class AuthController extends Controller
             default => 'login',
         };
 
-        return redirect()
+        $response = redirect()
             ->route($targetRoute)
             ->with('success', 'You have been logged out successfully.');
+
+        if ($userId) {
+            $response->withCookie(Cookie::forget('2fa_device_' . $userId));
+        }
+
+        return $response;
     }
 
     // ── 2FA Setup ─────────────────────────────────────────────────────────────
@@ -257,13 +270,16 @@ class AuthController extends Controller
 
         session(['2fa_verified' => true]);
 
-        // If the user was redirected to login mid-flow (e.g. clicking the email
-        // verification link while logged out), honor that intended URL now.
-        if (session()->has('url.intended')) {
-            return redirect()->intended();
+        $response = session()->has('url.intended')
+            ? redirect()->intended()
+            : $this->redirectToDashboard($user);
+
+        if (session()->pull('2fa_remember', false)) {
+            $token = hash_hmac('sha256', $user->id . '|' . $user->email, config('app.key'));
+            $response->withCookie(cookie('2fa_device_' . $user->id, $token, 60 * 24 * 30, '/', null, true, true));
         }
 
-        return $this->redirectToDashboard($user);
+        return $response;
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────

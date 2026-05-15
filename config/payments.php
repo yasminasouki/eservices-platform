@@ -78,4 +78,25 @@ return [
         'http_timeout' => (int) env('EXCHANGE_HTTP_TIMEOUT', 12),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Blockchain verification (on-chain tx lookup for office staff).
+    |--------------------------------------------------------------------------
+    | BTC uses Blockstream.info — no API key required.
+    | ETH/USDT use Etherscan.io — get a free key at etherscan.io/register.
+    | required_confirmations: how many on-chain confirmations before the
+    |   verification result shows "Confirmed". Office staff still manually
+    |   approve the payment after reviewing the result.
+    */
+    'blockchain' => [
+        'blockstream_base'   => env('BLOCKSTREAM_API_URL', 'https://blockstream.info/api'),
+        'etherscan_base'     => env('ETHERSCAN_API_URL', 'https://api.etherscan.io/api'),
+        'etherscan_api_key'  => env('ETHERSCAN_API_KEY', ''),
+        'required_confirmations' => [
+            'btc'  => max(1, (int) env('PAYMENTS_CRYPTO_BTC_CONFIRMATIONS', 2)),
+            'eth'  => max(1, (int) env('PAYMENTS_CRYPTO_ETH_CONFIRMATIONS', 12)),
+            'usdt' => max(1, (int) env('PAYMENTS_CRYPTO_USDT_CONFIRMATIONS', 12)),
+        ],
+    ],
+
 ];

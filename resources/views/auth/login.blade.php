@@ -1,5 +1,7 @@
 @extends('layouts.auth')
 @section('title', 'Login — E-Services Platform')
+@section('auth_brand_icon', 'bi-person-fill')
+@section('auth_brand_title', 'Citizen Portal')
 @section('heading', 'Welcome back')
 @section('subtitle', 'Sign in with your email to access citizen services.')
 

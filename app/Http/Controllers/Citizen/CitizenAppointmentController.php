@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\GovernmentOffice;
 use App\Models\OfficerTimeSlot;
+use App\Notifications\AppointmentBookedNotification;
+use App\Notifications\AppointmentCancelledByCitizenNotification;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +16,16 @@ use Illuminate\Support\Facades\Log;
 
 class CitizenAppointmentController extends Controller
 {
+    public function myAppointments()
+    {
+        $appointments = Appointment::where('user_id', auth()->id())
+            ->with(['timeSlot', 'governmentOffice'])
+            ->orderByDesc('created_at')
+            ->paginate(15);
+
+        return view('citizen.appointments.index', compact('appointments'));
+    }
+
     public function book(GovernmentOffice $office)
     {
         // Available slots are passed via CitizenOfficeDirectoryController::show().
@@ -77,17 +89,28 @@ class CitizenAppointmentController extends Controller
             return back()->with('error', 'Sorry, this slot was just booked by someone else.');
         }
 
-        if ($request->expectsJson()) {
-            $this->dispatchAppointmentsUpdate($office->id, 'booked');
+        $this->dispatchAppointmentsUpdate($office->id, 'booked');
 
+        $slot->refresh();
+        $dateLabel = \Carbon\Carbon::parse($slot->date)->format('M j, Y');
+        $timeLabel = \Carbon\Carbon::parse($slot->start_time)->format('H:i');
+        $office->staff()->each(fn ($staff) => $staff->notify(
+            new AppointmentBookedNotification(
+                auth()->user()->name,
+                $dateLabel,
+                $timeLabel,
+                $office->id,
+                $appointment->id,
+            )
+        ));
+
+        if ($request->expectsJson()) {
             return response()->json([
                 'message' => 'Appointment booked successfully!',
                 'slot_id' => $slot->id,
                 'appointment_id' => $appointment?->id,
             ]);
         }
-
-        $this->dispatchAppointmentsUpdate($office->id, 'booked');
 
         return redirect()->route('citizen.requests.index')
             ->with('success', 'Appointment booked successfully!');
@@ -117,6 +140,18 @@ class CitizenAppointmentController extends Controller
         });
 
         $this->dispatchAppointmentsUpdate($office->id, 'cancelled_by_citizen');
+
+        $slot = $appointment->timeSlot;
+        $dateLabel = \Carbon\Carbon::parse($slot->date)->format('M j, Y');
+        $timeLabel = \Carbon\Carbon::parse($slot->start_time)->format('H:i');
+        $office->staff()->each(fn ($staff) => $staff->notify(
+            new AppointmentCancelledByCitizenNotification(
+                auth()->user()->name,
+                $dateLabel,
+                $timeLabel,
+                $office->id,
+            )
+        ));
 
         return back()->with('success', 'Appointment cancelled.');
     }

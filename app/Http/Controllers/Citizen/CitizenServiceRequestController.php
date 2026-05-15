@@ -128,17 +128,29 @@ class CitizenServiceRequestController extends Controller
             ->with('success', 'Your request has been submitted. Use the QR code on this page to track status offline without logging in.');
     }
 
-    public function index(): View
+    public function index(Request $request): View
     {
+        $activeTab = $request->input('tab', 'all');
+        $allowed   = ['pending', 'in_review', 'missing_documents', 'approved', 'completed', 'rejected'];
+        $userId    = auth()->id();
+
+        $statusCounts = ServiceRequest::query()
+            ->where('user_id', $userId)
+            ->selectRaw('status, count(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status')
+            ->toArray();
+
         $requests = ServiceRequest::query()
-            ->where('user_id', auth()->id())
+            ->where('user_id', $userId)
+            ->when(in_array($activeTab, $allowed), fn ($q) => $q->where('status', $activeTab))
             ->with(['service:id,name,price', 'governmentOffice:id,name', 'feedback:id,service_request_id', 'payment:id,service_request_id,status'])
             ->orderByRaw('COALESCE(submitted_at, created_at) DESC')
             ->orderByDesc('id')
             ->paginate(12)
             ->withQueryString();
 
-        return view('citizen.requests.index', compact('requests'));
+        return view('citizen.requests.index', compact('requests', 'activeTab', 'statusCounts'));
     }
 
     public function show(ServiceRequest $serviceRequest): View

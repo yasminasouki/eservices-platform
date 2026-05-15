@@ -46,8 +46,13 @@ class MunicipalityAuthController extends Controller
                 ->withInput($request->only('email'));
         }
 
-        Auth::login($user, $request->boolean('remember'));
+        $remember = $request->boolean('remember');
+        Auth::login($user, $remember);
         $request->session()->regenerate();
+        $request->session()->forget('url.intended');
+        if ($remember) {
+            session(['2fa_remember' => true]);
+        }
         $user->update(['last_login_at' => now()]);
 
         // 2FA already confirmed — require per-session verification

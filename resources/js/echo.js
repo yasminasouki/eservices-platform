@@ -34,15 +34,48 @@ function getEchoClient () {
     return echoClient;
 }
 
+// ── Avatar color palette (must match blade) ──
+const avatarPalette = ['#e9d5ff','#dbeafe','#d1fae5','#fef9c3','#fee2e2','#e0f2fe','#fce7f3'];
+
+function getAvatarColor (name) {
+    const initial = (name || 'U')[0].toUpperCase();
+    const idx = (initial.charCodeAt(0) - 65 + avatarPalette.length) % avatarPalette.length;
+    return avatarPalette[idx];
+}
+
+// ── Auto-resize a textarea to its content ──
+function autoResize (textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 130) + 'px';
+}
+
+function setupChatCompose () {
+    document.querySelectorAll('form[data-office-chat-ajax]').forEach((form) => {
+        const textarea = form.querySelector('.chat-compose-input, [name="body"]');
+        if (! textarea) return;
+
+        // Auto-resize on input
+        textarea.addEventListener('input', () => autoResize(textarea));
+
+        // Enter to submit; Shift+Enter for newline
+        textarea.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+            }
+        });
+    });
+}
+
 function setupOfficeChat () {
     const scroll = document.getElementById('live-chat-scroll');
     if (! scroll) {
         return;
     }
 
-    const officeId = scroll.dataset.officeId;
+    const officeId      = scroll.dataset.officeId;
     const citizenUserId = scroll.dataset.citizenUserId;
-    const portal = scroll.dataset.chatPortal || 'office';
+    const portal        = scroll.dataset.chatPortal || 'office';
     const currentUserId = scroll.dataset.currentUserId;
 
     const echo = getEchoClient();
@@ -61,17 +94,15 @@ function setupOfficeChat () {
     document.querySelectorAll('form[data-office-chat-ajax]').forEach((form) => {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const errEl = document.getElementById('live-chat-ajax-error');
+            const errEl    = document.getElementById('live-chat-ajax-error');
             const submitBtn = form.querySelector('[type="submit"]');
+            const bodyInput = form.querySelector('[name="body"]');
+
             if (errEl) {
                 errEl.classList.add('d-none');
                 errEl.textContent = '';
             }
-
-            const bodyInput = form.querySelector('[name="body"]');
-            if (submitBtn) {
-                submitBtn.disabled = true;
-            }
+            if (submitBtn) submitBtn.disabled = true;
 
             try {
                 const res = await fetch(form.action, {
@@ -102,6 +133,7 @@ function setupOfficeChat () {
                 }
                 if (bodyInput) {
                     bodyInput.value = '';
+                    autoResize(bodyInput);
                 }
             } catch {
                 if (errEl) {
@@ -109,9 +141,7 @@ function setupOfficeChat () {
                     errEl.classList.remove('d-none');
                 }
             } finally {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                }
+                if (submitBtn) submitBtn.disabled = false;
             }
         });
     });
@@ -134,14 +164,19 @@ function setupAppointmentLiveUpdates () {
     });
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        setupOfficeChat();
-        setupAppointmentLiveUpdates();
-    });
-} else {
+function setupEchoClient() {
+    // Always initialize Echo so window.Echo is available for notification subscriptions
+    // on every page, not just chat/appointments pages.
+    getEchoClient();
     setupOfficeChat();
+    setupChatCompose();
     setupAppointmentLiveUpdates();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupEchoClient);
+} else {
+    setupEchoClient();
 }
 
 /**
@@ -159,11 +194,14 @@ function appendIncomingMessage (payload, portal, currentUserId) {
 
     document.getElementById('live-chat-empty')?.remove();
 
-    const mine = Number(payload.sender_id) === Number(currentUserId);
-    const mineBubbleOffice = 'bg-success bg-opacity-10 border border-success border-opacity-25 text-dark';
+    const mine       = Number(payload.sender_id) === Number(currentUserId);
+    const senderName = payload.sender?.name ?? 'User';
+
+    // Bubble colour / style
+    const mineBubbleOffice  = 'bg-success bg-opacity-10 border border-success border-opacity-25 text-dark';
     const mineBubbleCitizen = 'text-white border-0';
-    const mineStyleCitizen = 'background: linear-gradient(135deg, var(--accent-mid), var(--accent));';
-    const theirBubble = 'bg-white border';
+    const mineStyleCitizen  = 'background: linear-gradient(135deg, var(--accent-mid), var(--accent));';
+    const theirBubble       = 'bg-white border';
 
     let bubbleClass = theirBubble;
     let extraBubbleStyle = '';
@@ -176,50 +214,70 @@ function appendIncomingMessage (payload, portal, currentUserId) {
         }
     }
 
-    const row = document.createElement('div');
-    row.className = `d-flex mb-3 chat-message-row ${mine ? 'justify-content-end' : 'justify-content-start'}`;
-    row.dataset.messageId = String(payload.id);
-
-    const bubble = document.createElement('div');
-    bubble.className = `rounded-3 px-3 py-2 shadow-sm chat-message-bubble ${bubbleClass}`;
-    let bubbleStyle = 'max-width: min(92%, 28rem);';
-    if (mine && portal === 'citizen') {
-        bubbleStyle += extraBubbleStyle;
-    }
-    bubble.setAttribute('style', bubbleStyle);
-
-    const header = document.createElement('div');
-    header.className = 'd-flex justify-content-between align-items-baseline gap-2 flex-wrap';
-
-    const nameEl = document.createElement('span');
-    nameEl.className = 'fw-semibold small chat-message-sender';
-    nameEl.textContent = payload.sender?.name ?? 'User';
-
-    const timeEl = document.createElement('time');
-    timeEl.className = 'text-muted small chat-message-time';
-    timeEl.style.fontSize = '0.7rem';
+    // Timestamp
+    let timeText = '';
+    let timeISO  = '';
     if (payload.created_at) {
-        timeEl.dateTime = payload.created_at;
+        timeISO = payload.created_at;
         try {
-            timeEl.textContent = new Date(payload.created_at).toLocaleString(undefined, {
-                dateStyle: 'medium',
-                timeStyle: 'short',
-            });
+            timeText = new Date(payload.created_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
         } catch {
-            timeEl.textContent = payload.created_at;
+            timeText = payload.created_at;
         }
     }
 
-    header.appendChild(nameEl);
-    header.appendChild(timeEl);
+    // Row
+    const row = document.createElement('div');
+    row.className = `d-flex mb-2 chat-message-row align-items-end gap-2 ${mine ? 'justify-content-end' : 'justify-content-start'}`;
+    row.dataset.messageId = String(payload.id);
 
+    // Avatar (non-mine only)
+    if (! mine) {
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = 'chat-avatar';
+        avatarDiv.title = senderName;
+        avatarDiv.style.cssText = `background:${getAvatarColor(senderName)};color:#374151;`;
+        avatarDiv.textContent = senderName[0].toUpperCase();
+        row.appendChild(avatarDiv);
+    }
+
+    // Bubble
+    const bubble = document.createElement('div');
+    bubble.className = `rounded-3 px-3 py-2 shadow-sm chat-message-bubble ${bubbleClass}`;
+    let bubbleStyle = 'max-width: min(78%, 28rem);';
+    if (mine && portal === 'citizen') bubbleStyle += extraBubbleStyle;
+    bubble.setAttribute('style', bubbleStyle);
+
+    // Body
     const bodyEl = document.createElement('div');
-    bodyEl.className = 'small mt-1 mb-0 chat-message-body';
-    bodyEl.style.whiteSpace = 'pre-wrap';
+    bodyEl.className = 'small mb-0 chat-message-body';
+    bodyEl.style.cssText = 'white-space: pre-wrap; line-height: 1.5;';
     bodyEl.textContent = payload.body ?? '';
 
-    bubble.appendChild(header);
+    // Time
+    const timeWrap = document.createElement('div');
+    timeWrap.className = `chat-message-time ${mine ? 'text-end' : ''}`;
+    if (mine && portal === 'citizen') {
+        timeWrap.style.color = 'rgba(255,255,255,.75)';
+    } else {
+        timeWrap.classList.add('text-muted');
+    }
+
+    const timeEl = document.createElement('time');
+    if (timeISO) timeEl.dateTime = timeISO;
+    timeEl.textContent = timeText;
+
+    timeWrap.appendChild(timeEl);
+
+    if (mine) {
+        const checkIcon = document.createElement('i');
+        checkIcon.className = 'bi bi-check2 ms-1';
+        checkIcon.style.fontSize = '.6rem';
+        timeWrap.appendChild(checkIcon);
+    }
+
     bubble.appendChild(bodyEl);
+    bubble.appendChild(timeWrap);
     row.appendChild(bubble);
     root.appendChild(row);
 }

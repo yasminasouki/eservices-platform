@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Feedback;
 use App\Models\GovernmentOffice;
 use App\Models\ServiceRequest;
+use App\Notifications\NewFeedbackNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -45,6 +46,18 @@ class CitizenFeedbackController extends Controller
             'comment' => $validated['comment'] ?? null,
         ]);
 
+        $office = $serviceRequest->governmentOffice;
+        if ($office) {
+            $office->staff()->each(fn ($staff) => $staff->notify(
+                new NewFeedbackNotification(
+                    $request->user()->name,
+                    $validated['rating'],
+                    $office->id,
+                    $serviceRequest->id,
+                )
+            ));
+        }
+
         return redirect()
             ->route('citizen.requests.show', $serviceRequest)
             ->with('success', 'Thank you — your feedback helps improve public services.');
@@ -80,6 +93,15 @@ class CitizenFeedbackController extends Controller
             'rating' => $validated['rating'],
             'comment' => $validated['comment'] ?? null,
         ]);
+
+        $office->staff()->each(fn ($staff) => $staff->notify(
+            new NewFeedbackNotification(
+                $request->user()->name,
+                $validated['rating'],
+                $office->id,
+                null,
+            )
+        ));
 
         return redirect()
             ->route('citizen.offices.show', $office)

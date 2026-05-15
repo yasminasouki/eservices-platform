@@ -2,6 +2,7 @@
 @section('auth_body_class', 'auth-variant-municipality')
 @section('title', 'Municipality Portal — E-Services Platform')
 @section('auth_brand_icon', 'bi-building')
+@section('auth_brand_title', 'Municipality Portal')
 @section('heading', 'Municipality sign-in')
 @section('heading_badge', 'Staff')
 @section('subtitle', 'Sign in with your office email to manage services and appointments.')

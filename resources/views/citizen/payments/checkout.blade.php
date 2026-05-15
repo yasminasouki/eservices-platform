@@ -58,17 +58,19 @@
                 </div>
             </div>
 
+            @php $openCrypto = request()->query('tab') === 'crypto'; @endphp
+
             <ul class="nav nav-tabs mb-3" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="tab-card" data-bs-toggle="tab" data-bs-target="#pane-card" type="button" role="tab">Card</button>
+                    <button class="nav-link {{ $openCrypto ? '' : 'active' }}" id="tab-card" data-bs-toggle="tab" data-bs-target="#pane-card" type="button" role="tab">Card</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="tab-crypto" data-bs-toggle="tab" data-bs-target="#pane-crypto" type="button" role="tab">Cryptocurrency</button>
+                    <button class="nav-link {{ $openCrypto ? 'active' : '' }}" id="tab-crypto" data-bs-toggle="tab" data-bs-target="#pane-crypto" type="button" role="tab">Cryptocurrency</button>
                 </li>
             </ul>
 
             <div class="tab-content">
-                <div class="tab-pane fade show active" id="pane-card" role="tabpanel">
+                <div class="tab-pane fade {{ $openCrypto ? '' : 'show active' }}" id="pane-card" role="tabpanel">
                     <div class="card card-soft">
                         <div class="card-body">
                             @if(!empty($stripeElementsReady))
@@ -119,25 +121,22 @@
                     </div>
                 </div>
 
-                <div class="tab-pane fade" id="pane-crypto" role="tabpanel">
-                    @if(!empty($showDemoCryptoNotice))
-                        <div class="alert alert-info small mb-3">
-                            <strong>Demo wallet addresses.</strong> Your <code>CRYPTO_*</code> entries in <code>.env</code> are empty, so placeholders from <code>config/payments.php</code> are used. Set real receiving addresses for production. To turn off placeholders (even on local), set <code>CRYPTO_USE_DEMO_ADDRESSES=false</code> in <code>.env</code>.
-                        </div>
-                    @endif
+                <div class="tab-pane fade {{ $openCrypto ? 'show active' : '' }}" id="pane-crypto" role="tabpanel">
+                    @php $activeAsset = $cryptoQuote['asset'] ?? null; @endphp
+
                     <div class="card card-soft mb-3">
                         <div class="card-body">
                             <p class="small text-muted mb-3">
-                                Rates are loaded from <strong>CoinGecko</strong> (USD per coin). Send the <strong>exact</strong> crypto amount shown so we can match your payment.
+                                Choose a cryptocurrency and click <strong>Get quote</strong> to see the exact amount to send. Rates are fetched live from CoinGecko.
                             </p>
                             <form method="POST" action="{{ route('citizen.requests.pay.crypto-quote', $request) }}" class="row g-2 align-items-end">
                                 @csrf
                                 <div class="col-md-6">
-                                    <label class="form-label small">Asset</label>
+                                    <label class="form-label small">Cryptocurrency</label>
                                     <select name="asset" class="form-select form-select-sm" required>
-                                        <option value="btc">Bitcoin (BTC)</option>
-                                        <option value="eth">Ethereum (ETH)</option>
-                                        <option value="usdt">Tether (USDT, ERC-20)</option>
+                                        <option value="btc" @selected($activeAsset === 'btc')>Bitcoin (BTC)</option>
+                                        <option value="eth" @selected($activeAsset === 'eth')>Ethereum (ETH)</option>
+                                        <option value="usdt" @selected($activeAsset === 'usdt')>Tether (USDT, ERC-20)</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6">
@@ -153,8 +152,23 @@
                     </div>
 
                     @if($cryptoQuote)
+                        @php
+                            $assetLabel = match($cryptoQuote['asset']) {
+                                'btc'  => 'Bitcoin (BTC)',
+                                'eth'  => 'Ethereum (ETH)',
+                                'usdt' => 'Tether (USDT)',
+                                default => strtoupper($cryptoQuote['asset']),
+                            };
+                        @endphp
                         <div class="card card-soft mb-3 border-primary border-opacity-25">
-                            <div class="card-header bg-white border-0 fw-semibold small">Send cryptocurrency</div>
+                            <div class="card-header bg-white border-0 fw-semibold small d-flex align-items-center justify-content-between">
+                                <span><i class="bi bi-send me-1 text-primary"></i>Send {{ $assetLabel }}</span>
+                                @if(!empty($showDemoCryptoNotice))
+                                    <span class="badge bg-warning text-dark fw-normal" style="font-size:.7rem;">
+                                        <i class="bi bi-cone-striped me-1"></i>Test mode — demo address
+                                    </span>
+                                @endif
+                            </div>
                             <div class="card-body small">
                                 @if(!empty($cryptoQuoteExpiresAt))
                                     <p class="small text-muted border rounded px-2 py-2 bg-light mb-3 mb-md-3">
@@ -164,20 +178,53 @@
                                     </p>
                                 @endif
                                 <dl class="row mb-3">
-                                    <dt class="col-sm-4 text-muted">Asset</dt>
-                                    <dd class="col-sm-8 mb-2 text-uppercase">{{ $cryptoQuote['asset'] }}</dd>
-                                    <dt class="col-sm-4 text-muted">Amount</dt>
-                                    <dd class="col-sm-8 mb-2 font-monospace">{{ $cryptoQuote['crypto_amount'] }}</dd>
+                                    <dt class="col-sm-4 text-muted">Amount to send</dt>
+                                    <dd class="col-sm-8 mb-2 font-monospace fw-bold">{{ $cryptoQuote['crypto_amount'] }}</dd>
                                     <dt class="col-sm-4 text-muted">Rate</dt>
                                     <dd class="col-sm-8 mb-2">1 unit = ${{ number_format($cryptoQuote['usd_per_unit'], 2) }} USD <span class="text-muted">({{ $cryptoQuote['rate_source'] }})</span></dd>
                                     <dt class="col-sm-4 text-muted">To address</dt>
-                                    <dd class="col-sm-8 mb-0 font-monospace text-break">{{ $cryptoQuote['wallet'] }}</dd>
+                                    <dd class="col-sm-8 mb-0">
+                                        <div class="d-flex align-items-start gap-2 flex-wrap">
+                                            <span class="font-monospace text-break" id="crypto-wallet-addr" style="word-break:break-all;">{{ $cryptoQuote['wallet'] }}</span>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1 flex-shrink-0"
+                                                    id="copy-wallet-btn"
+                                                    title="Copy address"
+                                                    onclick="(function(b){navigator.clipboard&&navigator.clipboard.writeText(document.getElementById('crypto-wallet-addr').textContent.trim()).then(function(){var t=b.innerHTML;b.innerHTML='<i class=\'bi bi-check2\'></i>';setTimeout(function(){b.innerHTML=t;},1500);}).catch(function(){});})(this)">
+                                                <i class="bi bi-copy"></i>
+                                            </button>
+                                        </div>
+                                    </dd>
                                 </dl>
+                                @php
+                                    $txRequired = !config('payments.crypto.auto_complete_after_citizen_submit')
+                                        && config('payments.crypto.require_tx_reference_when_manual_verify');
+                                    $txMinLen = (int) config('payments.crypto.tx_reference_min_length', 10);
+                                @endphp
                                 <form method="POST" action="{{ route('citizen.requests.pay.crypto-confirm', $request) }}">
                                     @csrf
                                     <div class="mb-2">
-                                        <label class="form-label small">Transaction ID / hash <span class="text-muted">(optional)</span></label>
-                                        <input type="text" name="tx_reference" class="form-control form-control-sm font-monospace" maxlength="500" value="{{ old('tx_reference') }}" placeholder="Paste explorer link or tx hash">
+                                        <label class="form-label small">
+                                            Transaction ID / hash
+                                            @if($txRequired)
+                                                <span class="text-danger">*</span>
+                                            @else
+                                                <span class="text-muted">(optional)</span>
+                                            @endif
+                                        </label>
+                                        <input type="text" name="tx_reference"
+                                               class="form-control form-control-sm font-monospace @error('crypto') is-invalid @enderror"
+                                               maxlength="500"
+                                               value="{{ old('tx_reference') }}"
+                                               placeholder="{{ $txRequired ? 'Required — paste your tx hash or explorer link' : 'Paste explorer link or tx hash' }}"
+                                               @if($txRequired) required minlength="{{ $txMinLen }}" @endif>
+                                        @if($txRequired)
+                                            <div class="form-text" style="font-size:.74rem;">
+                                                After you send the crypto, paste the transaction hash (or full explorer URL) here so the office can verify on-chain.
+                                            </div>
+                                        @endif
+                                        @error('crypto')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                     <button type="submit" class="btn btn-success btn-sm">
                                         <i class="bi bi-check2-circle me-1"></i>I have sent the payment

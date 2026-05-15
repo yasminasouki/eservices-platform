@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Citizen;
 
 use App\Http\Controllers\Controller;
+use App\Models\Appointment;
 use App\Models\Payment;
 use App\Models\ServiceRequest;
 use Illuminate\View\View;
@@ -28,7 +29,11 @@ class CitizenDashboardController extends Controller
             ->where('status', 'completed')
             ->sum('amount');
 
-        $upcomingAppointments = 0;
+        $upcomingAppointments = Appointment::query()
+            ->where('user_id', $userId)
+            ->whereIn('status', ['scheduled', 'confirmed'])
+            ->whereHas('timeSlot', fn ($q) => $q->whereDate('date', '>=', today()))
+            ->count();
 
         $recentRequests = ServiceRequest::query()
             ->where('user_id', $userId)

@@ -1,102 +1,111 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Change Password — E-Services Platform</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
+@extends('layouts.office')
 
-    <nav class="navbar navbar-dark px-3" style="background: linear-gradient(135deg, #1b5e20, #2e7d32);">
-        <span class="navbar-brand fw-bold">
-            <i class="bi bi-building-fill-gear me-2"></i>E-Services Platform
-        </span>
-        <div class="d-flex align-items-center gap-3">
-            <span class="text-white small">{{ auth()->user()->name }}</span>
-            <span class="badge bg-light text-dark">Office Staff</span>
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button class="btn btn-outline-light btn-sm">
-                    <i class="bi bi-box-arrow-right me-1"></i>Logout
-                </button>
-            </form>
-        </div>
-    </nav>
+@section('title', 'Change Password')
 
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-md-5">
+@push('styles')
+<style>
+    .page-title { font-size: 1.25rem; font-weight: 800; color: #0f2d13; margin-bottom: .15rem; }
+    .page-sub   { font-size: .83rem; color: #52916b; margin: 0; }
 
-                @if(session('success'))
-                    <div class="alert alert-success alert-dismissible fade show">
-                        <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                @endif
-                @if(session('error'))
-                    <div class="alert alert-danger alert-dismissible fade show">
-                        <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                @endif
+    /* Password card */
+    .pw-card {
+        background: #fff; border-radius: 16px;
+        border: 1px solid #d1fae5;
+        box-shadow: 0 2px 20px rgba(21,128,61,.07);
+        padding: 2rem 2.25rem;
+        max-width: 440px; margin: 0 auto;
+    }
 
-                <div class="card border-0 shadow-sm rounded-4">
-                    <div class="card-body p-4 p-md-5">
+    .pw-icon-circle {
+        width: 56px; height: 56px; background: #dcfce7; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        color: #16a34a; font-size: 1.4rem; margin: 0 auto 1.1rem;
+    }
 
-                        <h4 class="fw-bold mb-1">
-                            <i class="bi bi-key me-2" style="color:#2e7d32"></i>Change Password
-                        </h4>
-                        <p class="text-muted small mb-4">Update your account password below.</p>
+    .pw-card h4 {
+        font-size: 1.1rem; font-weight: 800; color: #0f2d13;
+        text-align: center; margin-bottom: .25rem;
+    }
+    .pw-card .pw-sub {
+        font-size: .83rem; color: #52916b; text-align: center; margin-bottom: 1.5rem;
+    }
 
-                        <form method="POST" action="{{ route('office.password.update') }}">
-                            @csrf
+    .form-label { font-size: .82rem; font-weight: 600; color: #14532d; }
+    .form-control { border-color: #d1fae5; font-size: .875rem; }
+    .form-control:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,.12); }
 
-                            <div class="mb-3">
-                                <label for="current_password" class="form-label">Current Password</label>
-                                <input type="password" id="current_password" name="current_password"
-                                       class="form-control @error('current_password') is-invalid @enderror"
-                                       required>
-                                @error('current_password')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
+    .btn-update-pw {
+        display: flex; align-items: center; justify-content: center; gap: .4rem;
+        width: 100%; background: #16a34a; border: none; color: #fff;
+        font-weight: 700; font-size: .9rem; padding: .6rem 1.25rem;
+        border-radius: 9px; transition: background .15s; cursor: pointer;
+    }
+    .btn-update-pw:hover { background: #15803d; }
 
-                            <div class="mb-3">
-                                <label for="password" class="form-label">New Password</label>
-                                <input type="password" id="password" name="password"
-                                       class="form-control @error('password') is-invalid @enderror"
-                                       required>
-                                @error('password')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
+    .btn-back-link {
+        display: flex; align-items: center; justify-content: center; gap: .3rem;
+        color: #52916b; text-decoration: none; font-size: .82rem; margin-top: .85rem;
+        transition: color .12s;
+    }
+    .btn-back-link:hover { color: #14532d; }
+</style>
+@endpush
 
-                            <div class="mb-4">
-                                <label for="password_confirmation" class="form-label">Confirm New Password</label>
-                                <input type="password" id="password_confirmation" name="password_confirmation"
-                                       class="form-control" required>
-                            </div>
+@section('content')
 
-                            <button type="submit" class="btn w-100 text-white" style="background:#2e7d32;border-color:#2e7d32">
-                                <i class="bi bi-check-lg me-2"></i>Update Password
-                            </button>
-                        </form>
-
-                        <div class="text-center mt-3">
-                            <a href="{{ route('office.dashboard') }}" class="text-decoration-none small text-muted">
-                                <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
-                            </a>
-                        </div>
-
-                    </div>
-                </div>
-
-            </div>
-        </div>
+    {{-- Page header --}}
+    <div class="mb-4 text-center">
+        <div class="page-title">Change Password</div>
+        <p class="page-sub">Update your account security credentials.</p>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+    <div class="pw-card">
+
+        <div class="pw-icon-circle">
+            <i class="bi bi-key-fill"></i>
+        </div>
+
+        <h4>Change Password</h4>
+        <p class="pw-sub">Update your account password below.</p>
+
+        <form method="POST" action="{{ route('office.password.update') }}">
+            @csrf
+
+            <div class="mb-3">
+                <label for="current_password" class="form-label">Current Password</label>
+                <input type="password" id="current_password" name="current_password"
+                       class="form-control @error('current_password') is-invalid @enderror"
+                       required>
+                @error('current_password')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">New Password</label>
+                <input type="password" id="password" name="password"
+                       class="form-control @error('password') is-invalid @enderror"
+                       required>
+                @error('password')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="mb-4">
+                <label for="password_confirmation" class="form-label">Confirm New Password</label>
+                <input type="password" id="password_confirmation" name="password_confirmation"
+                       class="form-control" required>
+            </div>
+
+            <button type="submit" class="btn-update-pw">
+                <i class="bi bi-check-lg"></i>Update Password
+            </button>
+        </form>
+
+        <a href="{{ route('office.dashboard') }}" class="btn-back-link">
+            <i class="bi bi-arrow-left"></i>Back to Dashboard
+        </a>
+
+    </div>
+
+@endsection
