@@ -139,8 +139,8 @@
                             <div class="col-sm-6">
                                 <p class="small text-muted mb-1 fw-semibold">Front</p>
                                 @if($verification->id_document_path)
-                                    <a href="{{ route('admin.id-documents.show', $verification->id_document_path) }}" target="_blank" rel="noopener">
-                                        <img src="{{ route('admin.id-documents.show', $verification->id_document_path) }}"
+                                    <a href="{{ url('/admin/id-documents/' . $verification->id_document_path) }}" target="_blank" rel="noopener">
+                                        <img src="{{ url('/admin/id-documents/' . $verification->id_document_path) }}"
                                              alt="ID front"
                                              class="img-fluid rounded border"
                                              style="max-height:200px; object-fit:cover; width:100%;">
@@ -152,8 +152,8 @@
                             <div class="col-sm-6">
                                 <p class="small text-muted mb-1 fw-semibold">Back</p>
                                 @if($verification->id_document_back_path)
-                                    <a href="{{ route('admin.id-documents.show', $verification->id_document_back_path) }}" target="_blank" rel="noopener">
-                                        <img src="{{ route('admin.id-documents.show', $verification->id_document_back_path) }}"
+                                    <a href="{{ url('/admin/id-documents/' . $verification->id_document_back_path) }}" target="_blank" rel="noopener">
+                                        <img src="{{ url('/admin/id-documents/' . $verification->id_document_back_path) }}"
                                              alt="ID back"
                                              class="img-fluid rounded border"
                                              style="max-height:200px; object-fit:cover; width:100%;">

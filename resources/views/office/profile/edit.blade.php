@@ -238,6 +238,7 @@
 
 @push('scripts')
 <script>
+document.addEventListener('DOMContentLoaded', function () {
 (function () {
     var cfg = @json($mapConfig ?? []);
     var latIn = document.getElementById('office-latitude-input');
@@ -344,5 +345,6 @@
         });
     }
 })();
+});
 </script>
 @endpush

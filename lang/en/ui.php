@@ -834,4 +834,6 @@ return [
     'admin_ou_btn_deactivate'           => 'Deactivate',
     'admin_ou_btn_activate'             => 'Activate',
     'admin_ou_empty'                    => 'No municipality users found',
+    'please_fix_errors'                 => 'Please fix the following errors:',
+    'citizen_create_submitting'         => 'Submitting…',
 ];

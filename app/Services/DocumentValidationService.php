@@ -137,7 +137,7 @@ class DocumentValidationService
                     [
                         'name'     => 'file',
                         'contents' => $handle,
-                        'filename' => basename($absolutePath),
+                        'filename' => 'document.' . $ext,
                     ],
                 ]);
         } finally {

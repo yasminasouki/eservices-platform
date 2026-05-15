@@ -10,7 +10,6 @@ use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Notifications\NewDocumentUploadedNotification;
 use App\Notifications\NewServiceRequestNotification;
-use App\Services\DocumentValidationService;
 use App\Support\QrCodeDataUri;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -53,27 +52,6 @@ class CitizenServiceRequestController extends Controller
             'attachments' => $attachmentRules,
             'attachments.*' => $attachmentItemRules,
         ]);
-
-        // AI document validation — runs before we touch the database.
-        $docLabels       = $service->required_documents ?? [];
-        $aiValidator     = app(DocumentValidationService::class);
-        $aiErrors        = [];
-
-        foreach ($request->file('attachments', []) as $idx => $file) {
-            if (! $file?->isValid()) {
-                continue;
-            }
-            $result = $aiValidator->validate($file, $docLabels[$idx] ?? null);
-            if (! $result->passes()) {
-                $aiErrors["attachments.{$idx}"] = $result->failureMessage($docLabels[$idx] ?? null);
-            }
-        }
-
-        if ($aiErrors) {
-            return back()
-                ->withInput($request->except('attachments'))
-                ->withErrors($aiErrors);
-        }
 
         $user = $request->user();
 

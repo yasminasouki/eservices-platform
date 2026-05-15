@@ -147,7 +147,7 @@ Route::middleware(['auth', 'active'])->group(function () {
             Route::post('/admin/notifications/{id}/read',  [AdminNotificationController::class, 'markOneRead'])->name('admin.notifications.read-one');
 
             Route::get('/admin/id-documents/{path}', function (string $path) {
-                $fullPath = storage_path('app/' . $path);
+                $fullPath = \Illuminate\Support\Facades\Storage::disk('local')->path($path);
 
                 abort_unless(file_exists($fullPath), 404);
 
