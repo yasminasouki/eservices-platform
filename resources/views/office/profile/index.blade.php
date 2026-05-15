@@ -1,6 +1,6 @@
 @extends('layouts.office')
 
-@section('title', 'Office Profile')
+@section('title', __('ui.office_profile_title'))
 
 @push('styles')
 <style>
@@ -55,14 +55,14 @@
 
     {{-- Page header --}}
     <div class="mb-4">
-        <div class="page-title">Office Profile</div>
-        <p class="page-sub">Manage your office's public information.</p>
+        <div class="page-title">{{ __('ui.office_profile_title') }}</div>
+        <p class="page-sub">{{ __('ui.office_profile_subtitle') }}</p>
     </div>
 
     @if($offices->isEmpty())
         <div class="alert-no-office">
             <i class="bi bi-exclamation-triangle-fill" style="font-size:1.1rem;flex-shrink:0;"></i>
-            No office is assigned to your account. Ask an administrator to link you to a government office.
+            {{ __('ui.office_profile_no_office') }}
         </div>
     @else
         <div class="row g-3">
@@ -81,7 +81,7 @@
                                 {{ \Illuminate\Support\Str::limit($o->address, 90) }}
                             </div>
                             <a href="{{ route('office.profile.edit', $o) }}" class="btn-edit-profile">
-                                <i class="bi bi-pencil"></i>Edit profile
+                                <i class="bi bi-pencil"></i>{{ __('ui.office_profile_edit') }}
                             </a>
                         </div>
                     </div>

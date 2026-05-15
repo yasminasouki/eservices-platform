@@ -157,7 +157,7 @@
     {{-- Breadcrumb --}}
     <nav aria-label="breadcrumb" class="mb-3">
         <span>
-            <a href="{{ route('office.requests.index', $office) }}" class="breadcrumb-link">Requests</a>
+            <a href="{{ route('office.requests.index', $office) }}" class="breadcrumb-link">{{ __('ui.office_req_title') }}</a>
             <span class="breadcrumb-sep">/</span>
             <span class="breadcrumb-current">#{{ $request->id }}</span>
         </span>
@@ -189,14 +189,14 @@
             @if($request->citizen)
                 <div class="green-card">
                     <div class="green-card-header">
-                        <span><i class="bi bi-chat-dots me-2 text-success"></i>Live chat</span>
+                        <span><i class="bi bi-chat-dots me-2 text-success"></i>{{ __('ui.citizen_chat_title') }}</span>
                         <a href="{{ route('office.chat.show', [$office, $request->citizen]) }}" class="btn-chat">
-                            <i class="bi bi-chat-dots"></i>Open thread with {{ $request->citizen->name }}
+                            <i class="bi bi-chat-dots"></i>{{ __('ui.office_req_show_open_thread', ['name' => $request->citizen->name]) }}
                         </a>
                     </div>
                     <div class="green-card-body">
                         <p class="mb-0" style="font-size:.83rem;color:#52916b;">
-                            General live chat with this citizen (same thread as from the office chat inbox).
+                            {{ __('ui.office_req_show_general_chat') }}
                         </p>
                     </div>
                 </div>
@@ -205,25 +205,25 @@
             {{-- Citizen & service --}}
             <div class="green-card">
                 <div class="green-card-header">
-                    <span><i class="bi bi-person me-2 text-success"></i>Citizen &amp; service</span>
+                    <span><i class="bi bi-person me-2 text-success"></i>{{ __('ui.office_req_show_citizen_service') }}</span>
                 </div>
                 <div class="green-card-body">
                     <div class="info-grid">
-                        <span class="info-label">Citizen</span>
+                        <span class="info-label">{{ __('ui.office_req_show_lbl_citizen') }}</span>
                         <span class="info-value">{{ $request->citizen?->name ?? '—' }}</span>
-                        <span class="info-label">Email</span>
+                        <span class="info-label">{{ __('ui.office_req_show_lbl_email') }}</span>
                         <span class="info-value">{{ $request->citizen?->email ?? '—' }}</span>
-                        <span class="info-label">Phone</span>
+                        <span class="info-label">{{ __('ui.office_req_show_lbl_phone') }}</span>
                         <span class="info-value">{{ $request->citizen?->phone ?? '—' }}</span>
-                        <span class="info-label">Service</span>
+                        <span class="info-label">{{ __('ui.office_req_show_lbl_service') }}</span>
                         <span class="info-value">{{ $request->service?->name ?? '—' }}</span>
                         @if($request->service?->category)
-                            <span class="info-label">Category</span>
+                            <span class="info-label">{{ __('ui.office_req_show_lbl_category') }}</span>
                             <span class="info-value">{{ $request->service->category->name }}</span>
                         @endif
-                        <span class="info-label">Submitted</span>
+                        <span class="info-label">{{ __('ui.office_req_show_lbl_submitted') }}</span>
                         <span class="info-value">{{ $request->submitted_at?->format('Y-m-d H:i') ?? $request->created_at?->format('Y-m-d H:i') ?? '—' }}</span>
-                        <span class="info-label">Notes</span>
+                        <span class="info-label">{{ __('ui.office_req_show_lbl_notes') }}</span>
                         <span class="info-value">{!! $request->notes ? nl2br(e($request->notes)) : '—' !!}</span>
                     </div>
                 </div>
@@ -232,10 +232,10 @@
             {{-- Documents --}}
             <div class="green-card">
                 <div class="green-card-header">
-                    <span><i class="bi bi-paperclip me-2 text-success"></i>Documents</span>
+                    <span><i class="bi bi-paperclip me-2 text-success"></i>{{ __('ui.office_req_show_documents') }}</span>
                 </div>
                 @if($request->documents->isEmpty())
-                    <p class="no-docs">No documents uploaded yet.</p>
+                    <p class="no-docs">{{ __('ui.office_req_show_no_docs') }}</p>
                 @else
                     <div class="green-card-body-p0">
                         @foreach($request->documents as $doc)
@@ -263,26 +263,26 @@
             {{-- Upload document --}}
             <div class="green-card">
                 <div class="green-card-header">
-                    <span><i class="bi bi-upload me-2 text-success"></i>Upload document (office)</span>
+                    <span><i class="bi bi-upload me-2 text-success"></i>{{ __('ui.office_req_show_upload_doc') }}</span>
                 </div>
                 <div class="green-card-body">
                     <form method="POST" action="{{ route('office.requests.documents.store', [$office, $request]) }}" enctype="multipart/form-data" class="row g-3">
                         @csrf
                         <div class="col-md-6">
-                            <label class="form-label">File <span class="text-danger">*</span></label>
+                            <label class="form-label">{{ __('ui.office_req_show_col_file') }} <span class="text-danger">*</span></label>
                             <input type="file" name="file" class="form-control form-control-sm" required>
                             <div class="form-text" style="font-size:.75rem;color:#52916b;">Max 12 MB.</div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Type <span class="text-danger">*</span></label>
+                            <label class="form-label">{{ __('ui.office_req_show_col_type') }} <span class="text-danger">*</span></label>
                             <select name="type" class="form-select form-select-sm" required>
-                                <option value="certificate">Certificate</option>
-                                <option value="generated">Generated</option>
-                                <option value="receipt">Receipt</option>
+                                <option value="certificate">{{ __('ui.office_req_show_doc_cert') }}</option>
+                                <option value="generated">{{ __('ui.office_req_show_doc_gen') }}</option>
+                                <option value="receipt">{{ __('ui.office_req_show_doc_receipt') }}</option>
                             </select>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Description</label>
+                            <label class="form-label">{{ __('ui.office_req_show_col_desc') }}</label>
                             <input type="text" name="description" class="form-control form-control-sm" maxlength="500" value="{{ old('description') }}">
                         </div>
                         <div class="col-12">
@@ -301,14 +301,14 @@
             {{-- Update status --}}
             <div class="green-card">
                 <div class="green-card-header">
-                    <span><i class="bi bi-arrow-repeat me-2 text-success"></i>Update status</span>
+                    <span><i class="bi bi-arrow-repeat me-2 text-success"></i>{{ __('ui.office_req_show_update_status') }}</span>
                 </div>
                 <div class="green-card-body">
                     <form method="POST" action="{{ route('office.requests.status', [$office, $request]) }}" id="office-status-form">
                         @csrf
                         @method('PATCH')
                         <div class="mb-3">
-                            <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
+                            <label for="status" class="form-label">{{ __('ui.office_req_show_status_label') }} <span class="text-danger">*</span></label>
                             <select name="status" id="status" class="form-select form-select-sm" required>
                                 @foreach(\App\Models\ServiceRequest::STATUSES as $s)
                                     <option value="{{ $s }}" @selected(old('status', $request->status) === $s)>
@@ -318,20 +318,20 @@
                             </select>
                         </div>
                         <div class="mb-3" id="field-rejection" style="display: none;">
-                            <label for="rejection_reason" class="form-label">Rejection reason <span class="text-danger">*</span></label>
+                            <label for="rejection_reason" class="form-label">{{ __('ui.office_req_show_rejection_reason') }} <span class="text-danger">*</span></label>
                             <textarea name="rejection_reason" id="rejection_reason" class="form-control form-control-sm" rows="3" maxlength="5000">{{ old('rejection_reason', $request->rejection_reason) }}</textarea>
                         </div>
                         <div class="mb-3" id="field-missing" style="display: none;">
-                            <label for="missing_docs_note" class="form-label">Missing documents note <span class="text-danger">*</span></label>
+                            <label for="missing_docs_note" class="form-label">{{ __('ui.office_req_show_missing_docs_note') }} <span class="text-danger">*</span></label>
                             <textarea name="missing_docs_note" id="missing_docs_note" class="form-control form-control-sm" rows="3" maxlength="5000">{{ old('missing_docs_note', $request->missing_docs_note) }}</textarea>
                         </div>
                         <div class="mb-3">
-                            <label for="status_note" class="form-label">Status log note <span class="text-muted fw-normal">(optional)</span></label>
+                            <label for="status_note" class="form-label">{{ __('ui.office_req_show_status_log_note') }} <span class="text-muted fw-normal">({{ __('ui.citizen_feedback_optional') }})</span></label>
                             <input type="text" name="status_note" id="status_note" class="form-control form-control-sm" maxlength="2000" value="{{ old('status_note') }}">
                             <div class="form-text" style="font-size:.74rem;color:#52916b;">Appended to the audit trail when you save.</div>
                         </div>
                         <button type="submit" class="btn-save-status">
-                            <i class="bi bi-check2-circle me-1"></i>Save status
+                            <i class="bi bi-check2-circle me-1"></i>{{ __('ui.office_req_show_save_status') }}
                         </button>
                     </form>
                 </div>
@@ -346,7 +346,7 @@
                 @endphp
                 <div class="green-card">
                     <div class="green-card-header">
-                        <span><i class="bi bi-credit-card me-2 text-success"></i>Card payment (Stripe)</span>
+                        <span><i class="bi bi-credit-card me-2 text-success"></i>{{ __('ui.office_req_show_stripe') }}</span>
                         @if($pay->status === 'completed')
                             <span class="crypto-badge" style="background:#dcfce7;color:#14532d;">
                                 <i class="bi bi-check-circle-fill"></i>Approved
@@ -359,9 +359,9 @@
                     </div>
                     <div class="green-card-body">
                         <div class="info-grid">
-                            <span class="info-label">Amount</span>
+                            <span class="info-label">{{ __('ui.office_req_show_lbl_amount') }}</span>
                             <span class="info-value fw-bold">${{ number_format((float) $pay->amount, 2) }} USD</span>
-                            <span class="info-label">Transaction</span>
+                            <span class="info-label">{{ __('ui.office_req_show_lbl_transaction') }}</span>
                             <span class="info-value" style="font-family:monospace;font-size:.8rem;word-break:break-all;">
                                 @if($txId)
                                     {{ $txId }}
@@ -370,13 +370,13 @@
                                 @endif
                             </span>
                             @if($pay->paid_at)
-                                <span class="info-label">Paid at</span>
+                                <span class="info-label">{{ __('ui.office_req_show_lbl_paid_at') }}</span>
                                 <span class="info-value">{{ $pay->paid_at->format('M j, Y g:i A') }}</span>
                             @endif
                         </div>
                         @if($pay->status === 'completed')
                             <p style="font-size:.82rem;color:#15803d;margin:.75rem 0 0;">
-                                <i class="bi bi-check-circle-fill me-1"></i>Payment confirmed by Stripe. Request is active.
+                                <i class="bi bi-check-circle-fill me-1"></i>{{ __('ui.office_req_show_stripe_confirmed') }}
                             </p>
                         @endif
                     </div>
@@ -401,7 +401,7 @@
                 @endphp
                 <div class="green-card" id="crypto-payment-card">
                     <div class="green-card-header">
-                        <span><i class="bi bi-currency-bitcoin me-2 text-success"></i>Crypto payment</span>
+                        <span><i class="bi bi-currency-bitcoin me-2 text-success"></i>{{ __('ui.office_req_show_crypto') }}</span>
                         @if($isApproved)
                             <span class="crypto-badge" style="background:#dcfce7;color:#14532d;">
                                 <i class="bi bi-check-circle-fill"></i>Approved
@@ -418,33 +418,33 @@
                     </div>
                     <div class="green-card-body">
                         <div class="info-grid mb-3">
-                            <span class="info-label">Asset</span>
+                            <span class="info-label">{{ __('ui.office_req_show_lbl_asset') }}</span>
                             <span class="info-value">{{ $cryptoAsset }}</span>
-                            <span class="info-label">Amount</span>
+                            <span class="info-label">{{ __('ui.office_req_show_lbl_amount') }}</span>
                             <span class="info-value font-monospace">
                                 {{ $cryptoAmount ?? '—' }}
                                 @if($cryptoAmount) <span style="font-size:.75rem;color:#52916b;">≈ ${{ number_format((float)$pay->amount, 2) }} USD</span>@endif
                             </span>
-                            <span class="info-label">Wallet</span>
+                            <span class="info-label">{{ __('ui.office_req_show_lbl_wallet') }}</span>
                             <span class="info-value" style="font-family:monospace;font-size:.8rem;word-break:break-all;">{{ $cryptoWallet ?? '—' }}</span>
-                            <span class="info-label">Tx ref</span>
+                            <span class="info-label">{{ __('ui.office_req_show_lbl_tx_ref') }}</span>
                             <span class="info-value" style="font-family:monospace;font-size:.8rem;word-break:break-all;">
                                 @if($cryptoTxRef)
                                     {{ $cryptoTxRef }}
                                 @else
-                                    <span style="color:#9ca3af;">Not submitted yet</span>
+                                    <span style="color:#9ca3af;">{{ __('ui.office_req_show_not_submitted') }}</span>
                                 @endif
                             </span>
                             @if($cryptoQuotedAt)
-                                <span class="info-label">Quoted at</span>
+                                <span class="info-label">{{ __('ui.office_req_show_lbl_quoted_at') }}</span>
                                 <span class="info-value">{{ \Illuminate\Support\Carbon::parse($cryptoQuotedAt)->format('M j, Y g:i A') }}</span>
                             @endif
                             @if($cryptoSubmittedAt)
-                                <span class="info-label">Citizen sent</span>
+                                <span class="info-label">{{ __('ui.office_req_show_lbl_citizen_sent') }}</span>
                                 <span class="info-value">{{ \Illuminate\Support\Carbon::parse($cryptoSubmittedAt)->format('M j, Y g:i A') }}</span>
                             @endif
                             @if($isApproved && $cryptoApprovedAt)
-                                <span class="info-label">Approved at</span>
+                                <span class="info-label">{{ __('ui.office_req_show_lbl_approved_at') }}</span>
                                 <span class="info-value">{{ \Illuminate\Support\Carbon::parse($cryptoApprovedAt)->format('M j, Y g:i A') }}</span>
                             @endif
                         </div>
@@ -455,13 +455,13 @@
                                 <button type="button" class="btn-crypto-verify" id="crypto-verify-btn"
                                         data-check-url="{{ $checkUrl }}"
                                         data-tx-hash="{{ $cryptoTxRef }}">
-                                    <i class="bi bi-search"></i>Verify on blockchain
+                                    <i class="bi bi-search"></i>{{ __('ui.office_req_show_verify_blockchain') }}
                                 </button>
                             </div>
                             <div class="crypto-verify-result" id="crypto-verify-result"></div>
                         @elseif(!$cryptoTxRef && !$isApproved)
                             <p style="font-size:.8rem;color:#9ca3af;margin:0 0 .75rem;">
-                                <i class="bi bi-info-circle me-1"></i>Waiting for the citizen to submit a transaction hash.
+                                <i class="bi bi-info-circle me-1"></i>{{ __('ui.office_req_show_waiting_hash') }}
                             </p>
                         @endif
 
@@ -470,13 +470,13 @@
                             <form method="POST" action="{{ $approveUrl }}" id="crypto-approve-form" class="mt-2">
                                 @csrf
                                 <button type="submit" class="btn-crypto-approve"
-                                        onclick="return confirm('Mark this crypto payment as approved? The request will enter the office queue.')">
-                                    <i class="bi bi-check2-circle me-1"></i>Approve &amp; activate request
+                                        onclick="return confirm('{{ __('ui.office_req_show_approve_activate') }}?')">
+                                    <i class="bi bi-check2-circle me-1"></i>{{ __('ui.office_req_show_approve_activate') }}
                                 </button>
                             </form>
                         @else
                             <p style="font-size:.82rem;color:#15803d;margin:.5rem 0 0;">
-                                <i class="bi bi-check-circle-fill me-1"></i>Payment verified and approved. Request is active.
+                                <i class="bi bi-check-circle-fill me-1"></i>{{ __('ui.office_req_show_crypto_verified') }}
                             </p>
                         @endif
                     </div>
@@ -486,11 +486,11 @@
             {{-- Status history --}}
             <div class="green-card">
                 <div class="green-card-header">
-                    <span><i class="bi bi-clock-history me-2 text-success"></i>Status history</span>
+                    <span><i class="bi bi-clock-history me-2 text-success"></i>{{ __('ui.office_req_show_history') }}</span>
                 </div>
                 <div class="green-card-body">
                     @if($request->statusLogs->isEmpty())
-                        <p class="no-history mb-0">No changes recorded yet.</p>
+                        <p class="no-history mb-0">{{ __('ui.office_req_show_no_history') }}</p>
                     @else
                         @foreach($request->statusLogs as $log)
                             <div class="timeline-item">

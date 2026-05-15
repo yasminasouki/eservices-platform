@@ -82,19 +82,19 @@
 @section('content')
     <nav aria-label="breadcrumb" class="small mb-2">
         <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item"><a href="{{ route('citizen.offices.index') }}">Offices</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('citizen.offices.index') }}">{{ __('ui.offices') }}</a></li>
             <li class="breadcrumb-item"><a href="{{ route('citizen.offices.show', $office) }}">{{ $office->name }}</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Live chat</li>
+            <li class="breadcrumb-item active" aria-current="page">{{ __('ui.citizen_chat_title') }}</li>
         </ol>
     </nav>
 
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
         <div>
-            <h2 class="fw-bold mb-1"><i class="bi bi-chat-dots me-2"></i>Live chat</h2>
-            <p class="text-muted small mb-0">Chat directly with office staff</p>
+            <h2 class="fw-bold mb-1"><i class="bi bi-chat-dots me-2"></i>{{ __('ui.citizen_chat_title') }}</h2>
+            <p class="text-muted small mb-0">{{ __('ui.citizen_chat_subtitle') }}</p>
         </div>
         <a href="{{ route('citizen.offices.show', $office) }}" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left me-1"></i>Office details
+            <i class="bi bi-arrow-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }} me-1"></i>{{ __('ui.citizen_chat_office_details') }}
         </a>
     </div>
 
@@ -107,7 +107,7 @@
             <div class="min-w-0">
                 <div class="fw-bold" style="font-size:.95rem; color:#1f1235;">{{ $office->name }}</div>
                 <div style="font-size:.78rem; color:#9d7ecf;">
-                    <span class="chat-online-dot"></span>Office staff
+                    <span class="chat-online-dot"></span>{{ __('ui.citizen_chat_office_staff') }}
                 </div>
             </div>
         </div>
@@ -132,7 +132,7 @@
                         rows="1"
                         maxlength="5000"
                         required
-                        placeholder="Ask a question or message the office…"
+                        placeholder="{{ __('ui.citizen_chat_placeholder') }}"
                     >{{ old('body') }}</textarea>
                     <button type="submit" class="btn chat-send-btn" title="Send (Ctrl+Enter)">
                         <i class="bi bi-send-fill"></i>
@@ -143,11 +143,11 @@
                 @enderror
                 <div class="text-end mt-1" style="font-size:.67rem; color:#b4a0d4;">
                     <kbd style="background:#f3f0ff;border:1px solid #e0d9ff;color:#7c3aed;font-size:.65rem;border-radius:4px;padding:1px 4px;">Enter</kbd>
-                    to send &nbsp;·&nbsp;
+                    {{ __('ui.citizen_chat_enter_to_send') }} &nbsp;·&nbsp;
                     <kbd style="background:#f3f0ff;border:1px solid #e0d9ff;color:#7c3aed;font-size:.65rem;border-radius:4px;padding:1px 4px;">Shift</kbd>
                     +
                     <kbd style="background:#f3f0ff;border:1px solid #e0d9ff;color:#7c3aed;font-size:.65rem;border-radius:4px;padding:1px 4px;">Enter</kbd>
-                    for new line
+                    {{ __('ui.citizen_chat_shift_newline') }}
                 </div>
             </form>
         </div>

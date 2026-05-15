@@ -1,6 +1,6 @@
 @extends('layouts.office')
 
-@section('title', $isEdit ? 'Edit Category' : 'New Category')
+@section('title', $isEdit ? __('ui.office_cat_form_edit_title') : __('ui.office_cat_form_new_title'))
 
 @push('styles')
 <style>
@@ -42,11 +42,11 @@
     {{-- Page header --}}
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
         <div>
-            <div class="page-title">{{ $isEdit ? 'Edit Category' : 'New Category' }}</div>
+            <div class="page-title">{{ $isEdit ? __('ui.office_cat_form_edit_title') : __('ui.office_cat_form_new_title') }}</div>
             <p class="page-sub">{{ $office->name }}</p>
         </div>
         <a href="{{ route('office.categories.index', $office) }}" class="btn-back">
-            <i class="bi bi-arrow-left"></i>Back to categories
+            <i class="bi bi-arrow-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }}"></i>{{ __('ui.office_cat_form_back') }}
         </a>
     </div>
 
@@ -58,7 +58,7 @@
             @endif
 
             <div class="col-12">
-                <label class="form-label">Name <span class="text-danger">*</span></label>
+                <label class="form-label">{{ __('ui.office_cat_form_name') }} <span class="text-danger">*</span></label>
                 <input type="text" name="name"
                        class="form-control @error('name') is-invalid @enderror"
                        value="{{ old('name', $category->name) }}" required maxlength="255">
@@ -66,7 +66,7 @@
             </div>
 
             <div class="col-12">
-                <label class="form-label">Description</label>
+                <label class="form-label">{{ __('ui.office_cat_form_description') }}</label>
                 <textarea name="description" rows="3"
                           class="form-control @error('description') is-invalid @enderror">{{ old('description', $category->description) }}</textarea>
                 @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -74,7 +74,7 @@
 
             <div class="col-12">
                 <button type="submit" class="btn-submit">
-                    <i class="bi bi-check2"></i>{{ $isEdit ? 'Update category' : 'Create category' }}
+                    <i class="bi bi-check2"></i>{{ $isEdit ? __('ui.office_cat_form_update_btn') : __('ui.office_cat_form_create_btn') }}
                 </button>
             </div>
         </form>

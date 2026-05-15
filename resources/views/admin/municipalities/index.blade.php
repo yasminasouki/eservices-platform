@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Municipalities')
+@section('title', __('ui.admin_muni_title'))
 
 @push('styles')
 <style>
@@ -100,27 +100,27 @@
 
     <div class="page-header">
         <div>
-            <div class="page-title">Municipalities</div>
-            <p class="page-sub">Create and manage municipalities. Government offices can be assigned to them.</p>
+            <div class="page-title">{{ __('ui.admin_muni_title') }}</div>
+            <p class="page-sub">{{ __('ui.admin_muni_subtitle') }}</p>
         </div>
         <a href="{{ route('admin.municipalities.create') }}" class="btn-add">
-            <i class="bi bi-plus-lg"></i> Add municipality
+            <i class="bi bi-plus-lg"></i> {{ __('ui.admin_muni_add') }}
         </a>
     </div>
 
     <div class="muni-panel">
         <div class="muni-panel-header">
-            <span class="muni-panel-title">All municipalities</span>
-            <span class="muni-count-badge">{{ $municipalities->total() }} total</span>
+            <span class="muni-panel-title">{{ __('ui.admin_muni_all') }}</span>
+            <span class="muni-count-badge">{{ $municipalities->total() }} {{ __('ui.admin_muni_total') }}</span>
         </div>
 
         <table class="muni-table">
             <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Region</th>
-                    <th>Offices</th>
-                    <th>Actions</th>
+                    <th>{{ __('ui.admin_muni_col_name') }}</th>
+                    <th>{{ __('ui.admin_muni_col_region') }}</th>
+                    <th>{{ __('ui.admin_muni_col_offices') }}</th>
+                    <th>{{ __('ui.admin_muni_col_actions') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -157,7 +157,7 @@
                                     <i class="bi bi-pencil"></i>
                                 </a>
                                 <form method="POST" action="{{ route('admin.municipalities.destroy', $municipality) }}" class="d-inline"
-                                      onsubmit="return confirm('Delete this municipality? Offices will become unassigned from it.');">
+                                      onsubmit="return confirm('{{ __('ui.admin_muni_delete_confirm') }}');">
                                     @csrf @method('DELETE')
                                     <button class="act-btn act-delete" type="submit" title="Delete">
                                         <i class="bi bi-trash"></i>
@@ -171,7 +171,7 @@
                         <td colspan="4">
                             <div class="empty-state">
                                 <div class="empty-icon"><i class="bi bi-geo-alt"></i></div>
-                                <p>No municipalities yet. <a href="{{ route('admin.municipalities.create') }}" style="color:#0ea5e9;font-weight:600;">Add the first one.</a></p>
+                                <p>{{ __('ui.admin_muni_empty') }}</p>
                             </div>
                         </td>
                     </tr>

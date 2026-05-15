@@ -16,7 +16,7 @@
 @section('content')
     <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb small mb-0">
-            <li class="breadcrumb-item"><a href="{{ route('citizen.offices.index') }}">Offices</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('citizen.offices.index') }}">{{ __('ui.offices') }}</a></li>
             <li class="breadcrumb-item active" aria-current="page">{{ $office->name }}</li>
         </ol>
     </nav>
@@ -35,28 +35,28 @@
                             <i class="bi {{ $i <= $avgStars ? 'bi-star-fill' : 'bi-star' }}"></i>
                         @endfor
                     </span>
-                    <span class="text-muted ms-1">{{ number_format($avgRating, 1) }} average from visitor feedback</span>
+                    <span class="text-muted ms-1">{{ number_format($avgRating, 1) }} {{ __('ui.citizen_office_show_feedback') }}</span>
                 </p>
             @endif
         </div>
         <div class="d-flex flex-wrap gap-2">
             <a href="{{ route('citizen.offices.chat', $office) }}" class="btn btn-primary btn-sm">
-                <i class="bi bi-chat-dots me-1"></i>Live chat
+                <i class="bi bi-chat-dots me-1"></i>{{ __('ui.citizen_office_show_live_chat') }}
             </a>
             <a href="#office-appointments" class="btn btn-success btn-sm">
-                <i class="bi bi-calendar-plus me-1"></i>Book Appointment
+                <i class="bi bi-calendar-plus me-1"></i>{{ __('ui.citizen_office_show_book_appt') }}
             </a>
             <a href="{{ route('citizen.feedback.office.create', $office) }}" class="btn btn-outline-primary btn-sm">
-                <i class="bi bi-star me-1"></i>Leave feedback
+                <i class="bi bi-star me-1"></i>{{ __('ui.citizen_office_show_leave_fb') }}
             </a>
-            <a href="{{ route('citizen.offices.index') }}" class="btn btn-outline-secondary btn-sm">All offices</a>
+            <a href="{{ route('citizen.offices.index') }}" class="btn btn-outline-secondary btn-sm">{{ __('ui.citizen_office_show_all_offices') }}</a>
         </div>
     </div>
 
     @if($officeMap ?? null)
         <div class="card card-soft mb-4">
             <div class="card-header bg-white border-0 fw-semibold">
-                <i class="bi bi-map me-2"></i>Location
+                <i class="bi bi-map me-2"></i>{{ __('ui.citizen_office_show_location') }}
             </div>
             <div class="card-body">
                 <div class="leaflet-map-shell mb-3">
@@ -65,11 +65,11 @@
                 <div class="d-flex flex-wrap gap-2">
                     <a href="https://www.openstreetmap.org/?mlat={{ $officeMap['lat'] }}&mlon={{ $officeMap['lng'] }}#map=16/{{ $officeMap['lat'] }}/{{ $officeMap['lng'] }}"
                        class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener noreferrer">
-                        Open in OpenStreetMap
+                        {{ __('ui.citizen_office_show_osm') }}
                     </a>
                     @if($office->google_maps_url)
                         <a href="{{ $office->google_maps_url }}" class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener noreferrer">
-                            Google Maps link
+                            {{ __('ui.citizen_office_show_gmaps') }}
                         </a>
                     @endif
                 </div>
@@ -86,12 +86,12 @@
     <div class="card card-soft mb-4" id="office-appointments" tabindex="-1" data-appointments-live data-office-id="{{ $office->id }}">
         <div class="card-header bg-white border-0 fw-semibold d-flex align-items-center gap-2">
             <i class="bi bi-calendar-check text-success"></i>
-            Appointments
+            {{ __('ui.citizen_office_show_appointments') }}
         </div>
         <div class="card-body">
             @if(isset($myAppointments) && $myAppointments->isNotEmpty())
                 <div class="mb-4">
-                    <h6 class="fw-semibold mb-2">My upcoming appointments at this office</h6>
+                    <h6 class="fw-semibold mb-2">{{ __('ui.citizen_office_show_my_appts') }}</h6>
                     <ul class="list-group list-group-flush rounded border">
                         @foreach($myAppointments as $appointment)
                             <li class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2">
@@ -111,9 +111,9 @@
                                 <form method="POST" action="{{ route('citizen.appointments.cancel', [$office, $appointment]) }}" class="d-flex flex-column gap-2 align-items-end">
                                     @csrf
                                     @method('PATCH')
-                                    <input type="text" name="cancellation_reason" class="form-control form-control-sm" maxlength="500" placeholder="Reason (optional)">
+                                    <input type="text" name="cancellation_reason" class="form-control form-control-sm" maxlength="500" placeholder="{{ __('ui.citizen_office_show_cancel') }} ({{ __('ui.citizen_feedback_optional') }})">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">
-                                        <i class="bi bi-x-circle me-1"></i>Cancel
+                                        <i class="bi bi-x-circle me-1"></i>{{ __('ui.citizen_office_show_cancel') }}
                                     </button>
                                 </form>
                             </li>
@@ -139,7 +139,7 @@
                             <form method="POST" action="{{ route('citizen.appointments.store', [$office, $slot]) }}" class="flex-shrink-0 appointment-book-form">
                                 @csrf
                                 <button type="submit" class="btn btn-sm btn-success appointment-book-btn">
-                                    <i class="bi bi-calendar-plus me-1"></i>Book this slot
+                                    <i class="bi bi-calendar-plus me-1"></i>{{ __('ui.citizen_office_show_book_slot') }}
                                 </button>
                             </form>
                         </li>
@@ -147,14 +147,14 @@
                 </ul>
                 <div id="appointments-empty-state" class="alert alert-light border text-muted mb-0 small d-none mt-3">
                     <i class="bi bi-calendar-x me-2 text-secondary"></i>
-                    <strong class="text-body">No available appointments right now.</strong>
-                    This office has not published any open time slots yet, or they are all booked. Please check back later, use <a href="{{ route('citizen.offices.chat', $office) }}">live chat</a>, or try another office.
+                    <strong class="text-body">{{ __('ui.citizen_office_show_no_slots') }}</strong>
+                    {{ __('ui.citizen_office_show_no_slots') }}
                 </div>
             @else
                 <div id="appointments-empty-state" class="alert alert-light border text-muted mb-0 small">
                     <i class="bi bi-calendar-x me-2 text-secondary"></i>
-                    <strong class="text-body">No available appointments right now.</strong>
-                    This office has not published any open time slots yet, or they are all booked. Please check back later, use <a href="{{ route('citizen.offices.chat', $office) }}">live chat</a>, or try another office.
+                    <strong class="text-body">{{ __('ui.citizen_office_show_no_slots') }}</strong>
+                    {{ __('ui.citizen_office_show_no_slots') }}
                 </div>
             @endif
         </div>
@@ -162,7 +162,7 @@
 
     @if($publicReviews->isNotEmpty())
         <div class="card card-soft mb-4">
-            <div class="card-header bg-white border-0 fw-semibold">Recent visitor feedback</div>
+            <div class="card-header bg-white border-0 fw-semibold">{{ __('ui.citizen_office_show_feedback') }}</div>
             <div class="card-body">
                 <ul class="list-unstyled mb-0">
                     @foreach($publicReviews as $rev)
@@ -214,12 +214,12 @@
                                         <div class="text-muted small">{{ \Illuminate\Support\Str::limit($svc->description, 120) }}</div>
                                     @endif
                                     <div class="small mt-1">
-                                        <span class="text-muted">Fee:</span>
+                                        <span class="text-muted">{{ __('ui.citizen_create_lbl_fee') }}:</span>
                                         {{ number_format((float) $svc->price, 2) }}
                                     </div>
                                 </div>
                                 <a href="{{ route('citizen.services.apply', [$office, $svc]) }}" class="btn btn-sm btn-primary flex-shrink-0">
-                                    Request
+                                    {{ __('ui.citizen_requests_new') }}
                                 </a>
                             </li>
                         @endforeach

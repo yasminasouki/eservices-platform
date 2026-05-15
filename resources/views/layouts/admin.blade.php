@@ -1,10 +1,17 @@
+@php $isRtl = app()->getLocale() === 'ar'; @endphp
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ $isRtl ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Admin Panel') — E-Services Admin</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>@yield('title', __('ui.admin_panel')) — {{ __('ui.brand_name') }}</title>
+    @if($isRtl)
+        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    @else
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    @endif
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
         /* ── Variables ── */
@@ -178,6 +185,31 @@
         .btn-primary:hover, .btn-primary:focus { background: linear-gradient(135deg, #0369a1, var(--accent)); border: none; color: #fff; }
         .form-control:focus, .form-select:focus { border-color: var(--accent-mid); box-shadow: 0 0 0 .2rem rgba(14,165,233,.18); }
         .alert { border-radius: 10px; }
+
+        /* ── RTL overrides ── */
+        [dir="rtl"] body { font-family: 'Cairo', system-ui, sans-serif; }
+        [dir="rtl"] .admin-sidebar { left: auto; right: 0; border-right: none; border-left: 1px solid var(--sidebar-border); }
+        [dir="rtl"] .admin-topbar { left: 0; right: var(--sidebar-width); }
+        [dir="rtl"] .admin-main { margin-left: 0; margin-right: var(--sidebar-width); }
+        [dir="rtl"] .sidebar-user-caret { margin-left: 0; margin-right: auto; }
+        [dir="rtl"] .sidebar-link .link-badge { margin-left: 0; margin-right: auto; }
+        @media (max-width: 991px) {
+            [dir="rtl"] .admin-sidebar { transform: translateX(var(--sidebar-width)); }
+            [dir="rtl"] .admin-sidebar.open { transform: translateX(0); }
+            [dir="rtl"] .admin-main { margin-right: 0; }
+            [dir="rtl"] .admin-topbar { right: 0; }
+        }
+
+        /* Language toggle */
+        .lang-btn {
+            display: inline-flex; align-items: center; gap: .35rem;
+            padding: .3rem .65rem; border-radius: 8px;
+            border: 1px solid var(--accent-light);
+            background: var(--accent-pale); color: var(--accent-dark);
+            font-size: .78rem; font-weight: 700; text-decoration: none;
+            transition: background .15s; white-space: nowrap;
+        }
+        .lang-btn:hover { background: #bae6fd; color: var(--accent-dark); }
     </style>
     @vite(['resources/js/app.js'])
     @stack('styles')
@@ -192,24 +224,24 @@
 
         <a class="sidebar-brand" href="{{ route('admin.dashboard') }}">
             <span class="brand-icon"><i class="bi bi-building-fill-gear"></i></span>
-            E-Services
+            {{ __('ui.brand_name') }}
         </a>
 
         <nav class="sidebar-nav">
 
-            <span class="sidebar-section-label">Overview</span>
+            <span class="sidebar-section-label">{{ __('ui.menu') }}</span>
 
             @php
                 $navItems = [
-                    ['route' => 'admin.dashboard',            'label' => 'Dashboard',          'icon' => 'speedometer2',  'match' => 'admin.dashboard'],
-                    ['route' => 'admin.reports.index',        'label' => 'Reports',             'icon' => 'graph-up-arrow','match' => 'admin.reports.*'],
+                    ['route' => 'admin.dashboard',            'label' => __('ui.dashboard'),          'icon' => 'speedometer2',  'match' => 'admin.dashboard'],
+                    ['route' => 'admin.reports.index',        'label' => __('ui.reports'),             'icon' => 'graph-up-arrow','match' => 'admin.reports.*'],
                 ];
                 $manageItems = [
-                    ['route' => 'admin.municipalities.index', 'label' => 'Municipalities',      'icon' => 'geo-alt',       'match' => 'admin.municipalities.*'],
-                    ['route' => 'admin.offices.index',        'label' => 'Offices',             'icon' => 'building',      'match' => 'admin.offices.*'],
-                    ['route' => 'admin.office-users.index',   'label' => 'Municipality users',  'icon' => 'person-gear',   'match' => 'admin.office-users.*'],
-                    ['route' => 'admin.citizens.index',       'label' => 'Citizens',            'icon' => 'people',        'match' => 'admin.citizens.*'],
-                    ['route' => 'admin.service-requests.index','label'=> 'Service operations',  'icon' => 'clipboard-data','match' => 'admin.service-requests.*'],
+                    ['route' => 'admin.municipalities.index', 'label' => __('ui.municipalities'),      'icon' => 'geo-alt',       'match' => 'admin.municipalities.*'],
+                    ['route' => 'admin.offices.index',        'label' => __('ui.offices'),             'icon' => 'building',      'match' => 'admin.offices.*'],
+                    ['route' => 'admin.office-users.index',   'label' => __('ui.office_users'),        'icon' => 'person-gear',   'match' => 'admin.office-users.*'],
+                    ['route' => 'admin.citizens.index',       'label' => __('ui.citizens'),            'icon' => 'people',        'match' => 'admin.citizens.*'],
+                    ['route' => 'admin.service-requests.index','label'=> __('ui.service_requests'),    'icon' => 'clipboard-data','match' => 'admin.service-requests.*'],
                 ];
             @endphp
 
@@ -221,7 +253,7 @@
                 </a>
             @endforeach
 
-            <span class="sidebar-section-label">Manage</span>
+            <span class="sidebar-section-label">{{ __('ui.management') }}</span>
 
             @foreach($manageItems as $item)
                 <a href="{{ route($item['route']) }}"
@@ -239,14 +271,14 @@
                 <form method="POST" action="{{ route('logout') }}" id="admin-logout-form">@csrf</form>
                 <button type="button" class="user-popup-item danger"
                         onclick="document.getElementById('admin-logout-form').submit()">
-                    <i class="bi bi-box-arrow-right"></i> Log out
+                    <i class="bi bi-box-arrow-right"></i> {{ __('ui.log_out') }}
                 </button>
             </div>
             <button class="sidebar-user-btn" onclick="toggleUserPopup(event)">
                 <div class="sidebar-avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</div>
                 <div>
                     <div class="sidebar-user-name">{{ auth()->user()->name }}</div>
-                    <div class="sidebar-user-role">Administrator</div>
+                    <div class="sidebar-user-role">{{ __('ui.admin_panel') }}</div>
                 </div>
                 <i class="bi bi-chevron-up sidebar-user-caret"></i>
             </button>
@@ -258,8 +290,17 @@
         <button class="topbar-hamburger" onclick="openSidebar()" aria-label="Open menu">
             <i class="bi bi-list"></i>
         </button>
-        <div class="topbar-title">@yield('title', 'Admin Panel')</div>
+        <div class="topbar-title">@yield('title', __('ui.admin_panel'))</div>
         <div class="topbar-actions">
+            @if($isRtl)
+                <a href="{{ route('language.switch', 'en') }}" class="lang-btn">
+                    <i class="bi bi-translate"></i> English
+                </a>
+            @else
+                <a href="{{ route('language.switch', 'ar') }}" class="lang-btn">
+                    <i class="bi bi-translate"></i> عربي
+                </a>
+            @endif
             @include('partials.notification-bell', [
                 'notificationIndexUrl'      => route('admin.notifications.index'),
                 'notificationReadAllUrl'    => route('admin.notifications.read-all'),

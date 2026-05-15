@@ -1,16 +1,16 @@
 @extends('layouts.citizen')
 
-@section('title', 'Request #'.$request->id)
+@section('title', __('ui.request_hash', ['id' => $request->id]))
 
 @php
     use Illuminate\Support\Facades\Storage;
     $statusConfig = fn (string $s) => match ($s) {
-        'pending'           => ['bg' => '#fef3c7', 'color' => '#92400e', 'icon' => 'clock',        'label' => 'Pending'],
-        'in_review'         => ['bg' => '#dbeafe', 'color' => '#1e40af', 'icon' => 'eye',          'label' => 'In Review'],
-        'missing_documents' => ['bg' => '#ffedd5', 'color' => '#c2410c', 'icon' => 'paperclip',   'label' => 'Missing Documents'],
-        'approved'          => ['bg' => '#d1fae5', 'color' => '#065f46', 'icon' => 'check-circle', 'label' => 'Approved'],
-        'rejected'          => ['bg' => '#fde8e8', 'color' => '#991b1b', 'icon' => 'x-circle',    'label' => 'Rejected'],
-        'completed'         => ['bg' => '#ede9fe', 'color' => '#4c1d95', 'icon' => 'patch-check', 'label' => 'Completed'],
+        'pending'           => ['bg' => '#fef3c7', 'color' => '#92400e', 'icon' => 'clock',        'label' => __('ui.citizen_show_step_submitted')],
+        'in_review'         => ['bg' => '#dbeafe', 'color' => '#1e40af', 'icon' => 'eye',          'label' => __('ui.citizen_show_step_review')],
+        'missing_documents' => ['bg' => '#ffedd5', 'color' => '#c2410c', 'icon' => 'paperclip',   'label' => __('ui.citizen_show_step_missing')],
+        'approved'          => ['bg' => '#d1fae5', 'color' => '#065f46', 'icon' => 'check-circle', 'label' => __('ui.citizen_show_step_approved')],
+        'rejected'          => ['bg' => '#fde8e8', 'color' => '#991b1b', 'icon' => 'x-circle',    'label' => __('ui.citizen_show_step_rejected')],
+        'completed'         => ['bg' => '#ede9fe', 'color' => '#4c1d95', 'icon' => 'patch-check', 'label' => __('ui.citizen_show_step_completed')],
         default             => ['bg' => '#f3f4f6', 'color' => '#374151', 'icon' => 'circle',       'label' => ucfirst($s)],
     };
     $cfg = $statusConfig($request->status);
@@ -159,18 +159,6 @@
     /* ── QR card ── */
     .qr-card-body { padding: 1.1rem 1.25rem; text-align: center; }
 
-    /* ── Status card ── */
-    .status-card-body {
-        padding: 1rem 1.25rem;
-        display: flex; flex-direction: column; gap: .6rem;
-    }
-    .status-pill-lg {
-        display: inline-flex; align-items: center; gap: .5rem;
-        font-weight: 700; font-size: .88rem;
-        padding: .55rem 1.1rem; border-radius: 999px;
-        align-self: flex-start;
-    }
-
     /* ── Payment badge ── */
     .pay-badge {
         display: inline-flex; align-items: center; gap: .35rem;
@@ -198,6 +186,52 @@
     /* ── Empty docs ── */
     .no-docs { padding: 1.5rem 1.25rem; text-align: center; color: #c4b5fd; font-size: .84rem; }
     .no-docs i { font-size: 1.6rem; display: block; margin-bottom: .4rem; }
+
+    /* ── Progress stepper ── */
+    .progress-stepper { padding: 1.1rem 1.25rem 1.25rem; }
+    .stepper-track { position: relative; display: flex; flex-direction: column; gap: 0; }
+    .stepper-item {
+        display: flex; align-items: flex-start; gap: .85rem;
+        position: relative; padding-bottom: 1.15rem;
+    }
+    .stepper-item:last-child { padding-bottom: 0; }
+    .stepper-line-wrap {
+        display: flex; flex-direction: column; align-items: center;
+        flex-shrink: 0; width: 28px;
+    }
+    .stepper-dot {
+        width: 28px; height: 28px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: .8rem; flex-shrink: 0;
+        border: 2px solid transparent;
+        transition: background .3s, border-color .3s;
+    }
+    .stepper-dot.done  { background: #4c1d95; border-color: #4c1d95; color: #fff; }
+    .stepper-dot.active{ background: #8b5cf6; border-color: #8b5cf6; color: #fff; box-shadow: 0 0 0 4px rgba(139,92,246,.18); }
+    .stepper-dot.idle  { background: #f3f0ff; border-color: #ddd6fe; color: #c4b5fd; }
+    .stepper-dot.bad   { background: #fde8e8; border-color: #fca5a5; color: #991b1b; }
+    .stepper-connector {
+        width: 2px; flex: 1; min-height: 18px;
+        background: #e8e3ff; margin: 2px 0;
+        transition: background .3s;
+    }
+    .stepper-connector.lit { background: #8b5cf6; }
+    .stepper-text { padding-top: .15rem; }
+    .stepper-label { font-size: .84rem; font-weight: 700; color: #1f1235; line-height: 1.2; }
+    .stepper-label.idle-label { color: #c4b5fd; font-weight: 500; }
+    .stepper-sublabel { font-size: .74rem; color: #b4a0d4; margin-top: .18rem; }
+    .stepper-sublabel.active-sub { color: #8b5cf6; font-weight: 600; }
+    .live-badge {
+        display: inline-flex; align-items: center; gap: .3rem;
+        background: #ede9fe; color: #6d28d9;
+        font-size: .68rem; font-weight: 700; letter-spacing: .04em;
+        padding: .12rem .5rem; border-radius: 999px;
+        margin-left: .4rem; vertical-align: middle;
+    }
+    .live-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: #8b5cf6; animation: pulse-dot 1.4s ease-in-out infinite; }
+    @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
+    .status-flash { animation: flash-in .5s ease; }
+    @keyframes flash-in { 0%{opacity:0;transform:translateY(4px)} 100%{opacity:1;transform:translateY(0)} }
 </style>
 @endpush
 
@@ -205,20 +239,20 @@
 
     {{-- Breadcrumb --}}
     <div class="req-breadcrumb">
-        <a href="{{ route('citizen.requests.index') }}"><i class="bi bi-folder2-open me-1"></i>My requests</a>
+        <a href="{{ route('citizen.requests.index') }}"><i class="bi bi-folder2-open me-1"></i>{{ __('ui.my_requests') }}</a>
         <span class="sep"><i class="bi bi-chevron-right" style="font-size:.65rem;"></i></span>
-        <span>Request #{{ $request->id }}</span>
+        <span>{{ __('ui.request_hash', ['id' => $request->id]) }}</span>
     </div>
 
     {{-- Payment warning --}}
     @if(!empty($awaitingPayment))
         <div class="pay-alert">
             <div class="pay-alert-text">
-                <strong><i class="bi bi-cash-coin me-1"></i>Payment required</strong><br>
-                <span>This service has a fee of <strong>${{ number_format((float)($request->service?->price ?? 0), 2) }} USD</strong>. The office will not process your request until payment is completed.</span>
+                <strong><i class="bi bi-cash-coin me-1"></i>{{ __('ui.citizen_show_payment_required') }}</strong><br>
+                <span>{{ __('ui.citizen_show_lbl_amount') }}: <strong>${{ number_format((float)($request->service?->price ?? 0), 2) }} USD</strong></span>
             </div>
             <a href="{{ route('citizen.requests.pay', $request) }}" class="btn-pay-now">
-                <i class="bi bi-credit-card"></i> Pay now
+                <i class="bi bi-credit-card"></i> {{ __('ui.citizen_show_pay_now') }}
             </a>
         </div>
     @endif
@@ -226,8 +260,8 @@
     {{-- Page header --}}
     <div class="req-header">
         <div>
-            <div class="req-title">Request #{{ $request->id }}</div>
-            <p class="req-sub">Save or print the QR code below to check status anytime without logging in.</p>
+            <div class="req-title">{{ __('ui.request_hash', ['id' => $request->id]) }}</div>
+            <p class="req-sub">{{ __('ui.citizen_show_qr_save') }}</p>
         </div>
         <span class="req-status-pill" style="background:{{ $cfg['bg'] }};color:{{ $cfg['color'] }};">
             <i class="bi bi-{{ $cfg['icon'] }}"></i> {{ $cfg['label'] }}
@@ -242,32 +276,32 @@
             {{-- Service & office --}}
             <div class="detail-card">
                 <div class="detail-card-header">
-                    <div class="detail-card-title"><i class="bi bi-building"></i> Service & Office</div>
+                    <div class="detail-card-title"><i class="bi bi-building"></i> {{ __('ui.citizen_show_card_service') }}</div>
                 </div>
                 <div class="detail-card-body">
                     <div class="info-row">
-                        <div class="info-label">Service</div>
+                        <div class="info-label">{{ __('ui.citizen_show_lbl_service') }}</div>
                         <div class="info-value">{{ $request->service?->name ?? '—' }}</div>
                     </div>
                     <div class="info-row">
-                        <div class="info-label">Office</div>
+                        <div class="info-label">{{ __('ui.citizen_show_lbl_office') }}</div>
                         <div class="info-value">{{ $request->governmentOffice?->name ?? '—' }}</div>
                     </div>
                     @if($request->governmentOffice?->address)
                         <div class="info-row">
-                            <div class="info-label">Address</div>
+                            <div class="info-label">{{ __('ui.citizen_show_lbl_address') }}</div>
                             <div class="info-value">{{ $request->governmentOffice->address }}</div>
                         </div>
                     @endif
                     <div class="info-row">
-                        <div class="info-label">Submitted</div>
+                        <div class="info-label">{{ __('ui.citizen_show_lbl_submitted') }}</div>
                         <div class="info-value">
                             {{ ($request->submitted_at ?? $request->created_at)?->format('M j, Y — H:i') ?? '—' }}
                         </div>
                     </div>
                     @if($request->notes)
                         <div class="info-row">
-                            <div class="info-label">Your notes</div>
+                            <div class="info-label">{{ __('ui.citizen_show_lbl_notes') }}</div>
                             <div class="info-value">{!! nl2br(e($request->notes)) !!}</div>
                         </div>
                     @endif
@@ -278,13 +312,13 @@
             @if($request->status === 'rejected' && $request->rejection_reason)
                 <div class="req-alert req-alert-danger">
                     <i class="bi bi-x-circle-fill"></i>
-                    <div><strong>Rejected:</strong> {{ $request->rejection_reason }}</div>
+                    <div><strong>{{ __('ui.citizen_show_step_rejected') }}:</strong> {{ $request->rejection_reason }}</div>
                 </div>
             @endif
             @if($request->status === 'missing_documents' && $request->missing_docs_note)
                 <div class="req-alert req-alert-warning">
                     <i class="bi bi-paperclip"></i>
-                    <div><strong>Missing documents:</strong> {{ $request->missing_docs_note }}</div>
+                    <div><strong>{{ __('ui.citizen_show_step_missing') }}:</strong> {{ $request->missing_docs_note }}</div>
                 </div>
             @endif
 
@@ -292,33 +326,33 @@
             @if($request->payment)
                 <div class="detail-card">
                     <div class="detail-card-header">
-                        <div class="detail-card-title"><i class="bi bi-wallet2"></i> Payment</div>
+                        <div class="detail-card-title"><i class="bi bi-wallet2"></i> {{ __('ui.citizen_show_card_payment') }}</div>
                         @if($request->payment->status === 'completed')
-                            <span class="paid-badge"><i class="bi bi-check-circle-fill"></i> Paid</span>
+                            <span class="paid-badge"><i class="bi bi-check-circle-fill"></i> {{ __('ui.completed') }}</span>
                         @else
-                            <span class="pay-badge"><i class="bi bi-clock"></i> Awaiting payment</span>
+                            <span class="pay-badge"><i class="bi bi-clock"></i> {{ __('ui.citizen_show_payment_required') }}</span>
                         @endif
                     </div>
                     <div class="detail-card-body">
                         <div class="info-row">
-                            <div class="info-label">Amount</div>
+                            <div class="info-label">{{ __('ui.citizen_show_lbl_amount') }}</div>
                             <div class="info-value">${{ number_format((float)$request->payment->amount, 2) }} USD</div>
                         </div>
                         @if($request->payment->status === 'completed' && $request->payment->paid_at)
                             <div class="info-row">
-                                <div class="info-label">Paid on</div>
+                                <div class="info-label">{{ __('ui.citizen_show_lbl_paid_on') }}</div>
                                 <div class="info-value">{{ $request->payment->paid_at->format('M j, Y H:i') }}</div>
                             </div>
                         @endif
                         @if($request->payment->method && $request->payment->method !== 'pending')
                             <div class="info-row">
-                                <div class="info-label">Method</div>
+                                <div class="info-label">{{ __('ui.citizen_show_lbl_method') }}</div>
                                 <div class="info-value">{{ ucfirst($request->payment->method) }}</div>
                             </div>
                         @endif
                         @if($request->payment->transaction_id)
                             <div class="info-row">
-                                <div class="info-label">Transaction</div>
+                                <div class="info-label">{{ __('ui.citizen_show_lbl_transaction') }}</div>
                                 <div class="info-value" style="font-family:monospace;font-size:.8rem;word-break:break-all;">
                                     {{ $request->payment->transaction_id }}
                                 </div>
@@ -331,7 +365,7 @@
             {{-- Documents --}}
             <div class="detail-card">
                 <div class="detail-card-header">
-                    <div class="detail-card-title"><i class="bi bi-paperclip"></i> Documents</div>
+                    <div class="detail-card-title"><i class="bi bi-paperclip"></i> {{ __('ui.citizen_show_card_documents') }}</div>
                     <span class="total-badge" style="background:#ede9fe;color:#6d28d9;font-size:.72rem;font-weight:700;padding:.15rem .55rem;border-radius:999px;">
                         {{ $request->documents->count() }}
                     </span>
@@ -340,7 +374,7 @@
                 @if($request->documents->isEmpty())
                     <div class="no-docs">
                         <i class="bi bi-file-earmark"></i>
-                        No documents on file yet.
+                        {{ __('ui.office_req_show_no_docs') }}
                     </div>
                 @else
                     @foreach($request->documents as $doc)
@@ -351,17 +385,17 @@
                                     <div class="doc-name">{{ $doc->file_name }}</div>
                                     <div class="doc-meta">
                                         {{ str($doc->type)->replace('_', ' ')->title() }}
-                                        · {{ $doc->uploaded_by === 'office' ? 'Uploaded by office' : 'Uploaded by you' }}
+                                        · {{ $doc->uploaded_by === 'office' ? __('ui.citizen_show_doc_by_office') : __('ui.citizen_show_doc_by_you') }}
                                         @if($doc->description) · {{ $doc->description }} @endif
                                     </div>
                                 </div>
                             </div>
                             <div class="doc-actions">
                                 <a href="{{ Storage::url($doc->file_path) }}" target="_blank" rel="noopener" class="btn-doc btn-doc-open">
-                                    <i class="bi bi-box-arrow-up-right"></i> Open
+                                    <i class="bi bi-box-arrow-up-right"></i> {{ __('ui.citizen_show_doc_open') }}
                                 </a>
                                 <a href="{{ route('citizen.requests.documents.download', [$request, $doc]) }}" class="btn-doc btn-doc-dl">
-                                    <i class="bi bi-download"></i> Download
+                                    <i class="bi bi-download"></i> {{ __('ui.citizen_show_doc_download') }}
                                 </a>
                             </div>
                         </div>
@@ -370,8 +404,8 @@
 
                 @if($canUploadFollowupDocuments ?? false)
                     <div class="upload-section">
-                        <div class="upload-title"><i class="bi bi-upload me-1" style="color:#a78bfa;"></i>Add more documents</div>
-                        <div class="upload-sub">Upload additional files while your request is <strong>{{ $cfg['label'] }}</strong>. The office will be notified.</div>
+                        <div class="upload-title"><i class="bi bi-upload me-1" style="color:#a78bfa;"></i>{{ __('ui.citizen_show_upload_title') }}</div>
+                        <div class="upload-sub">{{ __('ui.citizen_show_upload_hint') }}</div>
                         <form method="POST" action="{{ route('citizen.requests.documents.store', $request) }}" enctype="multipart/form-data">
                             @csrf
                             <div class="mb-3">
@@ -379,18 +413,32 @@
                                 <input type="file" name="attachments[]" multiple required
                                        accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/*"
                                        class="form-control form-control-sm @error('attachments') is-invalid @enderror">
-                                <div class="form-text" style="font-size:.75rem;">PDF or images — up to 15 files, 12 MB each.</div>
-                                @error('attachments') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                                <div class="form-text" style="font-size:.75rem;">{{ __('ui.citizen_show_upload_hint') }}</div>
+                                @error('attachments')
+                                    <div class="invalid-feedback d-block"><i class="bi bi-exclamation-circle me-1"></i>{{ $message }}</div>
+                                @enderror
+                                @for($i = 0; $i < 15; $i++)
+                                    @error('attachments.'.$i)
+                                        <div class="invalid-feedback d-block mt-1" style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:.5rem .75rem;">
+                                            <i class="bi bi-exclamation-circle me-1"></i>
+                                            <strong>File {{ $i + 1 }}:</strong> {{ $message }}
+                                        </div>
+                                    @enderror
+                                @endfor
                             </div>
                             <div class="mb-3">
-                                <label class="form-label" style="font-size:.78rem;font-weight:600;color:#6d5b8e;">Note <span class="text-muted fw-normal">(optional)</span></label>
+                                <label class="form-label" style="font-size:.78rem;font-weight:600;color:#6d5b8e;">Note <span class="text-muted fw-normal">({{ __('ui.citizen_create_notes_optional') }})</span></label>
                                 <input type="text" name="note" maxlength="500" value="{{ old('note') }}"
-                                       placeholder="e.g. Replacement scan for missing ID"
                                        class="form-control form-control-sm @error('note') is-invalid @enderror">
                                 @error('note') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
+                            <div class="d-flex align-items-center gap-2 mb-3 p-2 rounded"
+                                 style="background:#f5f3ff;border:1px solid #ede9fe;font-size:.73rem;color:#6d28d9;">
+                                <i class="bi bi-stars flex-shrink-0"></i>
+                                <span>{{ __('ui.citizen_show_upload_ai') }}</span>
+                            </div>
                             <button type="submit" class="btn-chat">
-                                <i class="bi bi-upload"></i> Upload documents
+                                <i class="bi bi-upload"></i> {{ __('ui.citizen_show_upload_btn') }}
                             </button>
                         </form>
                     </div>
@@ -402,26 +450,78 @@
         {{-- ═══ RIGHT COLUMN ═══ --}}
         <div class="col-lg-4">
 
-            {{-- Status card --}}
-            <div class="detail-card">
+            {{-- Live progress stepper --}}
+            @php
+                $steps = [
+                    ['key' => 'pending',            'icon' => 'send',         'label' => __('ui.citizen_show_step_submitted'),  'sub' => __('ui.citizen_show_step_submitted_desc')],
+                    ['key' => 'in_review',          'icon' => 'eye',          'label' => __('ui.citizen_show_step_review'),     'sub' => __('ui.citizen_show_step_review_desc')],
+                    ['key' => 'missing_documents',  'icon' => 'paperclip',    'label' => __('ui.citizen_show_step_missing'),    'sub' => __('ui.citizen_show_step_missing_desc')],
+                    ['key' => 'approved',           'icon' => 'check-circle', 'label' => __('ui.citizen_show_step_approved'),   'sub' => __('ui.citizen_show_step_approved_desc')],
+                    ['key' => 'completed',          'icon' => 'patch-check',  'label' => __('ui.citizen_show_step_completed'),  'sub' => __('ui.citizen_show_step_completed_desc')],
+                ];
+                $terminalStatuses = ['rejected', 'completed'];
+                $isTerminal       = in_array($request->status, $terminalStatuses);
+                $isRejected       = $request->status === 'rejected';
+
+                $normalFlow = ['pending', 'in_review', 'missing_documents', 'approved', 'completed'];
+                $currentIdx = array_search($request->status, $normalFlow);
+            @endphp
+            <div class="detail-card" id="progress-card">
                 <div class="detail-card-header">
-                    <div class="detail-card-title"><i class="bi bi-info-circle"></i> Status</div>
+                    <div class="detail-card-title">
+                        <i class="bi bi-bar-chart-steps"></i> {{ __('ui.citizen_show_card_progress') }}
+                        @if(! $isTerminal)
+                            <span class="live-badge"><span class="dot"></span> {{ __('ui.citizen_show_card_live') }}</span>
+                        @endif
+                    </div>
                 </div>
-                <div class="status-card-body">
-                    <span class="status-pill-lg" style="background:{{ $cfg['bg'] }};color:{{ $cfg['color'] }};">
-                        <i class="bi bi-{{ $cfg['icon'] }}"></i> {{ $cfg['label'] }}
-                    </span>
-                    <p style="font-size:.82rem;color:#9d7ecf;margin:0;">
-                        @switch($request->status)
-                            @case('pending') Your request has been submitted and is waiting to be reviewed. @break
-                            @case('in_review') An office agent is currently reviewing your request. @break
-                            @case('missing_documents') The office requires additional documents from you. @break
-                            @case('approved') Your request has been approved. @break
-                            @case('rejected') Your request was not approved. See the reason below. @break
-                            @case('completed') Your request has been fully processed. @break
-                            @default Processing… @break
-                        @endswitch
-                    </p>
+                <div class="progress-stepper" id="stepper-wrap">
+                    @if($isRejected)
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="stepper-dot bad"><i class="bi bi-x-circle"></i></div>
+                            <div class="stepper-text">
+                                <div class="stepper-label" style="color:#991b1b;">{{ __('ui.citizen_show_step_rejected') }}</div>
+                                <div class="stepper-sublabel">{{ $request->rejection_reason ?? __('ui.citizen_show_step_rejected_desc') }}</div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="stepper-track">
+                            @foreach($steps as $i => $step)
+                                @php
+                                    $stepIdx   = $i;
+                                    $isDone    = $currentIdx !== false && $stepIdx < $currentIdx;
+                                    $isActive  = $currentIdx !== false && $stepIdx === $currentIdx;
+                                    $isIdle    = $currentIdx === false || $stepIdx > $currentIdx;
+                                    $isLast    = $i === count($steps) - 1;
+                                    $dotClass  = $isDone ? 'done' : ($isActive ? 'active' : 'idle');
+                                    if ($step['key'] === 'completed' && $isActive) { $dotClass = 'done'; }
+                                    $connLit   = $currentIdx !== false && $stepIdx < $currentIdx;
+                                @endphp
+                                <div class="stepper-item" data-step="{{ $step['key'] }}">
+                                    <div class="stepper-line-wrap">
+                                        <div class="stepper-dot {{ $dotClass }}">
+                                            @if($isDone)
+                                                <i class="bi bi-check-lg"></i>
+                                            @else
+                                                <i class="bi bi-{{ $step['icon'] }}"></i>
+                                            @endif
+                                        </div>
+                                        @if(! $isLast)
+                                            <div class="stepper-connector {{ $connLit ? 'lit' : '' }}"></div>
+                                        @endif
+                                    </div>
+                                    <div class="stepper-text">
+                                        <div class="stepper-label {{ $isIdle && ! $isActive ? 'idle-label' : '' }}">
+                                            {{ $step['label'] }}
+                                        </div>
+                                        <div class="stepper-sublabel {{ $isActive ? 'active-sub' : '' }}">
+                                            {{ $step['sub'] }}
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -429,14 +529,14 @@
             @if($request->governmentOffice && empty($awaitingPayment))
                 <div class="detail-card">
                     <div class="detail-card-header">
-                        <div class="detail-card-title"><i class="bi bi-chat-dots"></i> Live chat</div>
+                        <div class="detail-card-title"><i class="bi bi-chat-dots"></i> {{ __('ui.citizen_show_card_live_chat') }}</div>
                     </div>
                     <div class="detail-card-body">
                         <p style="font-size:.82rem;color:#9d7ecf;margin-bottom:.85rem;">
-                            Message {{ $request->governmentOffice->name }} directly — not limited to this request.
+                            {{ $request->governmentOffice->name }}
                         </p>
                         <a href="{{ route('citizen.offices.chat', $request->governmentOffice) }}" class="btn-chat w-100 justify-content-center">
-                            <i class="bi bi-chat-dots"></i> Open live chat
+                            <i class="bi bi-chat-dots"></i> {{ __('ui.citizen_show_card_live_chat') }}
                         </a>
                     </div>
                 </div>
@@ -445,7 +545,7 @@
             {{-- QR tracking --}}
             <div class="detail-card">
                 <div class="detail-card-header">
-                    <div class="detail-card-title"><i class="bi bi-qr-code"></i> QR tracking</div>
+                    <div class="detail-card-title"><i class="bi bi-qr-code"></i> {{ __('ui.citizen_show_card_qr') }}</div>
                 </div>
                 <div class="qr-card-body">
                     @include('partials.service-request-public-qr', [
@@ -460,7 +560,7 @@
             @if($request->status === 'completed')
                 <div class="detail-card">
                     <div class="detail-card-header">
-                        <div class="detail-card-title"><i class="bi bi-star"></i> Your feedback</div>
+                        <div class="detail-card-title"><i class="bi bi-star"></i> {{ __('ui.citizen_show_card_feedback') }}</div>
                     </div>
                     <div class="detail-card-body">
                         @if($request->feedback)
@@ -474,21 +574,21 @@
                             @endif
                             @if($request->feedback->office_reply)
                                 <div class="office-reply">
-                                    <div class="office-reply-label">Office reply</div>
+                                    <div class="office-reply-label">{{ __('ui.citizen_show_feedback_reply') }}</div>
                                     <div class="office-reply-text">{!! nl2br(e($request->feedback->office_reply)) !!}</div>
                                     @if($request->feedback->replied_at)
                                         <div class="office-reply-date">{{ $request->feedback->replied_at->format('M j, Y H:i') }}</div>
                                     @endif
                                 </div>
                             @else
-                                <p style="font-size:.8rem;color:#b4a0d4;margin:0;">The office has not replied yet.</p>
+                                <p style="font-size:.8rem;color:#b4a0d4;margin:0;">{{ __('ui.citizen_show_feedback_no_reply') }}</p>
                             @endif
                         @else
                             <p style="font-size:.84rem;color:#9d7ecf;margin-bottom:.85rem;">
-                                Tell us how this service went — it helps municipalities improve.
+                                {{ __('ui.citizen_show_feedback_placeholder') }}
                             </p>
                             <a href="{{ route('citizen.feedback.request.create', $request) }}" class="btn-rate w-100 justify-content-center">
-                                <i class="bi bi-star"></i> Rate this request
+                                <i class="bi bi-star"></i> {{ __('ui.citizen_show_feedback_rate') }}
                             </a>
                         @endif
                     </div>
@@ -499,3 +599,98 @@
     </div>
 
 @endsection
+
+@push('scripts')
+@if(! in_array($request->status, ['completed', 'rejected']))
+<script>
+(function () {
+    const requestId = {{ $request->id }};
+
+    const normalFlow = ['pending', 'in_review', 'missing_documents', 'approved', 'completed'];
+    const stepMeta   = {
+        pending:            { icon: 'send',         label: @json(__('ui.citizen_show_step_submitted')), sub: @json(__('ui.citizen_show_step_submitted_desc')) },
+        in_review:          { icon: 'eye',          label: @json(__('ui.citizen_show_step_review')),    sub: @json(__('ui.citizen_show_step_review_desc')) },
+        missing_documents:  { icon: 'paperclip',    label: @json(__('ui.citizen_show_step_missing')),   sub: @json(__('ui.citizen_show_step_missing_desc')) },
+        approved:           { icon: 'check-circle', label: @json(__('ui.citizen_show_step_approved')),  sub: @json(__('ui.citizen_show_step_approved_desc')) },
+        completed:          { icon: 'patch-check',  label: @json(__('ui.citizen_show_step_completed')), sub: @json(__('ui.citizen_show_step_completed_desc')) },
+    };
+
+    function buildStepper(status, rejectionReason) {
+        const wrap = document.getElementById('stepper-wrap');
+        if (! wrap) return;
+
+        if (status === 'rejected') {
+            wrap.innerHTML = `
+                <div class="d-flex align-items-start gap-3 status-flash">
+                    <div class="stepper-dot bad"><i class="bi bi-x-circle"></i></div>
+                    <div class="stepper-text">
+                        <div class="stepper-label" style="color:#991b1b;">@json(__('ui.citizen_show_step_rejected'))</div>
+                        <div class="stepper-sublabel">${rejectionReason || '@json(__('ui.citizen_show_step_rejected_desc'))'}</div>
+                    </div>
+                </div>`;
+            return;
+        }
+
+        const currentIdx = normalFlow.indexOf(status);
+        wrap.innerHTML = '<div class="stepper-track">' + normalFlow.map((key, i) => {
+            const step    = stepMeta[key];
+            const isDone  = currentIdx > i;
+            const isActive= currentIdx === i;
+            const isIdle  = currentIdx < i;
+            const isLast  = i === normalFlow.length - 1;
+            let dotClass  = isDone ? 'done' : (isActive ? 'active' : 'idle');
+            if (key === 'completed' && isActive) dotClass = 'done';
+
+            const iconHtml   = isDone ? '<i class="bi bi-check-lg"></i>' : `<i class="bi bi-${step.icon}"></i>`;
+            const connector  = isLast ? '' : `<div class="stepper-connector ${isDone ? 'lit' : ''}"></div>`;
+
+            return `
+            <div class="stepper-item ${isActive ? 'status-flash' : ''}" data-step="${key}">
+                <div class="stepper-line-wrap">
+                    <div class="stepper-dot ${dotClass}">${iconHtml}</div>
+                    ${connector}
+                </div>
+                <div class="stepper-text">
+                    <div class="stepper-label ${isIdle ? 'idle-label' : ''}">${step.label}</div>
+                    <div class="stepper-sublabel ${isActive ? 'active-sub' : ''}">${step.sub}</div>
+                </div>
+            </div>`;
+        }).join('') + '</div>';
+    }
+
+    function updateStatusPill(status) {
+        const cfgMap = {
+            pending:            { bg: '#fef3c7', color: '#92400e', icon: 'clock',        label: @json(__('ui.citizen_show_step_submitted')) },
+            in_review:          { bg: '#dbeafe', color: '#1e40af', icon: 'eye',          label: @json(__('ui.citizen_show_step_review')) },
+            missing_documents:  { bg: '#ffedd5', color: '#c2410c', icon: 'paperclip',   label: @json(__('ui.citizen_show_step_missing')) },
+            approved:           { bg: '#d1fae5', color: '#065f46', icon: 'check-circle', label: @json(__('ui.citizen_show_step_approved')) },
+            rejected:           { bg: '#fde8e8', color: '#991b1b', icon: 'x-circle',    label: @json(__('ui.citizen_show_step_rejected')) },
+            completed:          { bg: '#ede9fe', color: '#4c1d95', icon: 'patch-check', label: @json(__('ui.citizen_show_step_completed')) },
+        };
+        const cfg = cfgMap[status] || { bg: '#f3f4f6', color: '#374151', icon: 'circle', label: status };
+
+        document.querySelectorAll('.req-status-pill').forEach(el => {
+            el.style.background = cfg.bg;
+            el.style.color      = cfg.color;
+            el.innerHTML        = `<i class="bi bi-${cfg.icon}"></i> ${cfg.label}`;
+            el.classList.remove('status-flash');
+            void el.offsetWidth;
+            el.classList.add('status-flash');
+        });
+
+    }
+
+    if (typeof window.Echo !== 'undefined') {
+        window.Echo.private(`service-request.${requestId}`)
+            .listen('.status.updated', function (data) {
+                buildStepper(data.status, data.rejection_reason);
+                updateStatusPill(data.status);
+                if (data.status === 'completed' || data.status === 'rejected') {
+                    setTimeout(() => window.location.reload(), 1800);
+                }
+            });
+    }
+})();
+</script>
+@endif
+@endpush

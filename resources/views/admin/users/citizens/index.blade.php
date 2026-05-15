@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Citizen Accounts')
+@section('title', __('ui.admin_citizens_title'))
 
 @push('styles')
 <style>
@@ -75,29 +75,29 @@
 
     <div class="page-header">
         <div>
-            <div class="page-title">Citizen Accounts</div>
-            <p class="page-sub">Activate/deactivate citizen accounts and monitor verification status.</p>
+            <div class="page-title">{{ __('ui.admin_citizens_title') }}</div>
+            <p class="page-sub">{{ __('ui.admin_citizens_subtitle') }}</p>
         </div>
     </div>
 
     <form method="GET" class="search-bar">
-        <input type="text" name="q" class="search-input" value="{{ $search }}" placeholder="Search by name or email…">
-        <button type="submit" class="search-btn"><i class="bi bi-search"></i> Search</button>
+        <input type="text" name="q" class="search-input" value="{{ $search }}" placeholder="{{ __('ui.admin_citizens_search_ph') }}">
+        <button type="submit" class="search-btn"><i class="bi bi-search"></i> {{ __('ui.admin_citizens_search_btn') }}</button>
     </form>
 
     <div class="data-panel">
         <div class="data-panel-header">
-            <span class="data-panel-title">All citizens</span>
-            <span class="count-badge">{{ $citizens->total() }} total</span>
+            <span class="data-panel-title">{{ __('ui.admin_citizens_all') }}</span>
+            <span class="count-badge">{{ $citizens->total() }} {{ __('ui.admin_citizens_total') }}</span>
         </div>
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>ID Status</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+                    <th>{{ __('ui.admin_citizens_col_name') }}</th>
+                    <th>{{ __('ui.admin_citizens_col_email') }}</th>
+                    <th>{{ __('ui.admin_citizens_col_id_status') }}</th>
+                    <th>{{ __('ui.admin_citizens_col_status') }}</th>
+                    <th>{{ __('ui.admin_citizens_col_actions') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -127,22 +127,22 @@
                         </td>
                         <td>
                             @if($citizen->is_active)
-                                <span class="status-pill status-active"><span class="status-dot" style="background:#22c55e;"></span>Active</span>
+                                <span class="status-pill status-active"><span class="status-dot" style="background:#22c55e;"></span>{{ __('ui.admin_citizens_status_active') }}</span>
                             @else
-                                <span class="status-pill status-inactive"><span class="status-dot" style="background:#a1a1aa;"></span>Inactive</span>
+                                <span class="status-pill status-inactive"><span class="status-dot" style="background:#a1a1aa;"></span>{{ __('ui.admin_citizens_status_inactive') }}</span>
                             @endif
                         </td>
                         <td>
                             <div class="action-group">
                                 <a href="{{ route('admin.citizens.show', $citizen) }}" class="act-view">
-                                    <i class="bi bi-eye"></i> View
+                                    <i class="bi bi-eye"></i> {{ __('ui.admin_citizens_btn_view') }}
                                 </a>
                                 <form method="POST" action="{{ route('admin.citizens.toggle-active', $citizen) }}" class="d-inline">
                                     @csrf @method('PATCH')
                                     @if($citizen->is_active)
-                                        <button type="submit" class="act-toggle-off">Deactivate</button>
+                                        <button type="submit" class="act-toggle-off">{{ __('ui.admin_citizens_btn_deactivate') }}</button>
                                     @else
-                                        <button type="submit" class="act-toggle-on">Activate</button>
+                                        <button type="submit" class="act-toggle-on">{{ __('ui.admin_citizens_btn_activate') }}</button>
                                     @endif
                                 </form>
                             </div>
@@ -152,7 +152,7 @@
                     <tr><td colspan="5">
                         <div class="empty-state">
                             <div class="empty-icon"><i class="bi bi-people"></i></div>
-                            <p>No citizens found{{ $search ? ' matching "'.e($search).'"' : '' }}.</p>
+                            <p>{{ __('ui.admin_citizens_empty') }}{{ $search ? ' matching "'.e($search).'"' : '' }}.</p>
                         </div>
                     </td></tr>
                 @endforelse

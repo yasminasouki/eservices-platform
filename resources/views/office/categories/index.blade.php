@@ -1,6 +1,6 @@
 @extends('layouts.office')
 
-@section('title', 'Service Categories')
+@section('title', __('ui.office_cat_title'))
 
 @push('styles')
 <style>
@@ -98,11 +98,11 @@
     {{-- Page header --}}
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
         <div>
-            <div class="page-title">Service Categories</div>
+            <div class="page-title">{{ __('ui.office_cat_title') }}</div>
             <p class="page-sub">{{ $office->name }}</p>
         </div>
         <a href="{{ route('office.categories.create', $office) }}" class="btn-new-cat">
-            <i class="bi bi-plus-lg"></i>New category
+            <i class="bi bi-plus-lg"></i>{{ __('ui.office_cat_new') }}
         </a>
     </div>
 
@@ -110,17 +110,17 @@
         @if($categories->isEmpty())
             <div class="empty-state">
                 <div class="empty-icon"><i class="bi bi-tags"></i></div>
-                <h6>No categories yet</h6>
-                <p>Create a category before adding services.</p>
+                <h6>{{ __('ui.office_cat_empty') }}</h6>
+                <p>{{ __('ui.office_cat_empty_desc') }}</p>
             </div>
         @else
             <div class="table-responsive">
                 <table class="cat-table">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Services</th>
-                            <th>Actions</th>
+                            <th>{{ __('ui.office_cat_col_name') }}</th>
+                            <th>{{ __('ui.office_cat_col_services') }}</th>
+                            <th>{{ __('ui.office_cat_col_actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -140,14 +140,14 @@
                                 <td>
                                     <div class="act-group">
                                         <a href="{{ route('office.categories.edit', [$office, $cat]) }}" class="act-btn-edit">
-                                            <i class="bi bi-pencil"></i> Edit
+                                            <i class="bi bi-pencil"></i> {{ __('ui.office_cat_edit') }}
                                         </a>
                                         <form action="{{ route('office.categories.destroy', [$office, $cat]) }}" method="POST" class="d-inline"
-                                              onsubmit="return confirm('Delete this category? All services in it will be deleted.');">
+                                              onsubmit="return confirm('{{ __('ui.office_cat_delete') }}?');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="act-btn-delete">
-                                                <i class="bi bi-trash"></i> Delete
+                                                <i class="bi bi-trash"></i> {{ __('ui.office_cat_delete') }}
                                             </button>
                                         </form>
                                     </div>

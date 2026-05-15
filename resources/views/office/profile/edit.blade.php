@@ -78,18 +78,18 @@
     {{-- Page header --}}
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
         <div>
-            <div class="page-title">Edit Office Profile</div>
+            <div class="page-title">{{ __('ui.office_profile_edit_title') }}</div>
             <p class="page-sub">{{ $office->name }}</p>
         </div>
         <a href="{{ route('office.profile.index') }}" class="btn-back">
-            <i class="bi bi-arrow-left"></i>All offices
+            <i class="bi bi-arrow-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }}"></i>{{ __('ui.office_profile_edit_all_offices') }}
         </a>
     </div>
 
     @if($office->municipality)
         <div class="muni-note">
             <i class="bi bi-pin-map"></i>
-            Municipality (admin-managed): <strong>{{ $office->municipality->name }}</strong>
+            {{ __('ui.office_profile_edit_muni') }} <strong>{{ $office->municipality->name }}</strong>
         </div>
     @endif
 
@@ -100,43 +100,43 @@
 
             {{-- Basic info --}}
             <div class="col-md-6">
-                <label class="form-label">Office name <span class="text-danger">*</span></label>
+                <label class="form-label">{{ __('ui.office_profile_edit_name') }} <span class="text-danger">*</span></label>
                 <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
                        value="{{ old('name', $office->name) }}" required>
                 @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="col-md-6 d-flex align-items-end">
-                <p class="form-text mb-0">Use the official name citizens will see in the directory.</p>
+                <p class="form-text mb-0">{{ __('ui.office_profile_edit_name_note') }}</p>
             </div>
 
             <div class="col-12">
-                <label class="form-label">Address <span class="text-danger">*</span></label>
+                <label class="form-label">{{ __('ui.office_profile_edit_address') }} <span class="text-danger">*</span></label>
                 <input type="text" name="address" class="form-control @error('address') is-invalid @enderror"
                        value="{{ old('address', $office->address) }}" required>
                 @error('address')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
             <div class="col-md-4">
-                <label class="form-label">Public email</label>
+                <label class="form-label">{{ __('ui.office_profile_edit_email') }}</label>
                 <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
                        value="{{ old('email', $office->email) }}">
                 @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="col-md-4">
-                <label class="form-label">Phone</label>
+                <label class="form-label">{{ __('ui.office_profile_edit_phone') }}</label>
                 <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror"
                        value="{{ old('phone', $office->phone) }}">
                 @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="col-md-4">
-                <label class="form-label">Website</label>
+                <label class="form-label">{{ __('ui.office_profile_edit_website') }}</label>
                 <input type="url" name="website" class="form-control @error('website') is-invalid @enderror"
                        value="{{ old('website', $office->website) }}" placeholder="https://">
                 @error('website')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
 
             <div class="col-12">
-                <label class="form-label">Google Maps link</label>
+                <label class="form-label">{{ __('ui.office_profile_edit_gmaps') }}</label>
                 <input type="url" name="google_maps_url" class="form-control @error('google_maps_url') is-invalid @enderror"
                        value="{{ old('google_maps_url', $office->google_maps_url) }}"
                        placeholder="https://maps.google.com/...">
@@ -144,14 +144,14 @@
             </div>
 
             <div class="col-md-6">
-                <label class="form-label">Latitude</label>
+                <label class="form-label">{{ __('ui.office_profile_edit_lat') }}</label>
                 <input type="text" name="latitude" id="office-latitude-input"
                        class="form-control @error('latitude') is-invalid @enderror"
                        value="{{ old('latitude', $office->latitude) }}" placeholder="e.g. 33.8938">
                 @error('latitude')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="col-md-6">
-                <label class="form-label">Longitude</label>
+                <label class="form-label">{{ __('ui.office_profile_edit_lng') }}</label>
                 <input type="text" name="longitude" id="office-longitude-input"
                        class="form-control @error('longitude') is-invalid @enderror"
                        value="{{ old('longitude', $office->longitude) }}" placeholder="e.g. 35.5018">
@@ -159,10 +159,11 @@
             </div>
 
             <div class="col-12">
-                <label class="form-label">Place search (OpenStreetMap Nominatim)</label>
+                <label class="form-label">{{ __('ui.office_profile_edit_place_search') }}</label>
                 <input type="search" class="form-control" id="office-nominatim-query"
                        placeholder="Type an address and pause — results appear below" autocomplete="off">
                 <p class="form-text mt-1 mb-2">Search is debounced and should not be automated (Nominatim fair-use). Drag the pin or click the map to fine-tune.</p>
+
                 <div id="office-nominatim-results" class="list-group small mb-2"></div>
                 <div class="leaflet-map-shell">
                     <div id="office-profile-map" class="leaflet-map leaflet-map-sm" role="application" aria-label="Map to set office coordinates"></div>
@@ -171,8 +172,8 @@
 
             {{-- Working hours --}}
             <div class="col-12">
-                <h3 class="section-heading">Working hours</h3>
-                <p class="form-text">Leave a day marked closed or leave times empty to skip it.</p>
+                <h3 class="section-heading">{{ __('ui.office_profile_edit_hours') }}</h3>
+                <p class="form-text">{{ __('ui.office_profile_edit_hours_note') }}</p>
             </div>
 
             @foreach($weekdays as $day)
@@ -190,16 +191,16 @@
                         <div class="form-check mb-2">
                             <input class="form-check-input" type="checkbox" name="{{ $closedName }}" value="1" id="{{ $closedName }}"
                                    @checked((string) old($closedName, $closedDefault) === '1')>
-                            <label class="form-check-label" for="{{ $closedName }}">Closed</label>
+                            <label class="form-check-label" for="{{ $closedName }}">{{ __('ui.office_profile_edit_closed') }}</label>
                         </div>
                         <div class="row g-2">
                             <div class="col-6">
-                                <label class="form-label">Opens</label>
+                                <label class="form-label">{{ __('ui.office_profile_edit_opens') }}</label>
                                 <input type="time" name="wh_{{ $day }}_open" class="form-control form-control-sm"
                                        value="{{ $openVal }}">
                             </div>
                             <div class="col-6">
-                                <label class="form-label">Closes</label>
+                                <label class="form-label">{{ __('ui.office_profile_edit_closes') }}</label>
                                 <input type="time" name="wh_{{ $day }}_close" class="form-control form-control-sm"
                                        value="{{ $closeVal }}">
                             </div>
@@ -210,24 +211,24 @@
 
             {{-- Extra contact --}}
             <div class="col-12">
-                <h3 class="section-heading">Extra contact</h3>
+                <h3 class="section-heading">{{ __('ui.office_profile_edit_extra') }}</h3>
             </div>
             <div class="col-md-4">
-                <label class="form-label">Fax</label>
+                <label class="form-label">{{ __('ui.office_profile_edit_fax') }}</label>
                 <input type="text" name="contact_fax" class="form-control" value="{{ old('contact_fax', $contact['fax'] ?? '') }}">
             </div>
             <div class="col-md-4">
-                <label class="form-label">Hotline</label>
+                <label class="form-label">{{ __('ui.office_profile_edit_hotline') }}</label>
                 <input type="text" name="contact_hotline" class="form-control" value="{{ old('contact_hotline', $contact['hotline'] ?? '') }}">
             </div>
             <div class="col-md-4">
-                <label class="form-label">Internal notes (optional)</label>
+                <label class="form-label">{{ __('ui.office_profile_edit_notes') }}</label>
                 <input type="text" name="contact_notes" class="form-control" value="{{ old('contact_notes', $contact['notes'] ?? '') }}">
             </div>
 
             <div class="col-12 pt-2">
                 <button type="submit" class="btn-save">
-                    <i class="bi bi-check2-circle"></i>Save profile
+                    <i class="bi bi-check2-circle"></i>{{ __('ui.office_profile_edit_save') }}
                 </button>
             </div>
         </form>

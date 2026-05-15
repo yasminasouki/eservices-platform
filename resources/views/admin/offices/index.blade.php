@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Government Offices')
+@section('title', __('ui.admin_offices_title'))
 
 @push('styles')
 <style>
@@ -61,27 +61,27 @@
 
     <div class="page-header">
         <div>
-            <div class="page-title">Government Offices</div>
-            <p class="page-sub">Create, edit, delete offices and assign municipalities.</p>
+            <div class="page-title">{{ __('ui.admin_offices_title') }}</div>
+            <p class="page-sub">{{ __('ui.admin_offices_subtitle') }}</p>
         </div>
         <a href="{{ route('admin.offices.create') }}" class="btn-add">
-            <i class="bi bi-plus-lg"></i> Add Office
+            <i class="bi bi-plus-lg"></i> {{ __('ui.admin_offices_add') }}
         </a>
     </div>
 
     <div class="data-panel">
         <div class="data-panel-header">
-            <span class="data-panel-title">All offices</span>
-            <span class="count-badge">{{ $offices->total() }} total</span>
+            <span class="data-panel-title">{{ __('ui.admin_offices_all') }}</span>
+            <span class="count-badge">{{ $offices->total() }} {{ __('ui.admin_offices_total') }}</span>
         </div>
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Municipality</th>
-                    <th>Contact</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+                    <th>{{ __('ui.admin_offices_col_name') }}</th>
+                    <th>{{ __('ui.admin_offices_col_municipality') }}</th>
+                    <th>{{ __('ui.admin_offices_col_contact') }}</th>
+                    <th>{{ __('ui.admin_offices_col_status') }}</th>
+                    <th>{{ __('ui.admin_offices_col_actions') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -102,7 +102,7 @@
                             @if($office->municipality)
                                 <span class="muni-chip"><i class="bi bi-geo-alt" style="font-size:.7rem;"></i>{{ $office->municipality->name }}</span>
                             @else
-                                <span style="color:#d4d4d8;font-size:.82rem;">Unassigned</span>
+                                <span style="color:#d4d4d8;font-size:.82rem;">{{ __('ui.admin_offices_status_unassigned') }}</span>
                             @endif
                         </td>
                         <td>
@@ -111,16 +111,16 @@
                         </td>
                         <td>
                             @if($office->is_active)
-                                <span class="status-active"><span class="status-dot" style="background:#22c55e;"></span>Active</span>
+                                <span class="status-active"><span class="status-dot" style="background:#22c55e;"></span>{{ __('ui.admin_offices_status_active') }}</span>
                             @else
-                                <span class="status-inactive"><span class="status-dot" style="background:#a1a1aa;"></span>Inactive</span>
+                                <span class="status-inactive"><span class="status-dot" style="background:#a1a1aa;"></span>{{ __('ui.admin_offices_status_inactive') }}</span>
                             @endif
                         </td>
                         <td>
                             <div class="action-group">
                                 <a href="{{ route('admin.offices.edit', $office) }}" class="act-btn act-edit" title="Edit"><i class="bi bi-pencil"></i></a>
                                 <form method="POST" action="{{ route('admin.offices.destroy', $office) }}" class="d-inline"
-                                      onsubmit="return confirm('Delete this office?');">
+                                      onsubmit="return confirm('{{ __('ui.admin_offices_delete_confirm') }}');">
                                     @csrf @method('DELETE')
                                     <button class="act-btn act-delete" type="submit" title="Delete"><i class="bi bi-trash"></i></button>
                                 </form>
@@ -131,7 +131,7 @@
                     <tr><td colspan="5">
                         <div class="empty-state">
                             <div class="empty-icon"><i class="bi bi-building"></i></div>
-                            <p>No offices yet. <a href="{{ route('admin.offices.create') }}" style="color:#0ea5e9;font-weight:600;">Add the first one.</a></p>
+                            <p>{{ __('ui.admin_offices_empty') }}</p>
                         </div>
                     </td></tr>
                 @endforelse

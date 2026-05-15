@@ -1,6 +1,6 @@
 @extends('layouts.citizen')
 
-@section('title', 'Browse offices')
+@section('title', __('ui.citizen_offices_title'))
 
 @php $markersJson = $mapMarkers ?? collect(); @endphp
 
@@ -178,8 +178,8 @@
     {{-- Header --}}
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-4">
         <div>
-            <div class="page-title">Browse offices</div>
-            <p class="page-sub">Choose an office to see available services. Enable location to sort by distance.</p>
+            <div class="page-title">{{ __('ui.citizen_offices_title') }}</div>
+            <p class="page-sub">{{ __('ui.citizen_offices_subtitle') }}</p>
         </div>
     </div>
 
@@ -188,20 +188,20 @@
         <div class="map-card">
             <div class="map-card-header">
                 <div class="map-card-title">
-                    <i class="bi bi-map"></i> Office locations
+                    <i class="bi bi-map"></i> {{ __('ui.citizen_offices_map_title') }}
                 </div>
                 <div class="d-flex gap-2">
                     <button type="button" class="btn-location" id="citizen-offices-use-location">
-                        <i class="bi bi-geo-alt-fill"></i> Use my location
+                        <i class="bi bi-geo-alt-fill"></i> {{ __('ui.citizen_offices_use_location') }}
                     </button>
                     <button type="button" class="btn-sort" id="citizen-offices-sort-nearest">
-                        <i class="bi bi-sort-down"></i> Sort by nearest
+                        <i class="bi bi-sort-down"></i> {{ __('ui.citizen_offices_sort_nearest') }}
                     </button>
                 </div>
             </div>
             <div class="map-status" id="citizen-offices-location-status">
                 <i class="bi bi-info-circle"></i>
-                Location is not used until you click the button above.
+                {{ __('ui.citizen_offices_location_note') }}
             </div>
             <div class="map-card-body">
                 <div class="leaflet-map-shell">
@@ -217,7 +217,7 @@
         <div class="map-card" style="padding:1.1rem 1.4rem;">
             <div class="d-flex align-items-center gap-2" style="font-size:.84rem;color:#b4a0d4;">
                 <i class="bi bi-map" style="color:#c4b5fd;"></i>
-                No offices have map coordinates yet.
+                {{ __('ui.citizen_offices_empty') }}
             </div>
         </div>
     @endif
@@ -228,12 +228,12 @@
             <div style="flex:1;min-width:180px;position:relative;">
                 <i class="bi bi-search" style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%);color:#b4a0d4;font-size:.9rem;pointer-events:none;"></i>
                 <input type="text" name="search" id="offices-search" value="{{ $search }}"
-                       placeholder="Search offices…"
+                       placeholder="{{ __('ui.citizen_offices_search_ph') }}"
                        class="form-control" autocomplete="off"
                        style="padding-left:2.2rem;border-color:#ddd6fe;border-radius:10px;font-size:.875rem;">
             </div>
             <select name="municipality" id="offices-municipality" class="form-select" style="max-width:200px;border-color:#ddd6fe;border-radius:10px;font-size:.875rem;color:#6d5b8e;">
-                <option value="">All municipalities</option>
+                <option value="">{{ __('ui.citizen_offices_all_muni') }}</option>
                 @foreach($municipalities as $m)
                     <option value="{{ $m->id }}" @selected($municipalityId == $m->id)>{{ $m->name }}</option>
                 @endforeach
@@ -251,7 +251,7 @@
         <div class="offices-card-header">
             <div class="offices-card-title">
                 <i class="bi bi-building"></i>
-                Government offices
+                {{ __('ui.offices') }}
                 <span class="total-badge">{{ $offices->total() }}</span>
             </div>
         </div>
@@ -260,12 +260,12 @@
             <div class="empty-state">
                 <div class="empty-icon"><i class="bi bi-building"></i></div>
                 @if($search || $municipalityId)
-                    <h6>No offices found</h6>
-                    <p>Try a different search term or municipality.</p>
-                    <a href="{{ route('citizen.offices.index') }}" class="btn btn-sm btn-primary mt-2">Clear filters</a>
+                    <h6>{{ __('ui.citizen_offices_empty_search') }}</h6>
+                    <p>{{ __('ui.citizen_offices_empty_search_desc') }}</p>
+                    <a href="{{ route('citizen.offices.index') }}" class="btn btn-sm btn-primary mt-2">{{ __('ui.citizen_offices_clear_filters') }}</a>
                 @else
-                    <h6>No offices available</h6>
-                    <p>No active government offices are listed yet. Check back later.</p>
+                    <h6>{{ __('ui.citizen_offices_empty') }}</h6>
+                    <p>{{ __('ui.citizen_offices_empty_desc') }}</p>
                 @endif
             </div>
         @else
@@ -273,10 +273,10 @@
                 <table class="offices-table" id="citizen-offices-table">
                     <thead>
                         <tr>
-                            <th>Office</th>
-                            <th>Municipality</th>
-                            <th>Services</th>
-                            <th class="distance-col">Distance</th>
+                            <th>{{ __('ui.citizen_offices_col_office') }}</th>
+                            <th>{{ __('ui.citizen_offices_col_municipality') }}</th>
+                            <th>{{ __('ui.citizen_offices_col_services') }}</th>
+                            <th class="distance-col">{{ __('ui.citizen_offices_col_distance') }}</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -310,7 +310,7 @@
                                 </td>
                                 <td style="text-align:right;">
                                     <a href="{{ route('citizen.offices.show', $o) }}" class="btn-view-services">
-                                        View services <i class="bi bi-arrow-right"></i>
+                                        {{ __('ui.citizen_offices_view_services') }} <i class="bi bi-arrow-{{ app()->getLocale() === 'ar' ? 'left' : 'right' }}"></i>
                                     </a>
                                 </td>
                             </tr>

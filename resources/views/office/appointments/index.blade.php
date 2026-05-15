@@ -105,18 +105,18 @@
     {{-- Page header --}}
     <div class="mb-4">
         <div class="page-title">
-            <i class="bi bi-calendar-plus me-2" style="color:#16a34a;"></i>Time Slots
+            <i class="bi bi-calendar-plus me-2" style="color:#16a34a;"></i>{{ __('ui.office_appt_slots_title') }}
         </div>
         <p class="page-sub">{{ $office->name }}</p>
     </div>
 
     {{-- Add Slot Form --}}
     <div class="add-slot-card">
-        <h6>Add New Time Slot</h6>
+        <h6>{{ __('ui.office_appt_slots_add') }}</h6>
         <form method="POST" action="{{ route('office.slots.store', $office) }}" class="row g-3 align-items-end">
             @csrf
             <div class="col-sm-4">
-                <label class="form-label">Date</label>
+                <label class="form-label">{{ __('ui.office_appt_slots_date') }}</label>
                 <input type="date" name="date"
                        class="form-control @error('date') is-invalid @enderror"
                        value="{{ old('date') }}"
@@ -124,14 +124,14 @@
                 @error('date')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="col-sm-3">
-                <label class="form-label">Start Time</label>
+                <label class="form-label">{{ __('ui.office_appt_slots_start') }}</label>
                 <input type="time" name="start_time"
                        class="form-control @error('start_time') is-invalid @enderror"
                        value="{{ old('start_time') }}" required>
                 @error('start_time')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="col-sm-3">
-                <label class="form-label">End Time</label>
+                <label class="form-label">{{ __('ui.office_appt_slots_end') }}</label>
                 <input type="time" name="end_time"
                        class="form-control @error('end_time') is-invalid @enderror"
                        value="{{ old('end_time') }}" required>
@@ -139,7 +139,7 @@
             </div>
             <div class="col-sm-2">
                 <button type="submit" class="btn-add-slot">
-                    <i class="bi bi-plus-lg"></i>Add Slot
+                    <i class="bi bi-plus-lg"></i>{{ __('ui.office_appt_slots_add_btn') }}
                 </button>
             </div>
         </form>
@@ -153,11 +153,11 @@
                     <table class="slots-table">
                         <thead>
                             <tr>
-                                <th>Date</th>
-                                <th>Start Time</th>
-                                <th>End Time</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                <th>{{ __('ui.office_appt_slots_col_date') }}</th>
+                                <th>{{ __('ui.office_appt_slots_col_start') }}</th>
+                                <th>{{ __('ui.office_appt_slots_col_end') }}</th>
+                                <th>{{ __('ui.office_appt_slots_col_status') }}</th>
+                                <th>{{ __('ui.office_appt_slots_col_actions') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -169,11 +169,11 @@
                                 <td>
                                     @if($slot->is_available)
                                         <span class="status-pill pill-available">
-                                            <i class="bi bi-check-circle"></i> Available
+                                            <i class="bi bi-check-circle"></i> {{ __('ui.office_appt_slots_available') }}
                                         </span>
                                     @else
                                         <span class="status-pill pill-booked">
-                                            <i class="bi bi-calendar-check"></i> Booked
+                                            <i class="bi bi-calendar-check"></i> {{ __('ui.office_appt_slots_booked') }}
                                         </span>
                                     @endif
                                 </td>
@@ -185,7 +185,7 @@
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="act-btn-delete">
-                                                <i class="bi bi-trash"></i> Delete
+                                                <i class="bi bi-trash"></i> {{ __('ui.office_appt_slots_delete') }}
                                             </button>
                                         </form>
                                     @elseif($slot->appointment && in_array($slot->appointment->status, ['scheduled', 'confirmed'], true))
@@ -195,7 +195,7 @@
                                                 data-bs-target="#cancelSlotAppointmentModal"
                                                 data-action="{{ route('office.appointments.cancel', [$office, $slot->appointment]) }}"
                                                 data-slot-label="{{ \Carbon\Carbon::parse($slot->date)->format('d M Y') }} {{ \Carbon\Carbon::parse($slot->start_time)->format('H:i') }}-{{ \Carbon\Carbon::parse($slot->end_time)->format('H:i') }}">
-                                            <i class="bi bi-x-circle"></i> Cancel appointment
+                                            <i class="bi bi-x-circle"></i> {{ __('ui.office_appt_slots_cancel_appt') }}
                                         </button>
                                     @else
                                         <span style="color:#86efac;font-size:.82rem;">—</span>
@@ -210,8 +210,8 @@
         @empty
             <div class="empty-state">
                 <div class="empty-icon"><i class="bi bi-calendar-x"></i></div>
-                <h6>No time slots yet</h6>
-                <p>Use the form above to add your first slot.</p>
+                <h6>{{ __('ui.office_appt_slots_empty') }}</h6>
+                <p>{{ __('ui.office_appt_slots_empty_desc') }}</p>
             </div>
         @endforelse
 
@@ -231,30 +231,30 @@
             <div class="modal-content rounded-4 border-0 shadow">
                 <div class="modal-header border-0" style="background:#f0fdf4;border-radius:1rem 1rem 0 0;">
                     <h5 class="modal-title fw-bold" id="cancelSlotAppointmentLabel">
-                        <i class="bi bi-x-circle me-2 text-danger"></i>Cancel booked appointment
+                        <i class="bi bi-x-circle me-2 text-danger"></i>{{ __('ui.office_appt_slots_modal_title') }}
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <p style="font-size:.84rem;color:#52916b;" class="mb-2">
-                        Slot: <span id="cancelSlotAppointmentLabelText" class="fw-semibold text-body">—</span>
+                        {{ __('ui.office_appt_slots_modal_slot') }} <span id="cancelSlotAppointmentLabelText" class="fw-semibold text-body">—</span>
                     </p>
                     <label for="cancel_slot_reason" class="form-label fw-semibold" style="font-size:.85rem;">
-                        Reason for cancellation <span class="text-danger">*</span>
+                        {{ __('ui.office_appt_slots_modal_reason') }} <span class="text-danger">*</span>
                     </label>
                     <textarea id="cancel_slot_reason"
                               name="cancellation_reason"
                               class="form-control"
                               rows="4"
                               maxlength="500"
-                              placeholder="Please provide a reason..."
+                              placeholder="{{ __('ui.office_appt_slots_modal_ph') }}"
                               required
                               style="border-color:#d1fae5;"></textarea>
                 </div>
                 <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">{{ __('ui.office_appt_slots_modal_close') }}</button>
                     <button type="submit" class="btn btn-danger btn-sm">
-                        <i class="bi bi-x-lg me-1"></i>Cancel appointment
+                        <i class="bi bi-x-lg me-1"></i>{{ __('ui.office_appt_slots_modal_confirm') }}
                     </button>
                 </div>
             </div>

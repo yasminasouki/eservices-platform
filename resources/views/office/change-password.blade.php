@@ -1,6 +1,6 @@
 @extends('layouts.office')
 
-@section('title', 'Change Password')
+@section('title', __('ui.office_pw_title'))
 
 @push('styles')
 <style>
@@ -55,8 +55,8 @@
 
     {{-- Page header --}}
     <div class="mb-4 text-center">
-        <div class="page-title">Change Password</div>
-        <p class="page-sub">Update your account security credentials.</p>
+        <div class="page-title">{{ __('ui.office_pw_title') }}</div>
+        <p class="page-sub">{{ __('ui.office_pw_subtitle') }}</p>
     </div>
 
     <div class="pw-card">
@@ -65,14 +65,14 @@
             <i class="bi bi-key-fill"></i>
         </div>
 
-        <h4>Change Password</h4>
-        <p class="pw-sub">Update your account password below.</p>
+        <h4>{{ __('ui.office_pw_card_title') }}</h4>
+        <p class="pw-sub">{{ __('ui.office_pw_card_subtitle') }}</p>
 
         <form method="POST" action="{{ route('office.password.update') }}">
             @csrf
 
             <div class="mb-3">
-                <label for="current_password" class="form-label">Current Password</label>
+                <label for="current_password" class="form-label">{{ __('ui.office_pw_current') }}</label>
                 <input type="password" id="current_password" name="current_password"
                        class="form-control @error('current_password') is-invalid @enderror"
                        required>
@@ -82,7 +82,7 @@
             </div>
 
             <div class="mb-3">
-                <label for="password" class="form-label">New Password</label>
+                <label for="password" class="form-label">{{ __('ui.office_pw_new') }}</label>
                 <input type="password" id="password" name="password"
                        class="form-control @error('password') is-invalid @enderror"
                        required>
@@ -92,18 +92,18 @@
             </div>
 
             <div class="mb-4">
-                <label for="password_confirmation" class="form-label">Confirm New Password</label>
+                <label for="password_confirmation" class="form-label">{{ __('ui.office_pw_confirm') }}</label>
                 <input type="password" id="password_confirmation" name="password_confirmation"
                        class="form-control" required>
             </div>
 
             <button type="submit" class="btn-update-pw">
-                <i class="bi bi-check-lg"></i>Update Password
+                <i class="bi bi-check-lg"></i>{{ __('ui.office_pw_btn') }}
             </button>
         </form>
 
         <a href="{{ route('office.dashboard') }}" class="btn-back-link">
-            <i class="bi bi-arrow-left"></i>Back to Dashboard
+            <i class="bi bi-arrow-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }}"></i>{{ __('ui.office_pw_back') }}
         </a>
 
     </div>

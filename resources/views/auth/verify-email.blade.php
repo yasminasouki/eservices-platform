@@ -1,9 +1,9 @@
 @extends('layouts.auth')
 @section('title', 'Verify Email — E-Services Platform')
 @section('auth_brand_icon', 'bi-person-fill')
-@section('auth_brand_title', 'Citizen Portal')
-@section('heading', 'Check your inbox')
-@section('subtitle', 'Enter the 6-digit code we sent to your email address.')
+@section('auth_brand_title', __('ui.auth_citizen_portal'))
+@section('heading', __('ui.auth_verify_heading'))
+@section('subtitle', __('ui.auth_verify_subtitle'))
 
 @section('content')
 
@@ -15,7 +15,7 @@
     <form method="POST" action="{{ route('verification.code') }}">
         @csrf
         <div class="mb-3">
-            <label class="form-label fw-600 small">Verification code</label>
+            <label class="form-label fw-600 small">{{ __('ui.auth_verify_code_label') }}</label>
             <input type="text" name="code" inputmode="numeric" pattern="\d{6}" maxlength="6"
                    class="form-control form-control-lg text-center fw-800 @error('code') is-invalid @enderror"
                    placeholder="000000" autocomplete="one-time-code" autofocus
@@ -25,23 +25,23 @@
             @enderror
         </div>
         <button type="submit" class="btn btn-primary w-100 mb-3">
-            <i class="bi bi-check-circle me-2"></i>Verify Email
+            <i class="bi bi-check-circle me-2"></i>{{ __('ui.auth_verify_btn') }}
         </button>
     </form>
 
-    <div class="text-center text-muted small mb-3">Didn't receive a code?</div>
+    <div class="text-center text-muted small mb-3">{{ __('ui.auth_no_code') }}</div>
 
     <form method="POST" action="{{ route('verification.send') }}">
         @csrf
         <button type="submit" class="btn btn-outline-primary w-100 mb-3">
-            <i class="bi bi-send me-2"></i>Send new code
+            <i class="bi bi-send me-2"></i>{{ __('ui.auth_send_new_code') }}
         </button>
     </form>
 
     <form method="POST" action="{{ route('logout') }}" class="text-center">
         @csrf
         <button type="submit" class="btn btn-link text-muted small text-decoration-none p-0">
-            <i class="bi bi-arrow-left me-1"></i>Use a different account
+            <i class="bi bi-arrow-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }} me-1"></i>{{ __('ui.auth_different_account') }}
         </button>
     </form>
 

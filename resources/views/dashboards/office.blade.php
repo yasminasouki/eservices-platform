@@ -1,6 +1,6 @@
 @extends('layouts.office')
 
-@section('title', 'Dashboard')
+@section('title', __('ui.office_dash_title'))
 
 @php
     $statusConfig = fn (string $status) => match ($status) {
@@ -128,17 +128,17 @@
         <div class="pwd-alert">
             <div class="pwd-alert-text">
                 <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                <strong>Security:</strong> You must change your password before continuing.
+                {{ __('ui.office_dash_security_alert') }}
             </div>
             <a href="{{ route('office.password.change') }}" class="pwd-alert-btn">
-                <i class="bi bi-key"></i> Change Password
+                <i class="bi bi-key"></i> {{ __('ui.office_dash_change_password') }}
             </a>
         </div>
     @endif
 
     {{-- Header --}}
     <div style="margin-bottom:1.5rem;">
-        <div class="page-title">Dashboard</div>
+        <div class="page-title">{{ __('ui.office_dash_title') }}</div>
         <p class="page-sub">
             @if($offices->count() === 1)
                 {{ $offices->first()->name }}
@@ -159,9 +159,9 @@
                 <i class="bi bi-hourglass-split" style="color:#92400e;"></i>
             </div>
             <div>
-                <div class="stat-label">Pending requests</div>
+                <div class="stat-label">{{ __('ui.office_dash_pending') }}</div>
                 <div class="stat-value">{{ $pending }}</div>
-                <div class="stat-sub">Awaiting action</div>
+                <div class="stat-sub">{{ __('ui.office_dash_pending_sub') }}</div>
             </div>
         @isset($officeContext)
         </a>
@@ -178,9 +178,9 @@
                 <i class="bi bi-check-circle" style="color:#14532d;"></i>
             </div>
             <div>
-                <div class="stat-label">Completed today</div>
+                <div class="stat-label">{{ __('ui.office_dash_completed') }}</div>
                 <div class="stat-value">{{ $completedToday }}</div>
-                <div class="stat-sub">Processed today</div>
+                <div class="stat-sub">{{ __('ui.office_dash_completed_sub') }}</div>
             </div>
         @isset($officeContext)
         </a>
@@ -197,9 +197,9 @@
                 <i class="bi bi-calendar-check" style="color:#1e40af;"></i>
             </div>
             <div>
-                <div class="stat-label">Appointments today</div>
+                <div class="stat-label">{{ __('ui.office_dash_appointments') }}</div>
                 <div class="stat-value">{{ $appointmentsToday }}</div>
-                <div class="stat-sub">Scheduled for today</div>
+                <div class="stat-sub">{{ __('ui.office_dash_appointments_sub') }}</div>
             </div>
         @isset($officeContext)
         </a>
@@ -216,9 +216,9 @@
                 <i class="bi bi-star-fill" style="color:#16a34a;"></i>
             </div>
             <div>
-                <div class="stat-label">Average rating</div>
+                <div class="stat-label">{{ __('ui.office_dash_avg_rating') }}</div>
                 <div class="stat-value">{{ $averageRating !== null ? $averageRating : '—' }}</div>
-                <div class="stat-sub">{{ $averageRating !== null ? 'out of 5 stars' : 'No ratings yet' }}</div>
+                <div class="stat-sub">{{ $averageRating !== null ? __('ui.office_dash_avg_rating_sub') : __('ui.office_dash_no_ratings') }}</div>
             </div>
         @isset($officeContext)
         </a>
@@ -232,11 +232,11 @@
         <div class="card-header-row">
             <div class="card-header-title">
                 <div class="card-header-icon"><i class="bi bi-inbox"></i></div>
-                Recent Requests
+                {{ __('ui.office_dash_recent') }}
             </div>
             @isset($officeContext)
                 <a href="{{ route('office.requests.index', $officeContext) }}" class="view-all-link">
-                    View all <i class="bi bi-arrow-right"></i>
+                    {{ __('ui.view_all') }} <i class="bi bi-arrow-{{ app()->getLocale() === 'ar' ? 'left' : 'right' }}"></i>
                 </a>
             @endisset
         </div>
@@ -244,18 +244,18 @@
         @if($latestRequests->isEmpty())
             <div class="empty-state">
                 <div class="empty-icon"><i class="bi bi-inbox"></i></div>
-                <p>No service requests for your office yet.</p>
+                <p>{{ __('ui.office_dash_empty') }}</p>
             </div>
         @else
             <div class="table-responsive">
                 <table class="req-table">
                     <thead>
                         <tr>
-                            <th>Ref</th>
-                            <th>Service</th>
-                            <th>Citizen</th>
-                            <th>Status</th>
-                            <th>Submitted</th>
+                            <th>{{ __('ui.office_dash_col_ref') }}</th>
+                            <th>{{ __('ui.office_dash_col_service') }}</th>
+                            <th>{{ __('ui.office_dash_col_citizen') }}</th>
+                            <th>{{ __('ui.office_dash_col_status') }}</th>
+                            <th>{{ __('ui.office_dash_col_submitted') }}</th>
                         </tr>
                     </thead>
                     <tbody>

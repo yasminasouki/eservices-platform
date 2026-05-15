@@ -1,6 +1,6 @@
 @extends('layouts.citizen')
 
-@section('title', 'My dashboard')
+@section('title', __('ui.dashboard'))
 
 @push('styles')
 <style>
@@ -241,27 +241,35 @@
 
 @section('content')
 
-    {{-- ID pending alert --}}
+    {{-- ID pending/rejected alert --}}
     @if(auth()->user()->id_document_status === 'pending')
         <div class="id-pending-alert">
             <i class="bi bi-clock-history"></i>
             <div>
-                <strong>Identity Verification Pending</strong><br>
-                <span>Your national ID is being reviewed. Some features may be limited until verification is complete.</span>
+                <strong>{{ __('ui.id_pending_title') }}</strong><br>
+                <span>{{ __('ui.id_pending_desc') }}</span>
+            </div>
+        </div>
+    @elseif(auth()->user()->id_document_status === 'rejected')
+        <div class="id-pending-alert" style="background:#fef2f2;border-color:#fecaca;">
+            <i class="bi bi-exclamation-circle" style="color:#dc2626;"></i>
+            <div>
+                <strong style="color:#991b1b;">{{ __('ui.id_rejected_title') }}</strong><br>
+                <span style="color:#7f1d1d;">{{ __('ui.id_rejected_desc') }}</span>
             </div>
         </div>
     @endif
 
     {{-- Hero --}}
     <div class="dashboard-hero">
-        <div class="greeting">Welcome back, {{ auth()->user()->name }}</div>
-        <p class="sub">Browse government services and track your requests all in one place.</p>
+        <div class="greeting">{{ __('ui.welcome_back', ['name' => auth()->user()->name]) }}</div>
+        <p class="sub">{{ __('ui.hero_sub') }}</p>
         <div class="hero-actions">
             <a href="{{ route('citizen.offices.index') }}" class="hero-btn primary">
-                <i class="bi bi-grid-fill"></i> Browse services
+                <i class="bi bi-grid-fill"></i> {{ __('ui.browse_services') }}
             </a>
             <a href="{{ route('citizen.requests.index') }}" class="hero-btn">
-                <i class="bi bi-folder2-open"></i> My requests
+                <i class="bi bi-folder2-open"></i> {{ __('ui.my_requests') }}
             </a>
         </div>
     </div>
@@ -270,22 +278,22 @@
     <div class="stat-grid">
         <a href="{{ route('citizen.requests.index') }}" class="stat-card-v2 c-purple">
             <div class="stat-icon purple"><i class="bi bi-file-earmark-text"></i></div>
-            <div class="stat-label">Active requests</div>
+            <div class="stat-label">{{ __('ui.active_requests') }}</div>
             <div class="stat-value">{{ $activeRequests }}</div>
         </a>
         <a href="{{ route('citizen.requests.index', ['tab' => 'completed']) }}" class="stat-card-v2 c-green">
             <div class="stat-icon green"><i class="bi bi-check2-all"></i></div>
-            <div class="stat-label">Completed</div>
+            <div class="stat-label">{{ __('ui.completed') }}</div>
             <div class="stat-value">{{ $completedRequests }}</div>
         </a>
         <a href="{{ route('citizen.appointments.index') }}" class="stat-card-v2 c-blue">
             <div class="stat-icon blue"><i class="bi bi-calendar-event"></i></div>
-            <div class="stat-label">Upcoming appts</div>
+            <div class="stat-label">{{ __('ui.upcoming_appts') }}</div>
             <div class="stat-value">{{ $upcomingAppointments > 0 ? $upcomingAppointments : '—' }}</div>
         </a>
         <div class="stat-card-v2 c-amber">
             <div class="stat-icon amber"><i class="bi bi-wallet2"></i></div>
-            <div class="stat-label">Total paid</div>
+            <div class="stat-label">{{ __('ui.total_paid') }}</div>
             <div class="stat-value" style="font-size:1.5rem;">{{ number_format($totalPaid, 2) }}</div>
         </div>
     </div>
@@ -298,31 +306,33 @@
             <div class="browse-card">
                 <div class="browse-card-banner">
                     <div class="browse-banner-icon"><i class="bi bi-building"></i></div>
-                    <div class="browse-banner-title">Browse services</div>
-                    <div class="browse-banner-sub">Find government offices and submit requests online — no in-person visit needed.</div>
+                    <div class="browse-banner-title">{{ __('ui.browse_services') }}</div>
+                    <div class="browse-banner-sub">{{ __('ui.browse_services_subtitle') }}</div>
                 </div>
                 <div class="browse-features-body">
                     <div class="browse-features">
                         <div class="browse-feature">
                             <div class="browse-feature-icon map"><i class="bi bi-geo-alt-fill"></i></div>
-                            View nearby offices on a map
+                            {{ __('ui.view_nearby_offices') }}
                         </div>
                         <div class="browse-feature">
                             <div class="browse-feature-icon cal"><i class="bi bi-calendar-check"></i></div>
-                            Book appointments online
+                            {{ __('ui.book_appointments_online') }}
                         </div>
                         <div class="browse-feature">
                             <div class="browse-feature-icon track"><i class="bi bi-arrow-repeat"></i></div>
-                            Track requests in real time
+                            {{ __('ui.track_requests_realtime') }}
                         </div>
                         <div class="browse-feature">
                             <div class="browse-feature-icon chat"><i class="bi bi-chat-dots-fill"></i></div>
-                            Chat directly with office staff
+                            {{ __('ui.chat_with_office') }}
                         </div>
                     </div>
                     <a href="{{ route('citizen.offices.index') }}" class="browse-cta">
-                        <span class="browse-cta-label">View all offices</span>
-                        <span class="browse-cta-arrow"><i class="bi bi-arrow-right"></i></span>
+                        <span class="browse-cta-label">{{ __('ui.view_all_offices') }}</span>
+                        <span class="browse-cta-arrow">
+                            <i class="bi {{ app()->getLocale() === 'ar' ? 'bi-arrow-left' : 'bi-arrow-right' }}"></i>
+                        </span>
                     </a>
                 </div>
             </div>
@@ -333,10 +343,10 @@
             <div class="section-card h-100">
                 <div class="section-card-header">
                     <div class="section-card-title">
-                        <i class="bi bi-clock-history"></i> Recent requests
+                        <i class="bi bi-clock-history"></i> {{ __('ui.recent_requests') }}
                     </div>
                     <a href="{{ route('citizen.requests.index') }}" class="section-card-link">
-                        View all <i class="bi bi-arrow-right"></i>
+                        {{ __('ui.view_all') }} <i class="bi {{ app()->getLocale() === 'ar' ? 'bi-arrow-left' : 'bi-arrow-right' }}"></i>
                     </a>
                 </div>
 
@@ -345,12 +355,12 @@
                         <div class="mb-3" style="font-size:2.5rem;opacity:.25;">
                             <i class="bi bi-folder2-open"></i>
                         </div>
-                        <div class="text-muted small fw-semibold">No requests yet</div>
+                        <div class="text-muted small fw-semibold">{{ __('ui.no_requests_yet') }}</div>
                         <div class="text-muted" style="font-size:.8rem;">
-                            Browse services to submit your first request.
+                            {{ __('ui.no_requests_desc') }}
                         </div>
                         <a href="{{ route('citizen.offices.index') }}" class="btn btn-sm btn-primary mt-3">
-                            Get started
+                            {{ __('ui.get_started') }}
                         </a>
                     </div>
                 @else
@@ -358,7 +368,7 @@
                         <div class="req-item">
                             <div>
                                 <div class="req-service">
-                                    {{ $req->service?->name ?? 'Request #'.$req->id }}
+                                    {{ $req->service?->name ?? __('ui.request_hash', ['id' => $req->id]) }}
                                 </div>
                                 <div class="req-office">
                                     <i class="bi bi-building me-1"></i>{{ $req->governmentOffice?->name }}
@@ -366,7 +376,7 @@
                             </div>
                             <a href="{{ route('citizen.requests.show', $req) }}"
                                class="btn btn-sm btn-outline-primary flex-shrink-0">
-                                Open
+                                {{ __('ui.open') }}
                             </a>
                         </div>
                     @endforeach

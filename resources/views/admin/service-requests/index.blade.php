@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Service operations')
+@section('title', __('ui.admin_sr_title'))
 
 @php
     $statusLabel = fn (string $s) => str($s)->replace('_', ' ')->title()->toString();
@@ -117,8 +117,8 @@
 
     <div class="page-header">
         <div>
-            <div class="page-title">Service operations</div>
-            <p class="page-sub">Monitor service requests across offices with filters and status breakdown.</p>
+            <div class="page-title">{{ __('ui.admin_sr_title') }}</div>
+            <p class="page-sub">{{ __('ui.admin_sr_subtitle') }}</p>
         </div>
     </div>
 
@@ -127,9 +127,9 @@
         <form method="GET" action="{{ route('admin.service-requests.index') }}">
             <div class="filter-row">
                 <div class="filter-group wide">
-                    <label class="filter-label">Office</label>
+                    <label class="filter-label">{{ __('ui.admin_sr_filter_office') }}</label>
                     <select name="government_office_id" class="filter-control">
-                        <option value="">All offices</option>
+                        <option value="">{{ __('ui.admin_sr_filter_all_offices') }}</option>
                         @foreach($offices as $office)
                             <option value="{{ $office->id }}" @selected((string)($filters['government_office_id'] ?? '') === (string)$office->id)>
                                 {{ $office->name }}
@@ -138,25 +138,25 @@
                     </select>
                 </div>
                 <div class="filter-group mid">
-                    <label class="filter-label">Status</label>
+                    <label class="filter-label">{{ __('ui.admin_sr_filter_status') }}</label>
                     <select name="status" class="filter-control">
-                        <option value="">All statuses</option>
+                        <option value="">{{ __('ui.admin_sr_filter_all_statuses') }}</option>
                         @foreach(\App\Models\ServiceRequest::STATUSES as $s)
                             <option value="{{ $s }}" @selected(($filters['status'] ?? '') === $s)>{{ $statusLabel($s) }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="filter-group sm">
-                    <label class="filter-label">From (submitted)</label>
+                    <label class="filter-label">{{ __('ui.admin_sr_filter_from') }}</label>
                     <input type="date" name="date_from" class="filter-control" value="{{ $filters['date_from'] ?? '' }}">
                 </div>
                 <div class="filter-group sm">
-                    <label class="filter-label">To (submitted)</label>
+                    <label class="filter-label">{{ __('ui.admin_sr_filter_to') }}</label>
                     <input type="date" name="date_to" class="filter-control" value="{{ $filters['date_to'] ?? '' }}">
                 </div>
                 <div class="filter-actions">
-                    <button type="submit" class="btn-apply"><i class="bi bi-funnel"></i> Apply</button>
-                    <a href="{{ route('admin.service-requests.index') }}" class="btn-reset">Reset</a>
+                    <button type="submit" class="btn-apply"><i class="bi bi-funnel"></i> {{ __('ui.admin_sr_filter_apply') }}</button>
+                    <a href="{{ route('admin.service-requests.index') }}" class="btn-reset">{{ __('ui.admin_sr_filter_reset') }}</a>
                 </div>
             </div>
         </form>
@@ -179,19 +179,19 @@
     {{-- Requests table --}}
     <div class="data-panel">
         <div class="data-panel-header">
-            <div class="data-panel-title">Requests</div>
-            <span class="count-badge">{{ $requests->total() }} total</span>
+            <div class="data-panel-title">{{ __('ui.admin_sr_requests') }}</div>
+            <span class="count-badge">{{ $requests->total() }} {{ __('ui.admin_sr_total') }}</span>
         </div>
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Ref</th>
-                    <th>Citizen</th>
-                    <th>Service</th>
-                    <th>Office</th>
-                    <th>Status</th>
-                    <th>Submitted</th>
-                    <th>Updated</th>
+                    <th>{{ __('ui.admin_sr_col_ref') }}</th>
+                    <th>{{ __('ui.admin_sr_col_citizen') }}</th>
+                    <th>{{ __('ui.admin_sr_col_service') }}</th>
+                    <th>{{ __('ui.admin_sr_col_office') }}</th>
+                    <th>{{ __('ui.admin_sr_col_status') }}</th>
+                    <th>{{ __('ui.admin_sr_col_submitted') }}</th>
+                    <th>{{ __('ui.admin_sr_col_updated') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -220,7 +220,7 @@
                     <tr><td colspan="7">
                         <div class="empty-state">
                             <div class="empty-icon"><i class="bi bi-inbox"></i></div>
-                            <p>No requests match the current filters.</p>
+                            <p>{{ __('ui.admin_sr_empty') }}</p>
                         </div>
                     </td></tr>
                 @endforelse

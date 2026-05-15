@@ -1,6 +1,6 @@
 @extends('layouts.office')
 
-@section('title', 'Services')
+@section('title', __('ui.office_svc_title'))
 
 @push('styles')
 <style>
@@ -107,15 +107,15 @@
     {{-- Page header --}}
     <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
         <div>
-            <div class="page-title">Services</div>
+            <div class="page-title">{{ __('ui.office_svc_title') }}</div>
             <p class="page-sub">{{ $office->name }}</p>
         </div>
         <div class="d-flex gap-2 flex-wrap">
             <a href="{{ route('office.categories.index', $office) }}" class="btn-categories">
-                <i class="bi bi-tags"></i>Categories
+                <i class="bi bi-tags"></i>{{ __('ui.categories') }}
             </a>
             <a href="{{ route('office.services.create', $office) }}" class="btn-new-service">
-                <i class="bi bi-plus-lg"></i>New service
+                <i class="bi bi-plus-lg"></i>{{ __('ui.office_svc_new') }}
             </a>
         </div>
     </div>
@@ -124,20 +124,20 @@
         @if($services->isEmpty())
             <div class="empty-state">
                 <div class="empty-icon"><i class="bi bi-grid"></i></div>
-                <h6>No services yet</h6>
-                <p>Add a category first, then create services here.</p>
+                <h6>{{ __('ui.office_svc_empty') }}</h6>
+                <p>{{ __('ui.office_svc_empty_desc') }}</p>
             </div>
         @else
             <div class="table-responsive">
                 <table class="svc-table">
                     <thead>
                         <tr>
-                            <th>Service</th>
-                            <th>Category</th>
-                            <th>Price</th>
-                            <th>Duration</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th>{{ __('ui.office_svc_col_service') }}</th>
+                            <th>{{ __('ui.office_svc_col_category') }}</th>
+                            <th>{{ __('ui.office_svc_col_price') }}</th>
+                            <th>{{ __('ui.office_svc_col_duration') }}</th>
+                            <th>{{ __('ui.office_svc_col_status') }}</th>
+                            <th>{{ __('ui.office_svc_col_actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -161,25 +161,25 @@
                                 <td>
                                     @if($svc->is_active)
                                         <span class="status-pill pill-active">
-                                            <i class="bi bi-check-circle"></i> Active
+                                            <i class="bi bi-check-circle"></i> {{ __('ui.office_svc_status_active') }}
                                         </span>
                                     @else
                                         <span class="status-pill pill-hidden">
-                                            <i class="bi bi-eye-slash"></i> Hidden
+                                            <i class="bi bi-eye-slash"></i> {{ __('ui.office_svc_status_hidden') }}
                                         </span>
                                     @endif
                                 </td>
                                 <td>
                                     <div class="act-group">
                                         <a href="{{ route('office.services.edit', [$office, $svc]) }}" class="act-btn-edit">
-                                            <i class="bi bi-pencil"></i> Edit
+                                            <i class="bi bi-pencil"></i> {{ __('ui.office_svc_edit') }}
                                         </a>
                                         <form action="{{ route('office.services.destroy', [$office, $svc]) }}" method="POST" class="d-inline"
-                                              onsubmit="return confirm('Delete this service?');">
+                                              onsubmit="return confirm('{{ __('ui.office_svc_delete') }}?');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="act-btn-delete">
-                                                <i class="bi bi-trash"></i> Delete
+                                                <i class="bi bi-trash"></i> {{ __('ui.office_svc_delete') }}
                                             </button>
                                         </form>
                                     </div>

@@ -2,15 +2,15 @@
 @section('title', '2FA Setup — E-Services Platform')
 @section('auth_brand_icon', 'bi-shield-lock-fill')
 @section('auth_brand_title', 'Security Setup')
-@section('heading', 'Set up 2FA')
-@section('subtitle', 'Scan the QR code with your authenticator app.')
+@section('heading', __('ui.auth_2fa_setup_heading'))
+@section('subtitle', __('ui.auth_2fa_setup_subtitle'))
 
 @section('content')
 
     {{-- Step 1: QR Code --}}
     <div class="bg-light rounded-3 p-3 text-center mb-3">
         <img src="{{ $qrCode }}" alt="2FA QR Code" class="img-fluid mb-2" style="max-width:180px;">
-        <p class="small text-muted mb-1">Can't scan the QR code? Enter this key manually:</p>
+        <p class="small text-muted mb-1">{{ __('ui.auth_2fa_manual_key') }}</p>
         <code class="fs-6 fw-bold text-dark user-select-all">{{ $secret }}</code>
     </div>
 
@@ -18,11 +18,10 @@
     <div class="alert alert-warning mb-3">
         <p class="fw-semibold mb-2">
             <i class="bi bi-exclamation-triangle-fill me-1"></i>
-            Save your recovery codes now
+            {{ __('ui.auth_2fa_recovery_title') }}
         </p>
         <p class="small mb-2">
-            If you lose access to your authenticator app, use these one-time codes to sign in.
-            Store them somewhere safe — they won't be shown again.
+            {{ __('ui.auth_2fa_recovery_desc') }}
         </p>
         <div class="row row-cols-2 g-1">
             @foreach($recoveryCodes as $code)
@@ -38,7 +37,7 @@
         @csrf
         <div class="mb-3">
             <label for="code" class="form-label fw-semibold">
-                Enter the 6-digit code from your authenticator app
+                {{ __('ui.auth_2fa_enter_code') }}
             </label>
             <input type="text" id="code" name="code"
                    class="form-control form-control-lg text-center @error('code') is-invalid @enderror"
@@ -49,7 +48,7 @@
             @enderror
         </div>
         <button type="submit" class="btn btn-primary w-100">
-            <i class="bi bi-shield-check me-2"></i>Confirm & Enable 2FA
+            <i class="bi bi-shield-check me-2"></i>{{ __('ui.auth_2fa_confirm_btn') }}
         </button>
     </form>
 @endsection

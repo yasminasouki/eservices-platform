@@ -1,14 +1,20 @@
+@php $isRtl = app()->getLocale() === 'ar'; @endphp
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ $isRtl ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'E-Services Platform')</title>
+    <title>@yield('title', __('ui.brand_name'))</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    @if($isRtl)
+        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    @else
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    @endif
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
         :root {
@@ -270,12 +276,43 @@
         }
 
         .auth-links-stack p { line-height: 1.6; }
+
+        /* RTL */
+        [dir="rtl"] body.auth-page { font-family: 'Cairo', system-ui, sans-serif; }
+        [dir="rtl"] .auth-page .input-group-text { border-right: 1px solid #e2e8f0; border-left: none; }
+        [dir="rtl"] .auth-page .form-control { border-left: 1px solid #e2e8f0; border-right: none; }
+        [dir="rtl"] .auth-page .input-group:focus-within .input-group-text { border-right-color: var(--auth-accent); border-left: none; }
+        [dir="rtl"] .auth-page .input-group:focus-within .form-control { border-left-color: var(--auth-accent); border-right: none; }
+
+        /* Language toggle on auth page */
+        .auth-lang-switch {
+            display: flex; justify-content: flex-end; margin-bottom: .75rem;
+        }
+        .auth-lang-btn {
+            display: inline-flex; align-items: center; gap: .3rem;
+            padding: .25rem .6rem; border-radius: 999px;
+            border: 1px solid rgba(124,58,237,.25); background: rgba(124,58,237,.07);
+            color: #7c3aed; font-size: .75rem; font-weight: 700; text-decoration: none;
+            transition: background .15s;
+        }
+        .auth-lang-btn:hover { background: rgba(124,58,237,.14); color: #4c1d95; }
     </style>
     @stack('auth-styles')
 </head>
 <body class="auth-page @yield('auth_body_class')">
 
     <div class="auth-single">
+        <div class="auth-lang-switch">
+            @if($isRtl)
+                <a href="{{ route('language.switch', 'en') }}" class="auth-lang-btn">
+                    <i class="bi bi-translate"></i> English
+                </a>
+            @else
+                <a href="{{ route('language.switch', 'ar') }}" class="auth-lang-btn">
+                    <i class="bi bi-translate"></i> عربي
+                </a>
+            @endif
+        </div>
         <div class="auth-form-card auth-form-box">
             <div class="auth-card-strip">
                 <i class="bi @yield('auth_brand_icon', 'bi-building-fill-gear')" aria-hidden="true"></i>
@@ -321,7 +358,7 @@
 
                 <div class="auth-footer-note">
                     <i class="bi bi-lock-fill"></i>
-                    <span>Encrypted connection. Never share your password.</span>
+                    <span>{{ __('ui.auth_secure_note') }}</span>
                 </div>
             </div>
         </div>

@@ -1,6 +1,6 @@
 @extends('layouts.office')
 
-@section('title', 'Service Requests')
+@section('title', __('ui.office_req_title'))
 
 @php
     $statusConfig = fn (string $status) => match ($status) {
@@ -189,8 +189,8 @@
     {{-- Page header --}}
     <div class="d-flex align-items-flex-start justify-content-between flex-wrap gap-2 mb-4">
         <div>
-            <div class="page-title">Service Requests</div>
-            <p class="page-sub">{{ $office->name }} — Manage and track incoming citizen requests.</p>
+            <div class="page-title">{{ __('ui.office_req_title') }}</div>
+            <p class="page-sub">{{ $office->name }} — {{ __('ui.office_req_subtitle') }}</p>
         </div>
     </div>
 
@@ -198,14 +198,14 @@
     <div class="filter-card">
         <form method="GET" action="{{ route('office.requests.index', $office) }}" class="row g-3 align-items-end">
             <div class="col-md-4 col-lg-3">
-                <label for="q" class="form-label">Search citizen</label>
-                <input type="text" name="q" id="q" class="form-control" placeholder="Name or email"
+                <label for="q" class="form-label">{{ __('ui.office_req_col_citizen') }}</label>
+                <input type="text" name="q" id="q" class="form-control" placeholder="{{ __('ui.office_req_search_ph') }}"
                        value="{{ $filters['q'] ?? '' }}" maxlength="100">
             </div>
             <div class="col-md-4 col-lg-2">
-                <label for="status" class="form-label">Status</label>
+                <label for="status" class="form-label">{{ __('ui.office_req_filter_status') }}</label>
                 <select name="status" id="status" class="form-select">
-                    <option value="">All statuses</option>
+                    <option value="">{{ __('ui.office_req_filter_all') }}</option>
                     @foreach(\App\Models\ServiceRequest::STATUSES as $s)
                         <option value="{{ $s }}" @selected(($filters['status'] ?? '') === $s)>
                             {{ $statusLabel($s) }}
@@ -214,20 +214,20 @@
                 </select>
             </div>
             <div class="col-md-4 col-lg-2">
-                <label for="date_from" class="form-label">From</label>
+                <label for="date_from" class="form-label">{{ __('ui.office_req_filter_from') }}</label>
                 <input type="date" name="date_from" id="date_from" class="form-control"
                        value="{{ $filters['date_from'] ?? '' }}">
             </div>
             <div class="col-md-4 col-lg-2">
-                <label for="date_to" class="form-label">To</label>
+                <label for="date_to" class="form-label">{{ __('ui.office_req_filter_to') }}</label>
                 <input type="date" name="date_to" id="date_to" class="form-control"
                        value="{{ $filters['date_to'] ?? '' }}">
             </div>
             <div class="col-md-8 col-lg-3 d-flex flex-wrap gap-2">
                 <button type="submit" class="btn-apply">
-                    <i class="bi bi-funnel"></i>Apply
+                    <i class="bi bi-funnel"></i>{{ __('ui.office_req_filter_apply') }}
                 </button>
-                <a href="{{ route('office.requests.index', $office) }}" class="btn-reset">Reset</a>
+                <a href="{{ route('office.requests.index', $office) }}" class="btn-reset">{{ __('ui.office_req_filter_reset') }}</a>
             </div>
         </form>
     </div>
@@ -252,41 +252,41 @@
         @if(!$requests->isEmpty())
         <div class="filter-bar">
             <button class="filter-tab active" onclick="filterBy('all', this)">
-                All <span class="filter-count">{{ $counts['all'] }}</span>
+                {{ __('ui.office_req_tab_all') }} <span class="filter-count">{{ $counts['all'] }}</span>
             </button>
             @if($counts['pending'] > 0)
             <button class="filter-tab" onclick="filterBy('pending', this)">
-                <i class="bi bi-clock" style="font-size:.72rem;"></i> Pending
+                <i class="bi bi-clock" style="font-size:.72rem;"></i> {{ __('ui.office_req_tab_pending') }}
                 <span class="filter-count">{{ $counts['pending'] }}</span>
             </button>
             @endif
             @if($counts['in_review'] > 0)
             <button class="filter-tab" onclick="filterBy('in_review', this)">
-                <i class="bi bi-eye" style="font-size:.72rem;"></i> In Review
+                <i class="bi bi-eye" style="font-size:.72rem;"></i> {{ __('ui.office_req_tab_review') }}
                 <span class="filter-count">{{ $counts['in_review'] }}</span>
             </button>
             @endif
             @if($counts['missing_documents'] > 0)
             <button class="filter-tab" onclick="filterBy('missing_documents', this)">
-                <i class="bi bi-paperclip" style="font-size:.72rem;"></i> Missing Docs
+                <i class="bi bi-paperclip" style="font-size:.72rem;"></i> {{ __('ui.office_req_tab_missing') }}
                 <span class="filter-count">{{ $counts['missing_documents'] }}</span>
             </button>
             @endif
             @if($counts['approved'] > 0)
             <button class="filter-tab" onclick="filterBy('approved', this)">
-                <i class="bi bi-check-circle" style="font-size:.72rem;"></i> Approved
+                <i class="bi bi-check-circle" style="font-size:.72rem;"></i> {{ __('ui.office_req_tab_approved') }}
                 <span class="filter-count">{{ $counts['approved'] }}</span>
             </button>
             @endif
             @if($counts['completed'] > 0)
             <button class="filter-tab" onclick="filterBy('completed', this)">
-                <i class="bi bi-patch-check" style="font-size:.72rem;"></i> Completed
+                <i class="bi bi-patch-check" style="font-size:.72rem;"></i> {{ __('ui.office_req_tab_completed') }}
                 <span class="filter-count">{{ $counts['completed'] }}</span>
             </button>
             @endif
             @if($counts['rejected'] > 0)
             <button class="filter-tab" onclick="filterBy('rejected', this)">
-                <i class="bi bi-x-circle" style="font-size:.72rem;"></i> Rejected
+                <i class="bi bi-x-circle" style="font-size:.72rem;"></i> {{ __('ui.office_req_tab_rejected') }}
                 <span class="filter-count">{{ $counts['rejected'] }}</span>
             </button>
             @endif
@@ -296,21 +296,21 @@
         @if($requests->isEmpty())
             <div class="empty-state">
                 <div class="empty-icon"><i class="bi bi-inbox"></i></div>
-                <h6>No requests yet</h6>
-                <p>No service requests match your current filters.</p>
+                <h6>{{ __('ui.office_req_empty') }}</h6>
+                <p>{{ __('ui.office_req_empty_filter') }}</p>
             </div>
         @else
             <div class="table-responsive">
                 <table class="req-table" id="reqTable">
                     <thead>
                         <tr>
-                            <th>Ref</th>
-                            <th>Citizen</th>
-                            <th>Service</th>
-                            <th>Status</th>
-                            <th>Submitted</th>
-                            <th>Updated</th>
-                            <th>Action</th>
+                            <th>{{ __('ui.office_req_col_ref') }}</th>
+                            <th>{{ __('ui.office_req_col_citizen') }}</th>
+                            <th>{{ __('ui.office_req_col_service') }}</th>
+                            <th>{{ __('ui.office_req_col_status') }}</th>
+                            <th>{{ __('ui.office_req_col_submitted') }}</th>
+                            <th>{{ __('ui.office_req_col_updated') }}</th>
+                            <th>{{ __('ui.office_req_col_action') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -333,7 +333,7 @@
                                 <td style="font-size:.79rem;color:#52916b;">{{ $req->updated_at?->format('Y-m-d H:i') ?? '—' }}</td>
                                 <td>
                                     <a href="{{ route('office.requests.show', [$office, $req]) }}" class="act-btn-open">
-                                        <i class="bi bi-arrow-right-circle"></i> Open
+                                        <i class="bi bi-arrow-right-circle"></i> {{ __('ui.office_req_btn_open') }}
                                     </a>
                                 </td>
                             </tr>
@@ -344,7 +344,7 @@
 
             <div class="no-filter-results" id="noFilterResults">
                 <i class="bi bi-funnel"></i>
-                No requests match this filter.
+                {{ __('ui.office_req_empty_tab') }}
             </div>
 
             @if($requests->hasPages())
