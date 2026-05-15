@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Office;
+namespace App\Http\Controllers\Citizen;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
@@ -31,15 +31,12 @@ class NotificationController extends Controller
             ]);
         }
 
-        return view('office.notifications.index', [
+        return view('citizen.notifications.index', [
             'notifications' => $notifications,
             'unreadCount'   => $user->unreadNotifications()->count(),
         ]);
     }
 
-    /**
-     * Mark a single notification as read.
-     */
     public function markAsRead(Request $request, string $id): JsonResponse
     {
         $request->user()
@@ -51,9 +48,6 @@ class NotificationController extends Controller
         return response()->json(['ok' => true]);
     }
 
-    /**
-     * Mark all notifications as read.
-     */
     public function markAllRead(Request $request): JsonResponse
     {
         $request->user()->unreadNotifications()->update(['read_at' => now()]);

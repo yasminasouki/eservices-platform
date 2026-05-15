@@ -30,9 +30,15 @@ class RequireTwoFactor
             return $next($request);
         }
 
-        // After login, require an OTP check each session
+        // After login, require an OTP check each session (unless device is trusted via remember me)
         if (!session('2fa_verified')) {
-            if (!$request->routeIs('2fa.verify', '2fa.verify.confirm', 'logout')) {
+            $cookieName = '2fa_device_' . $user->id;
+            $cookieValue = $request->cookie($cookieName);
+            $expectedToken = hash_hmac('sha256', $user->id . '|' . $user->email, config('app.key'));
+
+            if ($cookieValue && hash_equals($expectedToken, $cookieValue)) {
+                session(['2fa_verified' => true]);
+            } elseif (!$request->routeIs('2fa.verify', '2fa.verify.confirm', 'logout')) {
                 return redirect()->route('2fa.verify');
             }
         }

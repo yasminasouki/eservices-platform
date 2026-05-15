@@ -1,19 +1,11 @@
 @extends('layouts.auth')
 @section('title', 'Forgot Password — E-Services Platform')
-@section('subtitle', 'Reset your password')
+@section('auth_brand_icon', 'bi-person-fill')
+@section('auth_brand_title', 'Citizen Portal')
+@section('heading', 'Reset your password')
+@section('subtitle', 'Enter your email and we\'ll send you a reset link.')
 
 @section('content')
-    <div class="text-center mb-4">
-        <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-circle mb-3"
-             style="width:64px;height:64px;">
-            <i class="bi bi-key-fill text-primary fs-3"></i>
-        </div>
-        <h5 class="fw-bold mb-1">Forgot Your Password?</h5>
-        <p class="text-muted small mb-0">
-            Enter your email address and we'll send you a link to reset your password.
-        </p>
-    </div>
-
     <form method="POST" action="{{ route('password.email') }}">
         @csrf
 

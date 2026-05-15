@@ -63,7 +63,13 @@ class SocialAuthController extends Controller
         Auth::login($user);
         $user->update(['last_login_at' => now()]);
 
-        return redirect()->route('citizen.dashboard');
+        $dashboard = match ($user->role) {
+            'admin' => 'admin.dashboard',
+            'office_user' => 'office.dashboard',
+            default => 'citizen.dashboard',
+        };
+
+        return redirect()->route($dashboard);
     }
 
     private function validateProvider(string $provider): void

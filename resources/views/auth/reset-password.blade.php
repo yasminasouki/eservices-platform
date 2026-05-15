@@ -1,17 +1,11 @@
 @extends('layouts.auth')
 @section('title', 'Reset Password — E-Services Platform')
-@section('subtitle', 'Create a new password')
+@section('auth_brand_icon', 'bi-person-fill')
+@section('auth_brand_title', 'Citizen Portal')
+@section('heading', 'Reset your password')
+@section('subtitle', 'Enter and confirm your new password below.')
 
 @section('content')
-    <div class="text-center mb-4">
-        <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-circle mb-3"
-             style="width:64px;height:64px;">
-            <i class="bi bi-lock-fill text-primary fs-3"></i>
-        </div>
-        <h5 class="fw-bold mb-1">Reset Your Password</h5>
-        <p class="text-muted small mb-0">Enter your new password below.</p>
-    </div>
-
     <form method="POST" action="{{ route('password.update') }}">
         @csrf
         <input type="hidden" name="token" value="{{ $token }}">

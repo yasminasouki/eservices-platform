@@ -2,6 +2,7 @@
 @section('auth_body_class', 'auth-variant-admin')
 @section('title', 'Admin Login — E-Services Platform')
 @section('auth_brand_icon', 'bi-shield-lock-fill')
+@section('auth_brand_title', 'Admin Portal')
 @section('heading', 'Admin sign-in')
 @section('heading_badge', 'Admin')
 @section('subtitle', 'Use your administrator credentials. This area is not for public accounts.')

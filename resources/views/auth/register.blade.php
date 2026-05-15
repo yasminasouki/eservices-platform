@@ -1,5 +1,7 @@
 @extends('layouts.auth')
 @section('title', 'Register — E-Services Platform')
+@section('auth_brand_icon', 'bi-person-fill')
+@section('auth_brand_title', 'Citizen Portal')
 @section('heading', 'Create your account')
 @section('subtitle', 'Enter your details to register as a citizen.')
 

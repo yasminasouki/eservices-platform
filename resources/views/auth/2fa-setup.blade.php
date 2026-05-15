@@ -1,18 +1,11 @@
 @extends('layouts.auth')
 @section('title', '2FA Setup — E-Services Platform')
-@section('subtitle', 'Secure your account')
+@section('auth_brand_icon', 'bi-shield-lock-fill')
+@section('auth_brand_title', 'Security Setup')
+@section('heading', 'Set up 2FA')
+@section('subtitle', 'Scan the QR code with your authenticator app.')
 
 @section('content')
-    <div class="text-center mb-4">
-        <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-circle mb-3"
-             style="width:64px;height:64px;">
-            <i class="bi bi-shield-lock-fill text-primary fs-3"></i>
-        </div>
-        <h5 class="fw-bold mb-1">Set Up Two-Factor Authentication</h5>
-        <p class="text-muted small mb-0">
-            Scan the QR code with Google Authenticator, Authy, or any TOTP app.
-        </p>
-    </div>
 
     {{-- Step 1: QR Code --}}
     <div class="bg-light rounded-3 p-3 text-center mb-3">

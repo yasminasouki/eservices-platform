@@ -319,7 +319,7 @@ class CitizenPaymentController extends Controller
         ]);
 
         return redirect()
-            ->route('citizen.requests.pay', $serviceRequest)
+            ->to(route('citizen.requests.pay', $serviceRequest) . '?tab=crypto')
             ->with('success', 'Crypto amount updated below. Send exactly that amount to the address shown.');
     }
 
@@ -332,7 +332,10 @@ class CitizenPaymentController extends Controller
         }
 
         $payment = $serviceRequest->payment;
-        if (! $payment || $payment->method !== 'cryptocurrency') {
+        $hasCryptoQuote = $payment
+            && isset($payment->gateway_response['crypto_quote'])
+            && isset($payment->gateway_response['crypto_wallet']);
+        if (! $hasCryptoQuote) {
             return back()->withErrors(['crypto' => 'Generate a cryptocurrency quote first.']);
         }
 
@@ -375,7 +378,7 @@ class CitizenPaymentController extends Controller
         $existingSubmit = $payment->gateway_response['crypto_citizen_submitted_at'] ?? null;
         if (! $autoComplete && $existingSubmit && $ref === null) {
             return redirect()
-                ->route('citizen.requests.pay', $serviceRequest)
+                ->to(route('citizen.requests.pay', $serviceRequest) . '?tab=crypto')
                 ->with('info', 'We already recorded your payment notice. If you need to add a transaction reference, paste it below and submit again.');
         }
 
@@ -403,7 +406,7 @@ class CitizenPaymentController extends Controller
         $payment->update(['gateway_response' => $gateway]);
 
         return redirect()
-            ->route('citizen.requests.pay', $serviceRequest)
+            ->to(route('citizen.requests.pay', $serviceRequest) . '?tab=crypto')
             ->with('info', 'Reference saved. The office will verify the transfer on-chain; you will be notified when the request is activated.');
     }
 
@@ -551,12 +554,13 @@ class CitizenPaymentController extends Controller
                     if ((int) $existing->amount === $unitCents) {
                         $metaPid = (int) ($existing->metadata->payment_id ?? 0);
                         if ($metaPid === (int) $payment->id) {
-                            $payment->update([
-                                'method' => 'card',
-                                'gateway_response' => array_merge($payment->gateway_response ?? [], [
-                                    'stripe_elements_intent_id' => $existing->id,
-                                ]),
-                            ]);
+                            $updates = ['gateway_response' => array_merge($payment->gateway_response ?? [], [
+                                'stripe_elements_intent_id' => $existing->id,
+                            ])];
+                            if ($payment->method !== 'cryptocurrency') {
+                                $updates['method'] = 'card';
+                            }
+                            $payment->update($updates);
 
                             return (string) $existing->client_secret;
                         }
@@ -578,13 +582,14 @@ class CitizenPaymentController extends Controller
             ],
         ]);
 
-        $payment->update([
-            'method' => 'card',
-            'gateway_response' => array_merge($payment->gateway_response ?? [], [
-                'stripe_elements_intent_id' => $intent->id,
-                'stripe_elements_created_at' => now()->toIso8601String(),
-            ]),
-        ]);
+        $updates = ['gateway_response' => array_merge($payment->gateway_response ?? [], [
+            'stripe_elements_intent_id' => $intent->id,
+            'stripe_elements_created_at' => now()->toIso8601String(),
+        ])];
+        if ($payment->method !== 'cryptocurrency') {
+            $updates['method'] = 'card';
+        }
+        $payment->update($updates);
 
         return (string) $intent->client_secret;
     }

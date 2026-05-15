@@ -2,6 +2,76 @@
 
 @section('title', 'Chat — '.$citizen->name)
 
+@push('styles')
+<style>
+/* ── Compose area ── */
+.chat-compose-wrap {
+    background: #fff;
+    border: 1.5px solid #d1fae5;
+    border-radius: 14px;
+    padding: .55rem .55rem .55rem .85rem;
+    display: flex;
+    align-items: flex-end;
+    gap: .6rem;
+    transition: border-color .15s, box-shadow .15s;
+}
+.chat-compose-wrap:focus-within {
+    border-color: #6ee7b7;
+    box-shadow: 0 0 0 3px rgba(16,185,129,.08);
+}
+.chat-compose-input {
+    flex: 1;
+    border: none !important;
+    box-shadow: none !important;
+    resize: none;
+    min-height: 38px;
+    max-height: 130px;
+    overflow-y: auto;
+    font-size: .9rem;
+    padding: .35rem 0;
+    background: transparent;
+    line-height: 1.5;
+}
+.chat-compose-input:focus { outline: none; }
+.chat-send-btn {
+    width: 38px; height: 38px;
+    padding: 0;
+    flex-shrink: 0;
+    border-radius: 10px !important;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+    background: linear-gradient(135deg, #34d399, #059669);
+    border: none;
+    color: #fff;
+    transition: opacity .15s, transform .1s;
+}
+.chat-send-btn:hover { opacity: .88; color: #fff; }
+.chat-send-btn:active { transform: scale(.93); }
+.chat-send-btn:disabled { opacity: .45; }
+
+/* ── Citizen info header ── */
+.chat-citizen-header {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    padding: .85rem 1.1rem;
+    background: linear-gradient(135deg, #f0fdf4, #fafffe);
+    border-bottom: 1px solid #d1fae5;
+    border-radius: 14px 14px 0 0;
+}
+.chat-citizen-avatar {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, #34d399, #059669);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+</style>
+@endpush
+
 @section('content')
     <nav aria-label="breadcrumb" class="small mb-2">
         <ol class="breadcrumb mb-0">
@@ -20,36 +90,52 @@
         </a>
     </div>
 
-    <div class="card card-soft">
-        <div class="card-body">
+    <div class="card card-soft overflow-hidden">
+        {{-- Citizen header --}}
+        <div class="chat-citizen-header">
+            <div class="chat-citizen-avatar">{{ strtoupper(substr($citizen->name, 0, 1)) }}</div>
+            <div class="min-w-0">
+                <div class="fw-bold" style="font-size:.95rem; color:#065f46;">{{ $citizen->name }}</div>
+                <div style="font-size:.78rem; color:#6ee7b7;">{{ $citizen->email }}</div>
+            </div>
+        </div>
+
+        <div class="card-body pt-3">
             @include('partials.office-chat-thread', [
-                'messages' => $messages,
-                'portal' => 'office',
-                'office' => $office,
+                'messages'      => $messages,
+                'portal'        => 'office',
+                'office'        => $office,
                 'citizenUserId' => $citizen->id,
             ])
 
-            <div id="live-chat-ajax-error" class="alert alert-danger d-none small" role="alert"></div>
+            <div id="live-chat-ajax-error" class="alert alert-danger d-none small mb-2" role="alert"></div>
 
-            <form method="POST" action="{{ route('office.chat.store', [$office, $citizen]) }}" class="mt-2" data-office-chat-ajax>
+            <form method="POST" action="{{ route('office.chat.store', [$office, $citizen]) }}" data-office-chat-ajax>
                 @csrf
-                <label for="body" class="form-label small fw-semibold">Your reply</label>
-                <textarea
-                    id="body"
-                    name="body"
-                    class="form-control @error('body') is-invalid @enderror"
-                    rows="4"
-                    maxlength="5000"
-                    required
-                    placeholder="Reply to {{ $citizen->name }}…"
-                >{{ old('body') }}</textarea>
-                @error('body')
-                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                @enderror
-                <div class="d-flex justify-content-end mt-3">
-                    <button type="submit" class="btn btn-success">
-                        <i class="bi bi-send-fill me-1"></i>Send
+                <div class="chat-compose-wrap">
+                    <textarea
+                        id="body"
+                        name="body"
+                        class="form-control chat-compose-input @error('body') is-invalid @enderror"
+                        rows="1"
+                        maxlength="5000"
+                        required
+                        placeholder="Reply to {{ $citizen->name }}…"
+                    >{{ old('body') }}</textarea>
+                    <button type="submit" class="btn chat-send-btn" title="Send (Ctrl+Enter)">
+                        <i class="bi bi-send-fill"></i>
                     </button>
+                </div>
+                @error('body')
+                    <div class="invalid-feedback d-block mt-1">{{ $message }}</div>
+                @enderror
+                <div class="text-end mt-1" style="font-size:.67rem; color:#9ca3af;">
+                    <kbd style="background:#f0fdf4;border:1px solid #d1fae5;color:#059669;font-size:.65rem;border-radius:4px;padding:1px 4px;">Enter</kbd>
+                    to send &nbsp;·&nbsp;
+                    <kbd style="background:#f0fdf4;border:1px solid #d1fae5;color:#059669;font-size:.65rem;border-radius:4px;padding:1px 4px;">Shift</kbd>
+                    +
+                    <kbd style="background:#f0fdf4;border:1px solid #d1fae5;color:#059669;font-size:.65rem;border-radius:4px;padding:1px 4px;">Enter</kbd>
+                    for new line
                 </div>
             </form>
         </div>

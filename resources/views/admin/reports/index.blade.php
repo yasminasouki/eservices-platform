@@ -125,7 +125,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script>
         const labels = @json($chartLabels);
-        const palette = ['#1a237e','#1565c0','#00838f','#6a1b9a','#c62828','#ef6c00','#2e7d32','#455a64'];
+        const palette = ['#6b8cba','#7a9bc8','#5c7dab','#8aaad0','#4e6f9e','#7896c4','#6480b2','#8eb2d6'];
 
         function colors(n) {
             return Array.from({ length: n }, (_, i) => palette[i % palette.length]);

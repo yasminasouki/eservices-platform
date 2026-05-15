@@ -1,20 +1,11 @@
 @extends('layouts.auth')
 @section('title', 'Two-Factor Verification — E-Services Platform')
-@section('subtitle', 'Verify your identity')
+@section('auth_brand_icon', 'bi-shield-lock-fill')
+@section('auth_brand_title', 'Two-Factor Auth')
+@section('heading', 'Verify your identity')
+@section('subtitle', 'Enter the code from your authenticator app.')
 
 @section('content')
-    <div class="text-center mb-4">
-        <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-circle mb-3"
-             style="width:64px;height:64px;">
-            <i class="bi bi-shield-fill-check text-primary fs-3"></i>
-        </div>
-        <h5 class="fw-bold mb-1">Two-Factor Authentication</h5>
-        <p class="text-muted small mb-0">
-            Open your authenticator app and enter the 6-digit code,<br>
-            or enter one of your recovery codes.
-        </p>
-    </div>
-
     <form method="POST" action="{{ route('2fa.verify.confirm') }}">
         @csrf
         <div class="mb-4">

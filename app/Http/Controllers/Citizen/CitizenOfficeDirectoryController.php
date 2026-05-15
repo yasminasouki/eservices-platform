@@ -6,20 +6,29 @@ use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\Feedback;
 use App\Models\GovernmentOffice;
+use App\Models\Municipality;
 use App\Models\OfficerTimeSlot;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class CitizenOfficeDirectoryController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $search = trim($request->input('search', ''));
+        $municipalityId = $request->input('municipality');
+
         $offices = GovernmentOffice::query()
             ->where('is_active', true)
+            ->when($search, fn ($q) => $q->where('name', 'like', "%{$search}%"))
+            ->when($municipalityId, fn ($q) => $q->where('municipality_id', $municipalityId))
             ->withCount(['services' => fn ($q) => $q->where('is_active', true)])
             ->with('municipality:id,name')
             ->orderBy('name')
             ->paginate(12)
             ->withQueryString();
+
+        $municipalities = Municipality::orderBy('name')->get(['id', 'name']);
 
         $mapMarkers = GovernmentOffice::query()
             ->where('is_active', true)
@@ -48,7 +57,7 @@ class CitizenOfficeDirectoryController extends Controller
             'maxZoom' => config('maps.max_zoom'),
         ];
 
-        return view('citizen.offices.index', compact('offices', 'mapMarkers', 'mapConfig'));
+        return view('citizen.offices.index', compact('offices', 'mapMarkers', 'mapConfig', 'municipalities', 'search', 'municipalityId'));
     }
 
     public function show(GovernmentOffice $office): View

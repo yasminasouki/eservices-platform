@@ -33,7 +33,7 @@ class IdVerificationController extends Controller
         $backPath = $request->file('id_document_back')->store('id_documents', 'local');
 
         try {
-            $idService->submitForVerification($frontPath, $backPath);
+            $extracted = $idService->submitForVerification($frontPath, $backPath);
         } catch (HttpClientException $e) {
             Storage::disk('local')->delete([$frontPath, $backPath]);
             report($e);
@@ -42,6 +42,18 @@ class IdVerificationController extends Controller
                 ->withErrors([
                     'id_document_front' => 'We could not reach the ID scanning service (network or DNS issue). Check your internet connection, try turning off VPN, or change DNS (e.g. 1.1.1.1), then try again.',
                 ]);
+        }
+
+        // If none of the key ID fields were found, the images are not valid ID cards.
+        $keyFields = ['extracted_name', 'extracted_id_number', 'extracted_dob', 'extracted_registry_number'];
+        $hasData = collect($keyFields)->contains(fn ($f) => !empty($extracted[$f]));
+
+        if (!$hasData) {
+            Storage::disk('local')->delete([$frontPath, $backPath]);
+            \App\Models\IdVerificationRequest::where('user_id', Auth::id())->latest()->first()?->delete();
+
+            return redirect()->route('citizen.id.verify')
+                ->with('error', 'The uploaded images do not appear to be a valid Lebanese national ID. Please upload a clear photo of the front and back of your ID card.');
         }
 
         Auth::user()->update(['id_document' => $frontPath]);
