@@ -80,6 +80,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/email/verify', [EmailVerificationController::class, 'notice'])->name('verification.notice');
     Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])->middleware('signed')->name('verification.verify');
     Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])->middleware('throttle:6,1')->name('verification.send');
+    Route::post('/email/verify-code', [EmailVerificationController::class, 'verifyCode'])->middleware('throttle:10,1')->name('verification.code');
 
     // 2FA routes (no 2fa_verified required — these build that state)
     Route::get('/2fa/setup', [AuthController::class, 'show2faSetup'])->name('2fa.setup');
@@ -219,7 +220,7 @@ Route::middleware(['auth', 'active'])->group(function () {
             Route::post('/office/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('office.notifications.read-all');
         });
 
-        Route::middleware('role:citizen')->group(function () {
+        Route::middleware(['role:citizen', 'verified'])->group(function () {
             Route::get('/citizen/dashboard', [CitizenDashboardController::class, 'index'])->name('citizen.dashboard');
             Route::get('/citizen/offices', [CitizenOfficeDirectoryController::class, 'index'])->name('citizen.offices.index');
             Route::get('/citizen/offices/{office}', [CitizenOfficeDirectoryController::class, 'show'])->name('citizen.offices.show');
