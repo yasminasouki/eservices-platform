@@ -19,10 +19,11 @@
 @push('styles')
 <style>
     /* ── Breadcrumb ── */
-    .req-breadcrumb { display: flex; align-items: center; gap: .4rem; font-size: .8rem; color: #b4a0d4; margin-bottom: 1.25rem; }
-    .req-breadcrumb a { color: #8b5cf6; text-decoration: none; font-weight: 500; }
-    .req-breadcrumb a:hover { text-decoration: underline; }
-    .req-breadcrumb .sep { color: #ddd6fe; }
+    .req-breadcrumb { display: flex; align-items: center; gap: .35rem; margin-bottom: 1.25rem; }
+    .req-breadcrumb a { display: inline-flex; align-items: center; gap: .3rem; padding: .2rem .65rem; background: #f5f3ff; border: 1.5px solid #ddd6fe; border-radius: 20px; font-size: .78rem; font-weight: 600; color: #7c3aed; text-decoration: none; transition: background .15s, border-color .15s; }
+    .req-breadcrumb a:hover { background: #ede9fe; border-color: #c4b5fd; }
+    .req-breadcrumb .sep { color: #c4b5fd; font-size: .85rem; }
+    .req-breadcrumb span:not(.sep) { display: inline-flex; align-items: center; padding: .2rem .65rem; font-size: .78rem; font-weight: 600; color: #6b7280; }
 
     /* ── Page header ── */
     .req-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
@@ -240,7 +241,7 @@
     {{-- Breadcrumb --}}
     <div class="req-breadcrumb">
         <a href="{{ route('citizen.requests.index') }}"><i class="bi bi-folder2-open me-1"></i>{{ __('ui.my_requests') }}</a>
-        <span class="sep"><i class="bi bi-chevron-right" style="font-size:.65rem;"></i></span>
+        <span class="sep">›</span>
         <span>{{ __('ui.request_hash', ['id' => $request->id]) }}</span>
     </div>
 

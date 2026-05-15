@@ -834,4 +834,6 @@ return [
     'admin_ou_btn_deactivate'           => 'تعطيل',
     'admin_ou_btn_activate'             => 'تفعيل',
     'admin_ou_empty'                    => 'لم يُعثر على مستخدمي بلديات',
+    'please_fix_errors'                 => 'يرجى تصحيح الأخطاء التالية:',
+    'citizen_create_submitting'         => 'جارٍ الإرسال…',
 ];

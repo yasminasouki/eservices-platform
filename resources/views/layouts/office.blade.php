@@ -176,6 +176,15 @@
             .topbar-hamburger { display: flex; }
         }
 
+        /* ── Breadcrumbs ── */
+        .breadcrumb { display: flex; align-items: center; flex-wrap: wrap; gap: .35rem; padding: 0; margin: 0; list-style: none; background: none; }
+        .breadcrumb-item { display: flex; align-items: center; }
+        .breadcrumb-item + .breadcrumb-item::before { content: '›'; color: var(--accent-light); font-size: .85rem; margin-right: .35rem; padding: 0; }
+        .breadcrumb-item a, .breadcrumb-link { display: inline-flex; align-items: center; gap: .3rem; padding: .2rem .65rem; background: var(--accent-pale); border: 1.5px solid var(--accent-light); border-radius: 20px; font-size: .78rem; font-weight: 600; color: var(--accent); text-decoration: none; transition: background .15s, border-color .15s; }
+        .breadcrumb-item a:hover, .breadcrumb-link:hover { background: #bbf7d0; border-color: var(--accent); color: var(--accent-mid); }
+        .breadcrumb-item.active, .breadcrumb-item span, .breadcrumb-current { display: inline-flex; align-items: center; padding: .2rem .65rem; font-size: .78rem; font-weight: 600; color: #6b7280; }
+        .breadcrumb-sep { color: var(--accent-light); font-size: .85rem; margin: 0 .1rem; }
+
         /* ── Global overrides ── */
         .card-soft { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(22,163,74,.07); }
         .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-mid)); border: none; color: #fff; font-weight: 600; }

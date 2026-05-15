@@ -11,6 +11,20 @@
         </ol>
     </nav>
 
+    @if($errors->any())
+        <div class="alert alert-danger d-flex align-items-start gap-2 mb-3">
+            <i class="bi bi-exclamation-triangle-fill flex-shrink-0 mt-1"></i>
+            <div>
+                <strong>{{ __('ui.please_fix_errors') }}</strong>
+                <ul class="mb-0 mt-1 ps-3">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    @endif
+
     <h2 class="fw-bold mb-1">{{ __('ui.request_hash', ['id' => '']) }} {{ $service->name }}</h2>
     <p class="text-muted small mb-4">{{ $office->name }}</p>
 
@@ -116,14 +130,13 @@
                             </div>
                         @endif
 
-                        {{-- AI validation notice --}}
-                        <div class="d-flex align-items-center gap-2 mb-3 p-2 rounded"
-                             style="background:#f5f3ff;border:1px solid #ede9fe;font-size:.78rem;color:#6d28d9;">
-                            <i class="bi bi-stars flex-shrink-0"></i>
-                            <span>{{ __('ui.citizen_create_ai_check') }}</span>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary" id="submit-btn">{{ __('ui.citizen_create_submit') }}</button>
+<button type="submit" class="btn btn-primary" id="submit-btn">
+                            <span id="submit-label">{{ __('ui.citizen_create_submit') }}</span>
+                            <span id="submit-spinner" class="d-none">
+                                <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                {{ __('ui.citizen_create_submitting') }}
+                            </span>
+                        </button>
                         <a href="{{ route('citizen.offices.show', $office) }}" class="btn btn-outline-secondary ms-2">{{ __('ui.citizen_create_cancel') }}</a>
                     </form>
                 </div>
@@ -131,3 +144,16 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.getElementById('apply-form').addEventListener('submit', function () {
+        const btn    = document.getElementById('submit-btn');
+        const label  = document.getElementById('submit-label');
+        const spinner = document.getElementById('submit-spinner');
+        btn.disabled = true;
+        label.classList.add('d-none');
+        spinner.classList.remove('d-none');
+    });
+</script>
+@endpush

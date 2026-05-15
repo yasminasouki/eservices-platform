@@ -179,6 +179,14 @@
         }
         #notif-dropdown .notif-bell-btn:hover { background: #bae6fd; }
 
+        /* ── Breadcrumbs ── */
+        .breadcrumb { display: flex; align-items: center; flex-wrap: wrap; gap: .35rem; padding: 0; margin: 0; list-style: none; background: none; }
+        .breadcrumb-item { display: flex; align-items: center; }
+        .breadcrumb-item + .breadcrumb-item::before { content: '›'; color: var(--accent-light); font-size: .85rem; margin-right: .35rem; padding: 0; }
+        .breadcrumb-item a { display: inline-flex; align-items: center; gap: .3rem; padding: .2rem .65rem; background: var(--accent-pale); border: 1.5px solid var(--accent-light); border-radius: 20px; font-size: .78rem; font-weight: 600; color: var(--accent); text-decoration: none; transition: background .15s, border-color .15s; }
+        .breadcrumb-item a:hover { background: #bae6fd; border-color: var(--accent-mid); color: #0369a1; }
+        .breadcrumb-item.active, .breadcrumb-item span { display: inline-flex; align-items: center; padding: .2rem .65rem; font-size: .78rem; font-weight: 600; color: #6b7280; }
+
         /* ── Global overrides ── */
         .card-soft { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(2,132,199,.07); }
         .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-mid)); border: none; color: #fff; font-weight: 600; }
@@ -268,9 +276,8 @@
         {{-- User card --}}
         <div class="sidebar-user-wrap">
             <div class="user-popup" id="adminUserPopup">
-                <form method="POST" action="{{ route('logout') }}" id="admin-logout-form">@csrf</form>
                 <button type="button" class="user-popup-item danger"
-                        onclick="document.getElementById('admin-logout-form').submit()">
+                        data-bs-toggle="modal" data-bs-target="#adminLogoutModal">
                     <i class="bi bi-box-arrow-right"></i> {{ __('ui.log_out') }}
                 </button>
             </div>
@@ -343,6 +350,42 @@
 
         </div>
     </main>
+
+    {{-- ════════════ LOGOUT MODAL ════════════ --}}
+    <div class="modal fade" id="adminLogoutModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:380px;">
+            <div class="modal-content border-0" style="border-radius:20px;overflow:hidden;box-shadow:0 24px 60px rgba(15,23,42,.18);">
+                <div class="modal-body text-center p-0">
+                    <div style="padding:2rem 2rem 1.5rem;">
+                        <div class="mx-auto mb-4 d-flex align-items-center justify-content-center"
+                             style="width:64px;height:64px;border-radius:18px;background:rgba(239,68,68,.1);">
+                            <i class="bi bi-box-arrow-right" style="font-size:1.6rem;color:#ef4444;"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2" style="font-size:1.15rem;letter-spacing:-.02em;color:#0f172a;">{{ __('ui.log_out_title') }}</h5>
+                        <p style="font-size:.875rem;color:#64748b;line-height:1.6;margin:0;">
+                            {{ __('ui.log_out_confirm') }}
+                        </p>
+                    </div>
+                    <div style="padding:0 1.5rem 1.75rem;display:grid;gap:.625rem;">
+                        <button type="button"
+                                onclick="document.getElementById('admin-logout-form').submit()"
+                                style="width:100%;padding:.75rem 1.25rem;background:linear-gradient(135deg,#dc2626,#ef4444);border:none;border-radius:12px;color:#fff;font-weight:700;font-size:.9375rem;letter-spacing:.01em;cursor:pointer;box-shadow:0 4px 14px rgba(239,68,68,.3);transition:filter .15s,transform .15s;"
+                                onmouseover="this.style.filter='brightness(1.08)';this.style.transform='translateY(-1px)'"
+                                onmouseout="this.style.filter='';this.style.transform=''">
+                            <i class="bi bi-box-arrow-right me-2"></i>{{ __('ui.yes_sign_out') }}
+                        </button>
+                        <button type="button" data-bs-dismiss="modal"
+                                style="width:100%;padding:.72rem 1.25rem;background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;color:#475569;font-weight:600;font-size:.9375rem;cursor:pointer;transition:background .15s,border-color .15s;"
+                                onmouseover="this.style.background='#f8fafc';this.style.borderColor='#cbd5e1'"
+                                onmouseout="this.style.background='#fff';this.style.borderColor='#e2e8f0'">
+                            {{ __('ui.cancel') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <form method="POST" action="{{ route('logout') }}" class="d-none" id="admin-logout-form">@csrf</form>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>

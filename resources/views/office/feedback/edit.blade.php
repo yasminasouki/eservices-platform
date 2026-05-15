@@ -7,10 +7,6 @@
     .page-title { font-size: 1.25rem; font-weight: 800; color: #0f2d13; margin-bottom: .15rem; }
     .page-sub   { font-size: .83rem; color: #52916b; margin: 0; }
 
-    .breadcrumb-link { color: #16a34a; text-decoration: none; font-size: .82rem; }
-    .breadcrumb-link:hover { color: #14532d; text-decoration: underline; }
-    .breadcrumb-sep { color: #86efac; margin: 0 .35rem; font-size: .82rem; }
-    .breadcrumb-current { font-size: .82rem; color: #52916b; }
 
     /* Green card */
     .green-card {
