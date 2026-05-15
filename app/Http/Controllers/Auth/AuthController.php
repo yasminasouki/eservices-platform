@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\EmailVerificationCodeMail;
 use App\Models\User;
 use App\Support\QrCodeDataUri;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use PragmaRX\Google2FA\Google2FA;
@@ -49,7 +52,10 @@ class AuthController extends Controller
             'two_factor_recovery_codes' => encrypt(json_encode($this->generateRecoveryCodes())),
         ])->save();
 
-        $user->sendEmailVerificationNotification();
+        $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        Cache::put('email_verify_code_' . $user->id, $code, now()->addHours(24));
+        Mail::to($user->email)->send(new EmailVerificationCodeMail($user->name, $code));
+
         Auth::login($user);
 
         return redirect()->route('2fa.setup')
