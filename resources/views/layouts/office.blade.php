@@ -365,6 +365,7 @@
             @endif
             @include('partials.notification-bell', [
                 'notificationIndexUrl'       => route('office.notifications.index'),
+                'notificationFeedUrl'        => route('office.notifications.feed'),
                 'notificationReadAllUrl'     => route('office.notifications.read-all'),
                 'notificationReadOneBaseUrl' => url('/office/notifications'),
             ])

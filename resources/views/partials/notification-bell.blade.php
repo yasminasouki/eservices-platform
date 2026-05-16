@@ -1,8 +1,9 @@
 @php
-    $notifIndexUrl = $notificationIndexUrl ?? route('office.notifications.index');
-    $notifReadAllUrl = $notificationReadAllUrl ?? route('office.notifications.read-all');
+    $notifIndexUrl    = $notificationIndexUrl ?? route('office.notifications.index');
+    $notifFeedUrl     = $notificationFeedUrl  ?? ($notifIndexUrl . '/feed');
+    $notifReadAllUrl  = $notificationReadAllUrl ?? route('office.notifications.read-all');
     $notifReadBaseUrl = rtrim($notificationReadOneBaseUrl ?? url('/office/notifications'), '/');
-    $notifUserId = auth()->id();
+    $notifUserId      = auth()->id();
 @endphp
 
 <style>
@@ -185,6 +186,7 @@
 (function () {
     const CSRF          = @json(csrf_token());
     const INDEX_URL     = @json($notifIndexUrl);
+    const FEED_URL      = @json($notifFeedUrl);
     const READ_ALL      = @json($notifReadAllUrl);
     const READ_BASE_URL = @json($notifReadBaseUrl);
     const badge         = document.getElementById('notif-badge');
@@ -267,7 +269,7 @@
     });
 
     function poll() {
-        fetch(INDEX_URL, {
+        fetch(FEED_URL, {
             headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
             credentials: 'same-origin',
         })

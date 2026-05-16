@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules;
 use PragmaRX\Google2FA\Google2FA;
 
 class MunicipalityAuthController extends Controller
@@ -70,6 +73,60 @@ class MunicipalityAuthController extends Controller
 
         return redirect()->route('2fa.setup')
             ->with('info', 'You must set up two-factor authentication before accessing the system.');
+    }
+
+    // ── Password Reset ────────────────────────────────────────────────────────
+
+    public function showForgotForm()
+    {
+        return view('auth.municipality-forgot-password');
+    }
+
+    public function sendResetLink(Request $request)
+    {
+        $request->validate(['email' => ['required', 'email']]);
+
+        $status = Password::sendResetLink($request->only('email'));
+
+        return $status === Password::RESET_LINK_SENT
+            ? back()->with('success', 'A password reset link has been sent to your email address.')
+            : back()->withErrors(['email' => __($status)])->withInput();
+    }
+
+    public function showResetForm(Request $request, string $token)
+    {
+        return view('auth.municipality-reset-password', [
+            'token' => $token,
+            'email' => $request->email,
+        ]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token'    => ['required'],
+            'email'    => ['required', 'email'],
+            'password' => ['required', 'confirmed', Rules\Password::min(8)->mixedCase()->numbers()],
+        ]);
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function (User $user, string $password) {
+                $user->forceFill([
+                    'password'       => Hash::make($password),
+                    'remember_token' => Str::random(60),
+                ])->save();
+
+                event(new PasswordReset($user));
+            }
+        );
+
+        if ($status === Password::PASSWORD_RESET) {
+            return redirect()->route('municipality.login')
+                ->with('success', 'Password reset successfully. Please sign in.');
+        }
+
+        return back()->withErrors(['email' => __($status)])->withInput($request->only('email'));
     }
 
     private function generateRecoveryCodes(): array

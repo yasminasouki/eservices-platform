@@ -80,6 +80,12 @@ Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'
 Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
 Route::post('/reset-password', [PasswordResetController::class, 'resetPassword'])->name('password.update');
 
+// ── Admin Password Reset (no auth required) ───────────────────────────────────
+Route::get('/admin/forgot-password', [PasswordResetController::class, 'showAdminForgotForm'])->name('admin.password.request');
+Route::post('/admin/forgot-password', [PasswordResetController::class, 'sendAdminResetLink'])->name('admin.password.email');
+Route::get('/admin/reset-password/{token}', [PasswordResetController::class, 'showAdminResetForm'])->name('admin.password.reset');
+Route::post('/admin/reset-password', [PasswordResetController::class, 'resetAdminPassword'])->name('admin.password.update');
+
 // ── Authenticated routes ──────────────────────────────────────────────────────
 Route::middleware(['auth', 'active'])->group(function () {
 
@@ -143,6 +149,7 @@ Route::middleware(['auth', 'active'])->group(function () {
                 ->name('admin.reports.index');
 
             Route::get('/admin/notifications',              [AdminNotificationController::class, 'index'])->name('admin.notifications.index');
+            Route::get('/admin/notifications/feed',        [AdminNotificationController::class, 'feed'])->name('admin.notifications.feed');
             Route::post('/admin/notifications/read-all',   [AdminNotificationController::class, 'markAllRead'])->name('admin.notifications.read-all');
             Route::post('/admin/notifications/{id}/read',  [AdminNotificationController::class, 'markOneRead'])->name('admin.notifications.read-one');
 
@@ -225,6 +232,7 @@ Route::middleware(['auth', 'active'])->group(function () {
 
             // Notifications
             Route::get('/office/notifications', [NotificationController::class, 'index'])->name('office.notifications.index');
+            Route::get('/office/notifications/feed', [NotificationController::class, 'feed'])->name('office.notifications.feed');
             Route::post('/office/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('office.notifications.read');
             Route::post('/office/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('office.notifications.read-all');
         });
@@ -281,6 +289,7 @@ Route::middleware(['auth', 'active'])->group(function () {
             Route::post('/citizen/id-save', [IdVerificationController::class, 'save'])->name('citizen.id.save');
 
             Route::get('/citizen/notifications', [CitizenNotificationController::class, 'index'])->name('citizen.notifications.index');
+            Route::get('/citizen/notifications/feed', [CitizenNotificationController::class, 'feed'])->name('citizen.notifications.feed');
             Route::post('/citizen/notifications/{id}/read', [CitizenNotificationController::class, 'markAsRead'])->name('citizen.notifications.read');
             Route::post('/citizen/notifications/read-all', [CitizenNotificationController::class, 'markAllRead'])->name('citizen.notifications.read-all');
         });

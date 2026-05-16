@@ -10,9 +10,29 @@ class NotificationController extends Controller
 {
     public function index(Request $request): mixed
     {
+        $user          = $request->user();
+        $notifications = $this->mapNotifications($user);
+
+        return view('admin.notifications.index', [
+            'notifications' => $notifications,
+            'unreadCount'   => $user->unreadNotifications()->count(),
+        ]);
+    }
+
+    public function feed(Request $request): JsonResponse
+    {
         $user = $request->user();
 
-        $notifications = $user->notifications()
+        return response()->json([
+            'count'         => $user->unreadNotifications()->count(),
+            'notifications' => $this->mapNotifications($user)
+                ->filter(fn ($n) => !$n['read'])->values(),
+        ])->header('Cache-Control', 'no-store');
+    }
+
+    private function mapNotifications($user): \Illuminate\Support\Collection
+    {
+        return $user->notifications()
             ->latest()
             ->take(50)
             ->get()
@@ -23,18 +43,6 @@ class NotificationController extends Controller
                 'created_at' => $n->created_at->diffForHumans(),
                 'read'       => !is_null($n->read_at),
             ]);
-
-        if ($request->expectsJson() || $request->ajax()) {
-            return response()->json([
-                'count'         => $user->unreadNotifications()->count(),
-                'notifications' => $notifications->filter(fn ($n) => !$n['read'])->values(),
-            ]);
-        }
-
-        return view('admin.notifications.index', [
-            'notifications' => $notifications,
-            'unreadCount'   => $user->unreadNotifications()->count(),
-        ]);
     }
 
     public function markAllRead(Request $request): JsonResponse
