@@ -235,6 +235,12 @@
             </div>
 
             <div class="id-card-body">
+                @if(($verification->status ?? null) === 'verified')
+                    <div class="alert alert-success d-flex align-items-center gap-2 mb-0">
+                        <i class="bi bi-shield-check-fill fs-5"></i>
+                        <span class="small fw-semibold">Your ID has been verified. You cannot upload a new ID document.</span>
+                    </div>
+                @else
                 <form method="POST" action="{{ route('citizen.id.upload') }}" enctype="multipart/form-data">
                     @csrf
 
@@ -313,6 +319,7 @@
                         <i class="bi bi-cpu"></i> {{ __('ui.citizen_id_upload_btn') }}
                     </button>
                 </form>
+                @endif
             </div>
         </div>
 
@@ -343,48 +350,57 @@
                     $dob        = $fmtDate($verification->extracted_dob);
                     $issueDate  = $fmtDate($verification->extracted_issue_date);
                     $expiryDate = $fmtDate($verification->extracted_expiry_date);
+                    $isVerified = $verification->status === 'verified';
+                    $locked     = $isVerified ? 'readonly' : '';
                 @endphp
 
                 <form method="POST" action="{{ route('citizen.id.save') }}">
                     @csrf
 
                     <p class="section-label"><i class="bi bi-credit-card"></i> {{ __('ui.citizen_id_front') }}</p>
+                    @if($isVerified)
+                        <div class="alert alert-info d-flex align-items-center gap-2 mb-3 py-2">
+                            <i class="bi bi-lock-fill"></i>
+                            <span class="small">Your information is locked after verification. Only <strong>Issue Date</strong> and <strong>Expiry Date</strong> can be updated.</span>
+                        </div>
+                    @endif
+
                     <div class="row g-3 mb-4">
                         <div class="col-sm-6">
                             <label class="form-label">{{ __('ui.citizen_id_first_name') }}</label>
-                            <input type="text" name="first_name" class="form-control" value="{{ $firstName }}">
+                            <input type="text" name="first_name" class="form-control" value="{{ $firstName }}" {{ $locked }}>
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label">{{ __('ui.citizen_id_last_name') }}</label>
-                            <input type="text" name="last_name" class="form-control" value="{{ $lastName }}">
+                            <input type="text" name="last_name" class="form-control" value="{{ $lastName }}" {{ $locked }}>
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label">{{ __('ui.citizen_id_father_name') }}</label>
-                            <input type="text" name="father_name" class="form-control" value="{{ $verification->extracted_father_name }}">
+                            <input type="text" name="father_name" class="form-control" value="{{ $verification->extracted_father_name }}" {{ $locked }}>
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label">{{ __('ui.citizen_id_mother_name') }}</label>
-                            <input type="text" name="mother_name" class="form-control" value="{{ $verification->extracted_mother_name }}">
+                            <input type="text" name="mother_name" class="form-control" value="{{ $verification->extracted_mother_name }}" {{ $locked }}>
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label">{{ __('ui.citizen_id_dob') }}</label>
-                            <input type="text" name="dob" class="form-control" value="{{ $dob }}">
+                            <input type="text" name="dob" class="form-control" value="{{ $dob }}" {{ $locked }}>
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label">{{ __('ui.citizen_id_pob') }}</label>
-                            <input type="text" name="place_of_birth" class="form-control" value="{{ $verification->extracted_place_of_birth }}">
+                            <input type="text" name="place_of_birth" class="form-control" value="{{ $verification->extracted_place_of_birth }}" {{ $locked }}>
                         </div>
                         <div class="col-sm-4">
                             <label class="form-label">{{ __('ui.citizen_id_gender') }}</label>
-                            <input type="text" name="gender" class="form-control" value="{{ $verification->extracted_gender }}">
+                            <input type="text" name="gender" class="form-control" value="{{ $verification->extracted_gender }}" {{ $locked }}>
                         </div>
                         <div class="col-sm-4">
                             <label class="form-label">{{ __('ui.citizen_id_blood_type') }}</label>
-                            <input type="text" name="blood_type" class="form-control" value="{{ $verification->extracted_blood_type }}">
+                            <input type="text" name="blood_type" class="form-control" value="{{ $verification->extracted_blood_type }}" {{ $locked }}>
                         </div>
                         <div class="col-sm-4">
                             <label class="form-label">{{ __('ui.citizen_id_marital_status') }}</label>
-                            <input type="text" name="marital_status" class="form-control" value="{{ $verification->extracted_marital_status }}">
+                            <input type="text" name="marital_status" class="form-control" value="{{ $verification->extracted_marital_status }}" {{ $locked }}>
                         </div>
                     </div>
 
@@ -392,23 +408,23 @@
                     <div class="row g-3">
                         <div class="col-sm-6">
                             <label class="form-label">{{ __('ui.citizen_id_number') }}</label>
-                            <input type="text" name="id_number" class="form-control" value="{{ $verification->extracted_id_number }}">
+                            <input type="text" name="id_number" class="form-control" value="{{ $verification->extracted_id_number }}" {{ $locked }}>
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label">{{ __('ui.citizen_id_registry_number') }}</label>
-                            <input type="text" name="registry_number" class="form-control" value="{{ $verification->extracted_registry_number }}">
+                            <input type="text" name="registry_number" class="form-control" value="{{ $verification->extracted_registry_number }}" {{ $locked }}>
                         </div>
                         <div class="col-sm-4">
                             <label class="form-label">{{ __('ui.citizen_id_locality') }}</label>
-                            <input type="text" name="locality" class="form-control" value="{{ $verification->extracted_locality }}">
+                            <input type="text" name="locality" class="form-control" value="{{ $verification->extracted_locality }}" {{ $locked }}>
                         </div>
                         <div class="col-sm-4">
                             <label class="form-label">{{ __('ui.citizen_id_district') }}</label>
-                            <input type="text" name="district" class="form-control" value="{{ $verification->extracted_district }}">
+                            <input type="text" name="district" class="form-control" value="{{ $verification->extracted_district }}" {{ $locked }}>
                         </div>
                         <div class="col-sm-4">
                             <label class="form-label">{{ __('ui.citizen_id_governorate') }}</label>
-                            <input type="text" name="governorate" class="form-control" value="{{ $verification->extracted_governorate }}">
+                            <input type="text" name="governorate" class="form-control" value="{{ $verification->extracted_governorate }}" {{ $locked }}>
                         </div>
                         <div class="col-sm-6">
                             <label class="form-label">{{ __('ui.citizen_id_issue_date') }}</label>

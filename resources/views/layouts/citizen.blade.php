@@ -608,6 +608,7 @@
             @endif
             @include('partials.notification-bell', [
                 'notificationIndexUrl'       => route('citizen.notifications.index'),
+                'notificationFeedUrl'        => route('citizen.notifications.feed'),
                 'notificationReadAllUrl'     => route('citizen.notifications.read-all'),
                 'notificationReadOneBaseUrl' => url('/citizen/notifications'),
             ])

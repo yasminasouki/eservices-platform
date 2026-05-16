@@ -14,3 +14,13 @@ Route::middleware('guest')->group(function () {
         ->name('municipality.login.attempt');
 
 });
+
+// Password reset — no auth required
+Route::get('/municipality/forgot-password', [MunicipalityAuthController::class, 'showForgotForm'])
+    ->name('municipality.password.request');
+Route::post('/municipality/forgot-password', [MunicipalityAuthController::class, 'sendResetLink'])
+    ->name('municipality.password.email');
+Route::get('/municipality/reset-password/{token}', [MunicipalityAuthController::class, 'showResetForm'])
+    ->name('municipality.password.reset');
+Route::post('/municipality/reset-password', [MunicipalityAuthController::class, 'resetPassword'])
+    ->name('municipality.password.update');

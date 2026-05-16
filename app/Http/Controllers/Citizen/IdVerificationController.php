@@ -24,6 +24,12 @@ class IdVerificationController extends Controller
 
     public function upload(Request $request, IdVerificationService $idService)
     {
+        $existing = IdVerificationRequest::where('user_id', Auth::id())->latest()->first();
+        if ($existing && $existing->status === 'verified') {
+            return redirect()->route('citizen.id.verify')
+                ->withErrors(['id_document_front' => 'Your ID has already been verified and cannot be replaced.']);
+        }
+
         $request->validate([
             'id_document_front' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'id_document_back' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
@@ -72,45 +78,55 @@ class IdVerificationController extends Controller
 
     public function save(Request $request)
     {
+        $verification = IdVerificationRequest::where('user_id', Auth::id())
+            ->latest()
+            ->firstOrFail();
+
+        $isVerified = $verification->status === 'verified';
+
         $request->validate([
-            'first_name' => ['required', 'string'],
-            'last_name' => ['required', 'string'],
-            'father_name' => ['nullable', 'string'],
-            'mother_name' => ['nullable', 'string'],
-            'dob' => ['required', 'string'],
-            'place_of_birth' => ['nullable', 'string'],
-            'gender' => ['nullable', 'string'],
-            'blood_type' => ['nullable', 'string'],
-            'marital_status' => ['nullable', 'string'],
-            'id_number' => ['required', 'string'],
-            'registry_number' => ['nullable', 'string'],
-            'locality' => ['nullable', 'string'],
-            'district' => ['nullable', 'string'],
-            'governorate' => ['nullable', 'string'],
-            'issue_date' => ['nullable', 'string'],
-            'expiry_date' => ['nullable', 'string'],
+            'first_name'    => [$isVerified ? 'nullable' : 'required', 'string'],
+            'last_name'     => [$isVerified ? 'nullable' : 'required', 'string'],
+            'father_name'   => ['nullable', 'string'],
+            'mother_name'   => ['nullable', 'string'],
+            'dob'           => [$isVerified ? 'nullable' : 'required', 'string'],
+            'place_of_birth'=> ['nullable', 'string'],
+            'gender'        => ['nullable', 'string'],
+            'blood_type'    => ['nullable', 'string'],
+            'marital_status'=> ['nullable', 'string'],
+            'id_number'     => [$isVerified ? 'nullable' : 'required', 'string'],
+            'registry_number'=> ['nullable', 'string'],
+            'locality'      => ['nullable', 'string'],
+            'district'      => ['nullable', 'string'],
+            'governorate'   => ['nullable', 'string'],
+            'issue_date'    => ['nullable', 'string'],
+            'expiry_date'   => ['nullable', 'string'],
         ]);
 
-        IdVerificationRequest::where('user_id', Auth::id())
-            ->latest()
-            ->firstOrFail()
-            ->update([
-                'extracted_name' => $request->first_name.' '.$request->last_name,
-                'extracted_father_name' => $request->father_name,
-                'extracted_mother_name' => $request->mother_name,
-                'extracted_dob' => $request->dob,
-                'extracted_place_of_birth' => $request->place_of_birth,
-                'extracted_gender' => $request->gender,
-                'extracted_blood_type' => $request->blood_type,
-                'extracted_marital_status' => $request->marital_status,
-                'extracted_id_number' => $request->id_number,
-                'extracted_registry_number' => $request->registry_number,
-                'extracted_locality' => $request->locality,
-                'extracted_district' => $request->district,
-                'extracted_governorate' => $request->governorate,
-                'extracted_issue_date' => $request->issue_date ?: null,
+        if ($isVerified) {
+            $verification->update([
+                'extracted_issue_date'  => $request->issue_date ?: null,
                 'extracted_expiry_date' => $request->expiry_date ?: null,
             ]);
+        } else {
+            $verification->update([
+                'extracted_name'          => $request->first_name.' '.$request->last_name,
+                'extracted_father_name'   => $request->father_name,
+                'extracted_mother_name'   => $request->mother_name,
+                'extracted_dob'           => $request->dob,
+                'extracted_place_of_birth'=> $request->place_of_birth,
+                'extracted_gender'        => $request->gender,
+                'extracted_blood_type'    => $request->blood_type,
+                'extracted_marital_status'=> $request->marital_status,
+                'extracted_id_number'     => $request->id_number,
+                'extracted_registry_number'=> $request->registry_number,
+                'extracted_locality'      => $request->locality,
+                'extracted_district'      => $request->district,
+                'extracted_governorate'   => $request->governorate,
+                'extracted_issue_date'    => $request->issue_date ?: null,
+                'extracted_expiry_date'   => $request->expiry_date ?: null,
+            ]);
+        }
 
         return redirect()->route('citizen.dashboard')
             ->with('success', 'Your information has been saved successfully.');

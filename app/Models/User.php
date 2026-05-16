@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Mail\PasswordResetMail;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -10,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -55,6 +58,19 @@ class User extends Authenticatable implements MustVerifyEmail
     // ──────────────────────────────────────────────
     // Scopes
     // ──────────────────────────────────────────────
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $routeName = match ($this->role) {
+            'office_user' => 'municipality.password.reset',
+            'admin'       => 'admin.password.reset',
+            default       => 'password.reset',
+        };
+
+        $resetUrl = url(route($routeName, ['token' => $token, 'email' => $this->email], false));
+
+        Mail::to($this->email)->send(new PasswordResetMail($this->name, $resetUrl));
+    }
 
     public function scopeActive($query)
     {

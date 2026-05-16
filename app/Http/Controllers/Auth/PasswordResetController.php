@@ -32,7 +32,7 @@ class PasswordResetController extends Controller
         );
 
         return $status === Password::RESET_LINK_SENT
-            ? back()->with('success', __($status))
+            ? back()->with('success', 'A password reset link has been sent to your email address.')
             : back()->withErrors(['email' => __($status)])->withInput();
     }
 
@@ -54,21 +54,89 @@ class PasswordResetController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::min(8)->mixedCase()->numbers()],
         ]);
 
+        $loggedInUser = null;
+
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
-            function (User $user, string $password) {
+            function (User $user, string $password) use (&$loggedInUser) {
                 $user->forceFill([
                     'password'       => Hash::make($password),
                     'remember_token' => Str::random(60),
                 ])->save();
 
                 event(new PasswordReset($user));
-                Auth::logout();
+                $loggedInUser = $user;
             }
         );
 
-        return $status === Password::PASSWORD_RESET
-            ? redirect()->route('login')->with('success', __($status))
-            : back()->withErrors(['email' => __($status)])->withInput($request->only('email'));
+        if ($status === Password::PASSWORD_RESET) {
+            Auth::login($loggedInUser);
+
+            return match ($loggedInUser->role) {
+                'admin'       => redirect()->route('admin.dashboard')->with('success', 'Password reset successfully.'),
+                'office_user' => redirect()->route('office.dashboard')->with('success', 'Password reset successfully.'),
+                default       => redirect()->route('citizen.dashboard')->with('success', 'Password reset successfully.'),
+            };
+        }
+
+        return back()->withErrors(['email' => __($status)])->withInput($request->only('email'));
+    }
+
+    // ── Admin Forgot / Reset Password ─────────────────────────────────────────
+
+    public function showAdminForgotForm()
+    {
+        return view('auth.admin-forgot-password');
+    }
+
+    public function sendAdminResetLink(Request $request)
+    {
+        $request->validate(['email' => ['required', 'email']]);
+
+        $status = Password::sendResetLink($request->only('email'));
+
+        return $status === Password::RESET_LINK_SENT
+            ? back()->with('success', 'A password reset link has been sent to your email address.')
+            : back()->withErrors(['email' => __($status)])->withInput();
+    }
+
+    public function showAdminResetForm(Request $request, string $token)
+    {
+        return view('auth.admin-reset-password', [
+            'token' => $token,
+            'email' => $request->email,
+        ]);
+    }
+
+    public function resetAdminPassword(Request $request)
+    {
+        $request->validate([
+            'token'    => ['required'],
+            'email'    => ['required', 'email'],
+            'password' => ['required', 'confirmed', Rules\Password::min(8)->mixedCase()->numbers()],
+        ]);
+
+        $loggedInUser = null;
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function (User $user, string $password) use (&$loggedInUser) {
+                $user->forceFill([
+                    'password'       => Hash::make($password),
+                    'remember_token' => Str::random(60),
+                ])->save();
+
+                event(new PasswordReset($user));
+                $loggedInUser = $user;
+            }
+        );
+
+        if ($status === Password::PASSWORD_RESET) {
+            Auth::login($loggedInUser);
+
+            return redirect()->route('admin.dashboard')->with('success', 'Password reset successfully.');
+        }
+
+        return back()->withErrors(['email' => __($status)])->withInput($request->only('email'));
     }
 }

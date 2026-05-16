@@ -1,23 +1,23 @@
 @extends('layouts.auth')
+@section('title', 'Reset Password — E-Services Platform')
 @section('auth_body_class', 'auth-variant-admin')
-@section('title', 'Admin Login — E-Services Platform')
 @section('auth_brand_icon', 'bi-shield-lock-fill')
 @section('auth_brand_title', __('ui.admin_panel'))
-@section('heading', __('ui.auth_admin_heading'))
-@section('heading_badge', __('ui.auth_admin_badge'))
-@section('subtitle', __('ui.auth_admin_subtitle'))
+@section('heading', __('ui.auth_reset_heading'))
+@section('subtitle', __('ui.auth_reset_subtitle'))
 
 @section('content')
-    <form method="POST" action="{{ route('admin.login.attempt') }}">
+    <form method="POST" action="{{ route('admin.password.update') }}">
         @csrf
+        <input type="hidden" name="token" value="{{ $token }}">
 
         <div class="mb-3">
-            <label for="email" class="form-label">{{ __('ui.auth_admin_email') }}</label>
+            <label for="email" class="form-label">{{ __('ui.auth_email') }}</label>
             <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-envelope"></i></span>
                 <input type="email" id="email" name="email"
                        class="form-control @error('email') is-invalid @enderror"
-                       value="{{ old('email') }}" placeholder="{{ __('ui.auth_email_placeholder') }}" required autofocus>
+                       value="{{ old('email', $email) }}" placeholder="{{ __('ui.auth_forgot_email_ph') }}" required>
                 @error('email')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -25,12 +25,13 @@
         </div>
 
         <div class="mb-3">
-            <label for="password" class="form-label">{{ __('ui.auth_password') }}</label>
+            <label for="password" class="form-label">{{ __('ui.auth_new_password') }}</label>
             <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-lock"></i></span>
                 <input type="password" id="password" name="password"
                        class="form-control @error('password') is-invalid @enderror"
-                       placeholder="{{ __('ui.auth_password_placeholder') }}" required>
+                       placeholder="{{ __('ui.auth_new_password_ph') }}"
+                       autocomplete="new-password" required>
                 <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                     <i class="bi bi-eye" id="eyeIcon"></i>
                 </button>
@@ -38,25 +39,28 @@
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
+            <div class="form-text">{{ __('ui.auth_password_strength') }}</div>
         </div>
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="remember" id="remember">
-                <label class="form-check-label small" for="remember">{{ __('ui.auth_remember_me') }}</label>
+        <div class="mb-4">
+            <label for="password_confirmation" class="form-label">{{ __('ui.auth_confirm_new_password') }}</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                <input type="password" id="password_confirmation" name="password_confirmation"
+                       class="form-control" placeholder="{{ __('ui.auth_confirm_new_ph') }}"
+                       autocomplete="new-password" required>
             </div>
-            <a href="{{ route('admin.password.request') }}" class="text-decoration-none small text-primary">{{ __('ui.auth_forgot_password') }}</a>
         </div>
 
         <button type="submit" class="btn btn-primary w-100 mb-3">
-            <i class="bi bi-shield-lock me-2"></i>{{ __('ui.auth_admin_sign_in') }}
+            <i class="bi bi-check-circle me-2"></i>{{ __('ui.auth_reset_btn') }}
         </button>
 
-        <div class="auth-links-stack text-center small text-muted pt-1">
-            <p class="mb-0">
-                <a href="{{ route('login') }}" class="text-decoration-none fw-semibold text-primary">{{ __('ui.auth_citizen_portal_link') }}</a>
-            </p>
-        </div>
+        <p class="text-center mb-0 small text-muted">
+            <a href="{{ route('admin.login') }}" class="text-decoration-none fw-semibold text-primary">
+                <i class="bi bi-arrow-{{ app()->getLocale() === 'ar' ? 'right' : 'left' }} me-1"></i>{{ __('ui.auth_back_to_login') }}
+            </a>
+        </p>
     </form>
 
     @push('scripts')

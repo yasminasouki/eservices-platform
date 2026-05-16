@@ -29,7 +29,8 @@
                 <span class="input-group-text"><i class="bi bi-lock"></i></span>
                 <input type="password" id="password" name="password"
                        class="form-control @error('password') is-invalid @enderror"
-                       placeholder="{{ __('ui.auth_new_password_ph') }}" required>
+                       placeholder="{{ __('ui.auth_new_password_ph') }}"
+                       autocomplete="new-password" required>
                 <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                     <i class="bi bi-eye" id="eyeIcon"></i>
                 </button>
@@ -45,7 +46,8 @@
             <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
                 <input type="password" id="password_confirmation" name="password_confirmation"
-                       class="form-control" placeholder="{{ __('ui.auth_confirm_new_ph') }}" required>
+                       class="form-control" placeholder="{{ __('ui.auth_confirm_new_ph') }}"
+                       autocomplete="new-password" required>
             </div>
         </div>
 
